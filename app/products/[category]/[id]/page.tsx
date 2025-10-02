@@ -69,8 +69,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
       <ECommerceHeader />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+          <nav className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">
             <Link href="/" className="hover:text-primary">
               Home
             </Link>
@@ -83,11 +82,10 @@ export default function ProductDetailPage({ params }: { params: { category: stri
               {product.category}
             </Link>
             <span>/</span>
-            <span className="text-foreground">{product.name}</span>
+            <span className="text-foreground truncate">{product.name}</span>
           </nav>
 
-          {/* Product Details */}
-          <div className="grid lg:grid-cols-2 gap-12 mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
             {/* Product Image */}
             <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
               <Image src={product.image || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
@@ -104,34 +102,34 @@ export default function ProductDetailPage({ params }: { params: { category: stri
 
             {/* Product Info */}
             <div>
-              <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-4">{product.name}</h1>
 
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-5 w-5 ${
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${
                         i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "fill-muted text-muted"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   {product.rating} ({product.reviews} reviews)
                 </span>
               </div>
 
-              <p className="text-muted-foreground mb-6">{product.description}</p>
+              <p className="text-sm sm:text-base text-muted-foreground mb-6">{product.description}</p>
 
-              <div className="flex items-baseline gap-4 mb-6">
-                <span className="text-4xl font-bold text-primary">₹{product.price.toLocaleString()}</span>
+              <div className="flex flex-wrap items-baseline gap-3 sm:gap-4 mb-6">
+                <span className="text-3xl sm:text-4xl font-bold text-primary">₹{product.price.toLocaleString()}</span>
                 {product.originalPrice && (
                   <>
-                    <span className="text-2xl text-muted-foreground line-through">
+                    <span className="text-xl sm:text-2xl text-muted-foreground line-through">
                       ₹{product.originalPrice.toLocaleString()}
                     </span>
-                    <Badge variant="destructive" className="text-base">
+                    <Badge variant="destructive" className="text-sm sm:text-base">
                       Save {discount}%
                     </Badge>
                   </>
@@ -142,7 +140,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                 <Badge variant={product.inStock ? "default" : "secondary"}>
                   {product.inStock ? "In Stock" : "Out of Stock"}
                 </Badge>
-                <span className="text-sm text-muted-foreground">GST Included</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">GST Included</span>
               </div>
 
               <Separator className="my-6" />
@@ -172,7 +170,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button className="flex-1" size="lg" disabled={!product.inStock} onClick={handleAddToCart}>
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     Add to Cart
@@ -180,7 +178,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                   <Button
                     variant={isWishlisted ? "default" : "outline"}
                     size="lg"
-                    className="px-6"
+                    className="sm:px-6"
                     onClick={handleWishlistToggle}
                   >
                     <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current" : ""}`} />
@@ -194,8 +192,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
 
               <Separator className="my-6" />
 
-              {/* Features */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-start gap-3">
                   <Truck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                   <div>
@@ -229,20 +226,26 @@ export default function ProductDetailPage({ params }: { params: { category: stri
           </div>
 
           {/* Product Details Tabs */}
-          <Card className="mb-16">
-            <CardContent className="p-6">
+          <Card className="mb-12 lg:mb-16">
+            <CardContent className="p-4 sm:p-6">
               <Tabs defaultValue="description">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="description">Description</TabsTrigger>
-                  <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                  <TabsTrigger value="reviews">Reviews ({product.reviews})</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 h-auto">
+                  <TabsTrigger value="description" className="text-xs sm:text-sm">
+                    Description
+                  </TabsTrigger>
+                  <TabsTrigger value="specifications" className="text-xs sm:text-sm">
+                    Specifications
+                  </TabsTrigger>
+                  <TabsTrigger value="reviews" className="text-xs sm:text-sm">
+                    Reviews ({product.reviews})
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="description" className="mt-6">
                   <div className="prose max-w-none">
-                    <h3 className="text-lg font-semibold mb-4">Product Description</h3>
-                    <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-                    <h4 className="text-base font-semibold mt-6 mb-3">Key Features:</h4>
-                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                    <h3 className="text-base sm:text-lg font-semibold mb-4">Product Description</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{product.description}</p>
+                    <h4 className="text-sm sm:text-base font-semibold mt-6 mb-3">Key Features:</h4>
+                    <ul className="list-disc list-inside space-y-2 text-sm sm:text-base text-muted-foreground">
                       <li>UIDAI Certified for Aadhaar authentication</li>
                       <li>High-quality optical sensor for accurate readings</li>
                       <li>USB plug-and-play connectivity</li>
@@ -252,35 +255,35 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                   </div>
                 </TabsContent>
                 <TabsContent value="specifications" className="mt-6">
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-4">Technical Specifications</h3>
+                      <h3 className="text-base sm:text-lg font-semibold mb-4">Technical Specifications</h3>
                       <dl className="space-y-3">
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-2 border-b text-sm">
                           <dt className="text-muted-foreground">Brand</dt>
                           <dd className="font-medium">ANAMICO</dd>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-2 border-b text-sm">
                           <dt className="text-muted-foreground">Model</dt>
                           <dd className="font-medium">{product.id}</dd>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-2 border-b text-sm">
                           <dt className="text-muted-foreground">Category</dt>
                           <dd className="font-medium capitalize">{product.category}</dd>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-2 border-b text-sm">
                           <dt className="text-muted-foreground">Connectivity</dt>
                           <dd className="font-medium">USB 2.0</dd>
                         </div>
-                        <div className="flex justify-between py-2 border-b">
+                        <div className="flex justify-between py-2 border-b text-sm">
                           <dt className="text-muted-foreground">Warranty</dt>
                           <dd className="font-medium">1 Year</dd>
                         </div>
                       </dl>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-4">Package Contents</h3>
-                      <ul className="space-y-2 text-muted-foreground">
+                      <h3 className="text-base sm:text-lg font-semibold mb-4">Package Contents</h3>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
                         <li>• 1x {product.name}</li>
                         <li>• 1x USB Cable</li>
                         <li>• 1x User Manual</li>
@@ -292,9 +295,9 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                 </TabsContent>
                 <TabsContent value="reviews" className="mt-6">
                   <div className="space-y-6">
-                    <div className="flex items-center gap-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
                       <div className="text-center">
-                        <div className="text-5xl font-bold mb-2">{product.rating}</div>
+                        <div className="text-4xl sm:text-5xl font-bold mb-2">{product.rating}</div>
                         <div className="flex items-center gap-1 mb-1">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
@@ -310,7 +313,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                         <p className="text-sm text-muted-foreground">{product.reviews} reviews</p>
                       </div>
                       <div className="flex-1">
-                        <p className="text-muted-foreground">
+                        <p className="text-sm sm:text-base text-muted-foreground">
                           Customer reviews help you choose the right product. Share your experience to help others.
                         </p>
                         <Button variant="outline" className="mt-4 bg-transparent">
@@ -327,8 +330,8 @@ export default function ProductDetailPage({ params }: { params: { category: stri
           {/* Related Products */}
           {relatedProducts.length > 0 && (
             <div>
-              <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6">Related Products</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedProducts.map((relatedProduct) => (
                   <ProductCard key={relatedProduct.id} product={relatedProduct} />
                 ))}

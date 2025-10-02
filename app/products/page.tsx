@@ -7,13 +7,13 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <ECommerceHeader />
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col md:flex-row">
         <CategorySidebar />
         <main className="flex-1">
           <div className="container mx-auto px-4 py-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">All Products</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">All Products</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
                 Browse our complete range of biometric devices, IT equipment, and security solutions
               </p>
             </div>
