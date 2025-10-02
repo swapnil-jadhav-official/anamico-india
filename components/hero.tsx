@@ -1,0 +1,72 @@
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Shield, Zap, Award } from "lucide-react"
+
+export function Hero() {
+  return (
+    <section
+      id="home"
+      className="relative overflow-hidden bg-gradient-to-br from-background via-background to-accent/5"
+    >
+      <div className="container mx-auto px-4 py-20 md:py-32">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <Shield className="h-4 w-4" />
+              India's Trusted Biometric Solutions Provider
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
+              Advanced Biometric Solutions for a <span className="text-primary">Secure Future</span>
+            </h1>
+
+            <p className="text-lg text-muted-foreground text-pretty max-w-xl">
+              ANAMICO India Private Limited delivers cutting-edge biometric devices, RD services, and access control
+              systems trusted by enterprises across India.
+            </p>
+
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" className="gap-2">
+                Explore Products
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button size="lg" variant="outline">
+                Contact Sales
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-8 pt-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Zap className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">500+</div>
+                  <div className="text-sm text-muted-foreground">Happy Clients</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Award className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">99.9%</div>
+                  <div className="text-sm text-muted-foreground">Accuracy Rate</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+              <img src="/modern-biometric-fingerprint-scanner-device-with-b.jpg" alt="Biometric Device" className="object-cover w-full h-full" />
+            </div>
+            <div className="absolute -bottom-6 -left-6 bg-card border rounded-xl p-4 shadow-lg">
+              <div className="text-sm text-muted-foreground">Certified by</div>
+              <div className="text-lg font-semibold">UIDAI & STQC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
