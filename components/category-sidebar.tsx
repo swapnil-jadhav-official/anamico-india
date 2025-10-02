@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useState } from "react"
 
 const categories = [
@@ -84,11 +84,11 @@ function CategoryNav() {
             <Link
               href={category.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                 isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground",
               )}
             >
-              <Icon className="h-4 w-4 flex-shrink-0" />
+              <Icon className="h-5 w-5 flex-shrink-0" />
               <span className="flex-1">{category.name}</span>
               {category.subcategories.length > 0 && <ChevronRight className="h-4 w-4 flex-shrink-0" />}
             </Link>
@@ -98,9 +98,9 @@ function CategoryNav() {
 
       <Link
         href="/products"
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary hover:bg-accent transition-colors mt-4"
+        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-primary hover:bg-accent transition-colors mt-4"
       >
-        <Package className="h-4 w-4" />
+        <Package className="h-5 w-5" />
         <span>View All Products</span>
       </Link>
     </nav>
@@ -120,9 +120,11 @@ export function CategorySidebar() {
               Categories
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
-            <div className="p-4">
-              <h2 className="font-semibold text-lg mb-4 px-2">Categories</h2>
+          <SheetContent side="left" className="w-80 px-0">
+            <SheetHeader className="px-6 pb-4 border-b">
+              <SheetTitle className="text-left">Product Categories</SheetTitle>
+            </SheetHeader>
+            <div className="px-4 py-4 overflow-y-auto h-[calc(100vh-80px)]">
               <CategoryNav />
             </div>
           </SheetContent>
