@@ -1,4 +1,4 @@
-import { Header } from "@/components/header"
+import { ECommerceHeader } from "@/components/e-commerce-header"
 import { Hero } from "@/components/hero"
 import { ProductCategories } from "@/components/product-categories"
 import { FeaturedProducts } from "@/components/featured-products"
@@ -11,7 +11,7 @@ import { Footer } from "@/components/footer"
 export default function Home() {
   return (
     <div className="min-h-screen">
-      <Header />
+      <ECommerceHeader />
       <main>
         <Hero />
         <ProductCategories />
