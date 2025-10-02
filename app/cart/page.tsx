@@ -45,15 +45,20 @@ export default function CartPage() {
             </Button>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => (
                 <Card key={item.id}>
                   <CardContent className="p-4">
-                    <div className="flex gap-4">
-                      <div className="relative w-24 h-24 flex-shrink-0 bg-muted rounded-lg overflow-hidden">
-                        <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="relative w-24 h-24 flex-shrink-0 bg-muted rounded-lg overflow-hidden self-center sm:self-start">
+                        <Image
+                          src={item.image || "/placeholder.svg"}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -63,29 +68,51 @@ export default function CartPage() {
                         >
                           {item.name}
                         </Link>
-                        <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
-                        <div className="flex items-center gap-4 mt-3">
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                          {item.description}
+                        </p>
+
+                        {/* Price for mobile view */}
+                        <div className="sm:hidden mt-2">
+                          <p className="font-bold text-lg">
+                            ₹{(item.price * item.quantity).toLocaleString()}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            ₹{item.price.toLocaleString()} each
+                          </p>
+                        </div>
+
+                        <div className="flex items-center flex-wrap gap-4 mt-3">
                           <div className="flex items-center gap-2">
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 bg-transparent"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity - 1)
+                              }
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
                             <Input
                               type="number"
                               value={item.quantity}
-                              onChange={(e) => updateQuantity(item.id, Number.parseInt(e.target.value) || 1)}
+                              onChange={(e) =>
+                                updateQuantity(
+                                  item.id,
+                                  Number.parseInt(e.target.value) || 1
+                                )
+                              }
                               className="w-16 h-8 text-center"
                               min="1"
                             />
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 bg-transparent"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
@@ -94,15 +121,16 @@ export default function CartPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFromCart(item.id)}
-                            className="text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive px-2"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Remove
+                            <Trash2 className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Remove</span>
                           </Button>
                         </div>
                       </div>
 
-                      <div className="text-right">
+                      {/* Price for desktop view */}
+      <div className="text-right hidden sm:block">
                         <p className="font-bold text-lg">₹{(item.price * item.quantity).toLocaleString()}</p>
                         <p className="text-sm text-muted-foreground">₹{item.price.toLocaleString()} each</p>
                       </div>
