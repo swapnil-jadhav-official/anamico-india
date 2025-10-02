@@ -3,6 +3,7 @@ import { Hero } from "@/components/hero"
 import { ProductCategories } from "@/components/product-categories"
 import { FeaturedProducts } from "@/components/featured-products"
 import { Services } from "@/components/services"
+import { AboutCompany } from "@/components/about-company"
 import { WhyChooseUs } from "@/components/why-choose-us"
 import { ContactCTA } from "@/components/contact-cta"
 import { Footer } from "@/components/footer"
@@ -16,6 +17,7 @@ export default function Home() {
         <ProductCategories />
         <FeaturedProducts />
         <Services />
+        <AboutCompany />
         <WhyChooseUs />
         <ContactCTA />
       </main>

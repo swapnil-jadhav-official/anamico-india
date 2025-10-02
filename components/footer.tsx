@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react"
+import { Facebook, Twitter, Linkedin, Instagram, Phone, Mail, MapPin } from "lucide-react"
 
 export function Footer() {
   return (
@@ -15,8 +15,40 @@ export function Footer() {
               className="h-10 w-auto"
             />
             <p className="text-sm text-muted-foreground">
-              Leading provider of biometric solutions and RD services in India.
+              ISO 27001:2013 & ISO 9001:2015 certified provider of biometric solutions and IT services.
             </p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-start gap-2">
+                <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                <div>
+                  <a href="tel:+919818424815" className="hover:text-primary transition-colors">
+                    +91 9818424815
+                  </a>
+                  <br />
+                  <a href="tel:+918826353408" className="hover:text-primary transition-colors">
+                    +91 8826353408
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Mail className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                <div>
+                  <a href="mailto:info@anamicoindia.com" className="hover:text-primary transition-colors">
+                    info@anamicoindia.com
+                  </a>
+                  <br />
+                  <a href="mailto:anamicoindia@gmail.com" className="hover:text-primary transition-colors">
+                    anamicoindia@gmail.com
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                <span className="text-muted-foreground">
+                  204, WZ-663, Madipur Main Village Road, Near Punjabi Bagh Apartment, New Delhi - 110063
+                </span>
+              </div>
+            </div>
             <div className="flex gap-3">
               <a
                 href="#"
@@ -73,6 +105,16 @@ export function Footer() {
                   AEPS Devices
                 </a>
               </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Surveillance Systems
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  Networking Solutions
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -86,22 +128,27 @@ export function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
-                  Installation
+                  IT Equipment Repair
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
-                  Technical Support
+                  Manpower Services
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
-                  Maintenance
+                  System Integration
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
-                  Training
+                  E-KYC Services
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-primary transition-colors">
+                  AMC Services
                 </a>
               </li>
             </ul>
@@ -136,6 +183,11 @@ export function Footer() {
                 </a>
               </li>
             </ul>
+            <div className="mt-6 space-y-1 text-xs text-muted-foreground">
+              <div>CIN: U74999DL2022PTC400835</div>
+              <div>GST: 07AAXCA2423P1Z3</div>
+              <div>MSME: UDYAM-DL-11-0040646</div>
+            </div>
           </div>
         </div>
 

@@ -5,9 +5,9 @@ import { Star, ShoppingCart } from "lucide-react"
 
 const products = [
   {
-    name: "Mantra MFS100",
+    name: "Mantra MFS 110",
     category: "Fingerprint Scanner",
-    image: "/mantra-fingerprint-scanner-device.jpg",
+    image: "/mantra-fingerprint-scanner.jpg",
     rating: 4.8,
     reviews: 245,
     price: "₹2,499",
@@ -16,28 +16,64 @@ const products = [
   {
     name: "Morpho MSO 1300 E3",
     category: "Fingerprint Scanner",
-    image: "/morpho-biometric-fingerprint-device.jpg",
+    image: "/morpho-biometric-device.jpg",
     rating: 4.9,
     reviews: 189,
     price: "₹3,299",
     badge: "UIDAI Certified",
   },
   {
-    name: "Startek FM220U",
-    category: "Fingerprint Scanner",
-    image: "/startek-fingerprint-scanner.jpg",
+    name: "Mantra MIS100 V2",
+    category: "IRIS Scanner",
+    image: "/iris-scanner-biometric.jpg",
     rating: 4.7,
     reviews: 156,
+    price: "₹8,999",
+    badge: "Premium",
+  },
+  {
+    name: "Startek FM 220U L1",
+    category: "Fingerprint Scanner",
+    image: "/startek-fingerprint-device.jpg",
+    rating: 4.9,
+    reviews: 98,
     price: "₹2,799",
     badge: "New Arrival",
   },
   {
-    name: "Precision PB510",
-    category: "IRIS Scanner",
-    image: "/iris-scanner-biometric-device.jpg",
+    name: "Cogent CSD200",
+    category: "Fingerprint Scanner",
+    image: "/cogent-fingerprint-scanner.jpg",
+    rating: 4.8,
+    reviews: 134,
+    price: "₹3,499",
+    badge: "L1 Certified",
+  },
+  {
+    name: "Aratek A600",
+    category: "Fingerprint Scanner",
+    image: "/aratek-biometric-scanner.jpg",
+    rating: 4.7,
+    reviews: 112,
+    price: "₹2,899",
+    badge: "Popular",
+  },
+  {
+    name: "CMITech BMT 20 Iris",
+    category: "Dual IRIS Scanner",
+    image: "/dual-iris-scanner.jpg",
     rating: 4.9,
-    reviews: 98,
-    price: "₹8,999",
+    reviews: 87,
+    price: "₹12,999",
+    badge: "Advanced",
+  },
+  {
+    name: "Suprema Realscan 4G",
+    category: "L1 Fingerprint Scanner",
+    image: "/suprema-fingerprint-device.jpg",
+    rating: 4.9,
+    reviews: 156,
+    price: "₹4,999",
     badge: "Premium",
   },
 ]
@@ -49,7 +85,7 @@ export function FeaturedProducts() {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">Featured Products</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Top-rated biometric devices trusted by thousands of businesses
+            UIDAI certified biometric devices trusted by thousands of businesses across India
           </p>
         </div>
 

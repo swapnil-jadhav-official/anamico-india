@@ -1,12 +1,41 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, Server, Headphones, Wrench } from "lucide-react"
+import { CheckCircle2, Server, Headphones, Wrench, Users, Briefcase } from "lucide-react"
 
 const services = [
   {
     icon: Server,
+    title: "IT Infrastructure Services",
+    description:
+      "Complete IT solutions including installation, consultancy, and technical support for various industry verticals",
+    features: [
+      "System & network integration",
+      "IT infrastructure setup",
+      "Technology consulting",
+      "Multi-environment support",
+    ],
+  },
+  {
+    icon: Users,
+    title: "Manpower Services",
+    description: "Skilled technical manpower supply for government and enterprise projects across India",
+    features: [
+      "UIDAI project staffing",
+      "Technical resource deployment",
+      "Trained professionals",
+      "Pan-India coverage",
+    ],
+  },
+  {
+    icon: Briefcase,
+    title: "Project Management",
+    description: "End-to-end project management services with focus on operational excellence and innovation",
+    features: ["Government project execution", "Quality management", "Timely delivery", "Cost-effective solutions"],
+  },
+  {
+    icon: Server,
     title: "RD Service",
-    description: "Registered Device Service for AADHAR authentication with 99.9% uptime guarantee",
+    description: "Registered Device Service for AADHAR authentication with UIDAI certification",
     features: [
       "UIDAI Certified RD Service",
       "Real-time authentication",
@@ -17,14 +46,14 @@ const services = [
   {
     icon: Wrench,
     title: "Installation & Setup",
-    description: "Professional installation and configuration services for all biometric systems",
+    description: "Professional installation and configuration services for biometric and IT systems",
     features: ["On-site installation", "System configuration", "Network integration", "Staff training"],
   },
   {
     icon: Headphones,
     title: "Technical Support",
-    description: "24/7 technical support and maintenance services for uninterrupted operations",
-    features: ["24/7 helpdesk support", "Remote troubleshooting", "Regular maintenance", "Software updates"],
+    description: "Dedicated technical support with world-class resources for uninterrupted operations",
+    features: ["Expert helpdesk support", "Remote troubleshooting", "Regular maintenance", "Software updates"],
   },
 ]
 
@@ -35,11 +64,11 @@ export function Services() {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">Professional Services</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Complete support from installation to maintenance
+            Full-spectrum IT, manpower, and project management services for government and enterprise
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
             <Card key={service.title} className="relative overflow-hidden">
               <CardContent className="p-6 space-y-4">

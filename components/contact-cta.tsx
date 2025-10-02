@@ -22,7 +22,8 @@ export function ContactCTA() {
                 </div>
                 <div>
                   <div className="text-sm text-primary-foreground/70">Call Us</div>
-                  <div className="font-semibold">+91 1800-XXX-XXXX</div>
+                  <div className="font-semibold">+91 9818424815</div>
+                  <div className="font-semibold">+91 8826353408</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -31,7 +32,8 @@ export function ContactCTA() {
                 </div>
                 <div>
                   <div className="text-sm text-primary-foreground/70">Email Us</div>
-                  <div className="font-semibold">info@anamico.in</div>
+                  <div className="font-semibold">info@anamicoindia.com</div>
+                  <div className="text-sm">anamicoindia@gmail.com</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -40,7 +42,8 @@ export function ContactCTA() {
                 </div>
                 <div>
                   <div className="text-sm text-primary-foreground/70">Visit Us</div>
-                  <div className="font-semibold">Mumbai, Maharashtra, India</div>
+                  <div className="font-semibold">204, WZ-663, Madipur Main Village Road</div>
+                  <div className="text-sm">Near Punjabi Bagh Apartment, New Delhi - 110063</div>
                 </div>
               </div>
             </div>

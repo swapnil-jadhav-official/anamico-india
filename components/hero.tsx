@@ -12,16 +12,16 @@ export function Hero() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
               <Shield className="h-4 w-4" />
-              India's Trusted Biometric Solutions Provider
+              ISO 27001:2013 & ISO 9001:2015 Certified
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
-              Advanced Biometric Solutions for a <span className="text-primary">Secure Future</span>
+              Complete IT Solutions & <span className="text-primary">Biometric Technology</span>
             </h1>
 
             <p className="text-lg text-muted-foreground text-pretty max-w-xl">
-              ANAMICO India Private Limited delivers cutting-edge biometric devices, RD services, and access control
-              systems trusted by enterprises across India.
+              ANAMICO India Private Limited delivers comprehensive IT solutions, biometric devices, and project
+              management services to government and enterprise organizations across India.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -40,8 +40,8 @@ export function Hero() {
                   <Zap className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">500+</div>
-                  <div className="text-sm text-muted-foreground">Happy Clients</div>
+                  <div className="text-2xl font-bold">9+ Years</div>
+                  <div className="text-sm text-muted-foreground">Industry Experience</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -49,8 +49,8 @@ export function Hero() {
                   <Award className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">99.9%</div>
-                  <div className="text-sm text-muted-foreground">Accuracy Rate</div>
+                  <div className="text-2xl font-bold">UIDAI</div>
+                  <div className="text-sm text-muted-foreground">Certified Partner</div>
                 </div>
               </div>
             </div>
@@ -58,11 +58,15 @@ export function Hero() {
 
           <div className="relative">
             <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
-              <img src="/modern-biometric-fingerprint-scanner-device-with-b.jpg" alt="Biometric Device" className="object-cover w-full h-full" />
+              <img
+                src="/modern-biometric-fingerprint-scanner-device-with-b.jpg"
+                alt="Biometric Device"
+                className="object-cover w-full h-full"
+              />
             </div>
             <div className="absolute -bottom-6 -left-6 bg-card border rounded-xl p-4 shadow-lg">
-              <div className="text-sm text-muted-foreground">Certified by</div>
-              <div className="text-lg font-semibold">UIDAI & STQC</div>
+              <div className="text-sm text-muted-foreground">Certified</div>
+              <div className="text-lg font-semibold">ISO 27001 & 9001</div>
             </div>
           </div>
         </div>
