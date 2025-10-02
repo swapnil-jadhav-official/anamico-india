@@ -7,7 +7,7 @@ export default function RDServicePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <ECommerceHeader />
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col md:flex-row">
         <CategorySidebar />
         <main className="flex-1">
           <div className="container mx-auto px-4 py-8">
