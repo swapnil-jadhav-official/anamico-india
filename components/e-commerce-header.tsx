@@ -1,19 +1,32 @@
-"use client"
+"use client";
 
-import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
-import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Heart, ShoppingCart, User, Menu, Phone, Mail } from "lucide-react"
-import { useCart } from "@/lib/cart-context"
-import { useWishlist } from "@/lib/wishlist-context"
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Search,
+  Heart,
+  ShoppingCart,
+  User,
+  Menu,
+  Phone,
+  Mail,
+} from "lucide-react";
+import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 
 export function ECommerceHeader() {
-  const { totalItems } = useCart()
-  const { totalItems: wishlistCount } = useWishlist()
+  const { totalItems } = useCart();
+  const { totalItems: wishlistCount } = useWishlist();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
@@ -28,10 +41,11 @@ export function ECommerceHeader() {
               </div>
               <div className="hidden md:flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 text-primary" />
-                <span className="text-muted-foreground">info@anamicoindia.com</span>
+                <span className="text-muted-foreground">
+                  info@anamicoindia.com
+                </span>
               </div>
             </div>
-            <div className="text-muted-foreground">ISO 27001:2013 & ISO 9001:2015 Certified</div>
           </div>
         </div>
       </div>
@@ -64,10 +78,14 @@ export function ECommerceHeader() {
                   <Link href="/products/electronics">Electronics</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/products/computers">Computers & Peripherals</Link>
+                  <Link href="/products/computers">
+                    Computers & Peripherals
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/products/surveillance">Surveillance Solutions</Link>
+                  <Link href="/products/surveillance">
+                    Surveillance Solutions
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/products/networking">Networking Equipment</Link>
@@ -78,19 +96,31 @@ export function ECommerceHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link href="/services" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link
+              href="/services"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Services
             </Link>
 
-            <Link href="/downloads" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link
+              href="/downloads"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Downloads
             </Link>
 
-            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link
+              href="/about"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               About Us
             </Link>
 
-            <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link
+              href="/contact"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
               Contact
             </Link>
           </nav>
@@ -98,8 +128,16 @@ export function ECommerceHeader() {
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-xl">
             <div className="relative w-full">
-              <Input type="search" placeholder="Search for products..." className="w-full pr-10" />
-              <Button size="icon" variant="ghost" className="absolute right-0 top-0 h-full">
+              <Input
+                type="search"
+                placeholder="Search for products..."
+                className="w-full pr-10"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-0 top-0 h-full"
+              >
                 <Search className="h-4 w-4" />
               </Button>
             </div>
@@ -108,7 +146,12 @@ export function ECommerceHeader() {
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
             {/* Wishlist */}
-            <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex" asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hidden sm:inline-flex"
+              asChild
+            >
               <Link href="/wishlist">
                 <Heart className="h-5 w-5" />
                 {wishlistCount > 0 && (
@@ -132,7 +175,12 @@ export function ECommerceHeader() {
             </Button>
 
             {/* Login */}
-            <Button variant="default" size="sm" className="hidden sm:inline-flex" asChild>
+            <Button
+              variant="default"
+              size="sm"
+              className="hidden sm:inline-flex"
+              asChild
+            >
               <Link href="/login">
                 <User className="h-4 w-4 mr-2" />
                 Login
@@ -146,36 +194,93 @@ export function ECommerceHeader() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <div className="flex flex-col gap-6 mt-6">
-                  <div className="relative">
-                    <Input type="search" placeholder="Search products..." className="w-full pr-10" />
-                    <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <SheetContent side="right" className="w-full max-w-sm">
+                <div className="flex h-full flex-col">
+                  <div className="border-b p-6">
+                    <Link href="/" className="flex items-center gap-2">
+                      <Image
+                        src="/images/anamico-logo.jpeg"
+                        alt="ANAMICO India"
+                        width={140}
+                        height={40}
+                        className="h-10 w-auto"
+                      />
+                    </Link>
                   </div>
 
-                  <nav className="flex flex-col gap-4">
-                    <Link href="/products" className="text-sm font-medium hover:text-primary">
+                  <div className="p-6">
+                    <div className="relative w-full">
+                      <Input
+                        type="search"
+                        placeholder="Search products..."
+                        className="w-full pr-10"
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute right-0 top-0 h-full"
+                        aria-label="Search"
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <nav className="flex-1 space-y-1 px-6">
+                    <Link
+                      href="/products"
+                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
+                    >
                       Products
                     </Link>
-                    <Link href="/services" className="text-sm font-medium hover:text-primary">
+                    <Link
+                      href="/services"
+                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
+                    >
                       Services
                     </Link>
-                    <Link href="/downloads" className="text-sm font-medium hover:text-primary">
+                    <Link
+                      href="/downloads"
+                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
+                    >
                       Downloads
                     </Link>
-                    <Link href="/about" className="text-sm font-medium hover:text-primary">
+                    <Link
+                      href="/about"
+                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
+                    >
                       About Us
                     </Link>
-                    <Link href="/contact" className="text-sm font-medium hover:text-primary">
+                    <Link
+                      href="/contact"
+                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
+                    >
                       Contact
                     </Link>
-                    <Link href="/wishlist" className="text-sm font-medium hover:text-primary">
-                      Wishlist ({wishlistCount})
-                    </Link>
-                    <Link href="/login" className="text-sm font-medium hover:text-primary">
-                      Login
-                    </Link>
                   </nav>
+
+                  <div className="mt-auto border-t p-6">
+                    <div className="space-y-4">
+                      <Link
+                        href="/wishlist"
+                        className="group -mx-3 flex items-center justify-between rounded-lg bg-background px-3 py-2 text-base font-medium hover:bg-accent"
+                      >
+                        <span>Wishlist</span>
+                        <Badge
+                          variant="outline"
+                          className="transition-colors group-hover:bg-background"
+                        >
+                          {wishlistCount}
+                        </Badge>
+                      </Link>
+                      <Button asChild className="w-full">
+                        <Link href="/login">
+                          <User className="mr-2 h-5 w-5" />
+                          Login / Register
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -183,5 +288,5 @@ export function ECommerceHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
