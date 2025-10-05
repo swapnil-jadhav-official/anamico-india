@@ -1,0 +1,31 @@
+You are an expert frontend developer creating a comprehensive product management dashboard in React.
+
+Your next task is to update the main App component to feature a responsive, two-column layout. This new layout will serve as the main screen for product management, with navigation and tools on the left and the main content area on the right.
+
+Key Requirements:
+
+Layout Structure:
+
+Implement a main container that uses a responsive grid. On large screens (desktops), it should be a three-part grid (lg:grid-cols-3).
+
+Left Column: This column should span one-third of the width on large screens (lg:col-span-1). It will contain the ProductListTools component, which includes the product search, a list of existing products, and tool buttons.
+
+Right Column: This column should span two-thirds of the width on large screens (lg:col-span-2). It will house the main "Add New Product" stepper form that you've already built.
+
+Responsiveness: On smaller screens (tablets and mobile), the columns should stack vertically, with the ProductListTools appearing above the stepper form.
+
+Component Integration:
+
+The main App component should render both the ProductListTools component and the stepper form within this new grid layout.
+
+Ensure there is appropriate spacing (gap) between the columns on larger screens.
+
+Styling:
+
+Continue using Tailwind CSS for all styling.
+
+The overall background of the page should remain a light gray (bg-gray-100 dark:bg-gray-900) to frame the components.
+
+Both the left and right column components should have a card-like appearance with rounded corners and shadows, consistent with the existing design.
+
+Theme & Tech Consistency: Ensure the new layout seamlessly integrates with the existing technology stack (React, Hooks) and visual theme, maintaining consistency with the current component styling and color palette.
