@@ -25,6 +25,23 @@ import { Badge } from "@/components/ui/badge";
 
 import { useToast } from "@/hooks/use-toast";
 
+type ProductData = {
+  name: string;
+  brand: string;
+  category: string;
+  description: string;
+  features: string[];
+  regularPrice: string;
+  salePrice: string;
+  sku: string;
+  stock: string;
+  availability: string;
+  technicalSpecifications: { key: string; value: string }[];
+  hardwareSpecifications: { key: string; value: string }[];
+  options: { name: string; values: string }[];
+  imageUrl: string | null;
+};
+
 const steps = [
   { id: 1, name: "Product Identity" },
   { id: 2, name: "Commercial Details" },
@@ -46,13 +63,37 @@ const initialProductState = {
   technicalSpecifications: [{ key: "", value: "" }],
   hardwareSpecifications: [{ key: "", value: "" }],
   options: [{ name: "", values: "" }],
+  imageUrl: null as string | null,
 };
 
 export function ProductStepperForm({ product, onSubmit, isSubmitting }: { product: any | null; onSubmit: (data: any) => void; isSubmitting: boolean; }) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-  const [productData, setProductData] = useState(initialProductState);
+  const [productData, setProductData] = useState<ProductData>(initialProductState);
   const [errors, setErrors] = useState<any>({});
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setImageUrl(data.url);
+        setProductData((prev) => ({ ...prev, imageUrl: data.url }));
+      } else {
+        console.error('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  };
 
   const validateStep = (step: number) => {
     const newErrors: any = {};
@@ -74,24 +115,32 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
 
   useEffect(() => {
     if (product) {
+      const parsedFeatures = product.features ? JSON.parse(product.features) : [""];
+      const parsedTechSpecs = product.technicalSpecifications ? JSON.parse(product.technicalSpecifications) : [{ key: "", value: "" }];
+      const parsedHardwareSpecs = product.hardwareSpecifications ? JSON.parse(product.hardwareSpecifications) : [{ key: "", value: "" }];
+      const parsedOptions = product.options ? JSON.parse(product.options) : [{ name: "", values: "" }];
+
       setProductData({
         name: product.name || "",
         brand: product.brand || "",
         category: product.category || "",
         description: product.description || "",
-        features: product.features ? JSON.parse(product.features) : [""],
+        features: parsedFeatures,
         regularPrice: product.regularPrice || "",
         salePrice: product.salePrice || "",
         sku: product.sku || "",
         stock: product.stock || "",
         availability: product.availability || "in-stock",
-        technicalSpecifications: product.technicalSpecifications ? JSON.parse(product.technicalSpecifications) : [{ key: "", value: "" }],
-        hardwareSpecifications: product.hardwareSpecifications ? JSON.parse(product.hardwareSpecifications) : [{ key: "", value: "" }],
-        options: product.options ? JSON.parse(product.options) : [{ name: "", values: "" }],
+        technicalSpecifications: parsedTechSpecs,
+        hardwareSpecifications: parsedHardwareSpecs,
+        options: parsedOptions,
+        imageUrl: product.imageUrl || null,
       });
+      setImageUrl(product.imageUrl || null);
       setCurrentStep(1);
     } else {
       setProductData(initialProductState);
+      setImageUrl(null);
       setCurrentStep(1);
     }
   }, [product]);
@@ -266,7 +315,27 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
               {/* Media & Downloads */}
               <div className="space-y-4 p-4 border rounded-lg">
                 <h3 className="text-lg font-medium">Media & Downloads</h3>
-                <div><Label>Main Product Image</Label><div className="flex items-center justify-center w-full"><label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80"><div className="flex flex-col items-center justify-center pt-5 pb-6"><UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" /><p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag & drop</p></div><input id="dropzone-file" type="file" className="hidden" /></label></div></div>
+                <div>
+                  <Label>Main Product Image</Label>
+                  {imageUrl ? (
+                    <div className="relative h-48 w-full">
+                      <img src={imageUrl} alt="Uploaded product image" className="h-full w-full object-contain" />
+                      <Button variant="destructive" size="sm" className="absolute top-2 right-2" onClick={() => { setImageUrl(null); setProductData(prev => ({ ...prev, imageUrl: null })); }}>
+                        Remove Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-full">
+                      <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag & drop</p>
+                        </div>
+                        <input id="dropzone-file" type="file" className="hidden" onChange={(e) => e.target.files && handleImageUpload(e.target.files[0])} />
+                      </label>
+                    </div>
+                  )}
+                </div>
                 <div><Label>Image Gallery</Label><div className="flex items-center justify-center w-full"><label htmlFor="dropzone-gallery" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80"><div className="flex flex-col items-center justify-center pt-5 pb-6"><UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" /><p className="text-sm text-muted-foreground"><span className="font-semibold">Click to upload multiple images</span></p></div><input id="dropzone-gallery" type="file" multiple className="hidden" /></label></div></div>
               </div>
             </div>

@@ -107,7 +107,7 @@ export function ProductListTools({ products, onEditProduct, onAddNew, onProductU
                 onClick={() => setSelectedProduct(product)}
               >
                 <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                    <Image src={product.image || "/placeholder.jpg"} alt={product.name} fill className="object-cover" />
+                    <Image src={product.imageUrl || "/placeholder.jpg"} alt={product.name} fill className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{product.name}</p>
