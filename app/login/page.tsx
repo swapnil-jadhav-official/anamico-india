@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,9 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,14 +16,58 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, MessageSquare, Smartphone } from "lucide-react";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (status === "authenticated") {
+      if (session?.user?.isNewUser) {
+        router.push("/register/complete");
+      } else if (session?.user?.role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/");
+      }
+    }
+  }, [session, status, router]);
+
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd have validation and an API call here.
-    // For this demo, we'll just redirect.
-    router.push("/admin");
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/otp/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setOtpSent(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const callbackUrl = session?.user?.role === "admin" ? "/admin/dashboard" : "/";
+      await signIn("credentials", { email, otp, callbackUrl });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -37,13 +79,13 @@ export default function LoginPage() {
               Enter your credentials to access your admin panel
             </p>
           </div>
-          <Tabs defaultValue="password" className="w-full">
+          <Tabs defaultValue="otp" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="password">Password</TabsTrigger>
               <TabsTrigger value="otp">OTP</TabsTrigger>
             </TabsList>
             <TabsContent value="password">
-              <form onSubmit={handleLogin}>
+              <form>
                 <Card className="border-none shadow-none">
                   <CardContent className="space-y-4 p-0 pt-4">
                     <div className="grid gap-2">
@@ -73,28 +115,27 @@ export default function LoginPage() {
               </form>
             </TabsContent>
             <TabsContent value="otp">
-              <form onSubmit={handleLogin}>
+              <form onSubmit={otpSent ? handleLogin : handleSendOtp}>
                 <Card className="border-none shadow-none">
                   <CardContent className="space-y-4 p-0 pt-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="email-otp">Email or Mobile</Label>
+                      <Label htmlFor="email-otp">Email</Label>
                       <div className="relative">
                          <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="email-otp" type="text" placeholder="name@example.com / 9876543210" required className="pl-10" />
+                        <Input id="email-otp" type="email" placeholder="name@example.com" required className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} disabled={otpSent || isLoading} />
                       </div>
                     </div>
-                    <Button type="button" variant="outline" className="w-full">
-                      Send OTP
-                    </Button>
-                    <div className="grid gap-2">
-                      <Label htmlFor="otp">OTP</Label>
-                      <div className="relative">
-                        <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="otp" type="text" required className="pl-10" placeholder="Enter your 6-digit OTP" />
+                    {otpSent && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="otp">OTP</Label>
+                        <div className="relative">
+                          <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input id="otp" type="text" required className="pl-10" placeholder="Enter your 6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} disabled={isLoading} />
+                        </div>
                       </div>
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Verify OTP & Login
+                    )}
+                    <Button type="submit" variant="outline" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Loading..." : otpSent ? "Verify OTP & Login" : "Send OTP"}
                     </Button>
                   </CardContent>
                 </Card>

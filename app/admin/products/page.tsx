@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
 import { ProductListTools } from "@/components/admin/product-list-tools";
@@ -20,7 +20,27 @@ type Product = {
 };
 
 export default function ProductManagementPage() {
+  const [products, setProducts] = useState<Product[]>([]);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('/api/admin/products');
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data);
+      } else {
+        console.error('Failed to fetch products');
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const handleEditProduct = (product: Product) => {
     setProductToEdit(product);
@@ -28,6 +48,36 @@ export default function ProductManagementPage() {
 
   const handleAddNew = () => {
     setProductToEdit(null); // Clear the form for a new entry
+  };
+
+  const handleSubmitProduct = async (productData: Omit<Product, 'id'>) => {
+    setIsSubmitting(true);
+    try {
+      const url = productToEdit ? `/api/admin/products/${productToEdit.id}` : '/api/admin/products';
+      const method = productToEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      });
+
+      if (res.ok) {
+        // Handle success, e.g., clear form, show toast, refresh list
+        console.log(productToEdit ? 'Product updated successfully' : 'Product created successfully');
+        setProductToEdit(null); // Clear form after submission
+        fetchProducts(); // Refresh the product list
+      } else {
+        // Handle error
+        console.error(productToEdit ? 'Failed to update product' : 'Failed to create product');
+      }
+    } catch (error) {
+      console.error('Error submitting product:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -41,10 +91,10 @@ export default function ProductManagementPage() {
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <ProductListTools onEditProduct={handleEditProduct} onAddNew={handleAddNew} />
+            <ProductListTools products={products} onEditProduct={handleEditProduct} onAddNew={handleAddNew} onProductUpdate={fetchProducts} />
           </div>
           <div className="lg:col-span-2">
-            <ProductStepperForm product={productToEdit} />
+            <ProductStepperForm product={productToEdit} onSubmit={handleSubmitProduct} isSubmitting={isSubmitting} />
           </div>
         </div>
       </main>

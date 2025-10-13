@@ -1,0 +1,1 @@
+ALTER TABLE `product` ADD `isActive` boolean DEFAULT false NOT NULL;

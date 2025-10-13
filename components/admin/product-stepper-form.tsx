@@ -23,6 +23,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { UploadCloud, PlusCircle, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+import { useToast } from "@/hooks/use-toast";
+
 const steps = [
   { id: 1, name: "Product Identity" },
   { id: 2, name: "Commercial Details" },
@@ -46,9 +48,29 @@ const initialProductState = {
   options: [{ name: "", values: "" }],
 };
 
-export function ProductStepperForm({ product }: { product: any | null }) {
+export function ProductStepperForm({ product, onSubmit, isSubmitting }: { product: any | null; onSubmit: (data: any) => void; isSubmitting: boolean; }) {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [productData, setProductData] = useState(initialProductState);
+  const [errors, setErrors] = useState<any>({});
+
+  const validateStep = (step: number) => {
+    const newErrors: any = {};
+    if (step === 1) {
+      if (!productData.name) newErrors.name = "Product name is required.";
+      if (!productData.brand) newErrors.brand = "Brand is required.";
+      if (!productData.category) newErrors.category = "Category is required.";
+      if (!productData.description) newErrors.description = "Description is required.";
+    }
+    if (step === 2) {
+      if (!productData.regularPrice) newErrors.regularPrice = "Regular price is required.";
+      if (!productData.stock) newErrors.stock = "Stock quantity is required.";
+      if (!productData.sku) newErrors.sku = "SKU is required.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
 
   useEffect(() => {
     if (product) {
@@ -57,15 +79,15 @@ export function ProductStepperForm({ product }: { product: any | null }) {
         brand: product.brand || "",
         category: product.category || "",
         description: product.description || "",
-        features: product.features?.length ? product.features : [""],
+        features: product.features ? JSON.parse(product.features) : [""],
         regularPrice: product.regularPrice || "",
         salePrice: product.salePrice || "",
         sku: product.sku || "",
         stock: product.stock || "",
         availability: product.availability || "in-stock",
-        technicalSpecifications: product.technicalSpecifications?.length ? product.technicalSpecifications : [{ key: "", value: "" }],
-        hardwareSpecifications: product.hardwareSpecifications?.length ? product.hardwareSpecifications : [{ key: "", value: "" }],
-        options: product.options?.length ? product.options : [{ name: "", values: "" }],
+        technicalSpecifications: product.technicalSpecifications ? JSON.parse(product.technicalSpecifications) : [{ key: "", value: "" }],
+        hardwareSpecifications: product.hardwareSpecifications ? JSON.parse(product.hardwareSpecifications) : [{ key: "", value: "" }],
+        options: product.options ? JSON.parse(product.options) : [{ name: "", values: "" }],
       });
       setCurrentStep(1);
     } else {
@@ -117,8 +139,38 @@ export function ProductStepperForm({ product }: { product: any | null }) {
     }
   };
 
-  const handleNext = () => currentStep < steps.length && setCurrentStep(currentStep + 1);
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      currentStep < steps.length && setCurrentStep(currentStep + 1);
+    }
+  };
   const handlePrev = () => currentStep > 1 && setCurrentStep(currentStep - 1);
+
+  const handleFormSubmit = async () => {
+    if (validateStep(1) && validateStep(2)) {
+      try {
+        await onSubmit(productData);
+        toast({ title: "Success", description: "Product submitted successfully." });
+        resetForm();
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to submit product.", variant: "destructive" });
+      }
+    } else {
+      // Find the first step with an error and go to it
+      for (let i = 1; i <= steps.length; i++) {
+        if (!validateStep(i)) {
+          setCurrentStep(i);
+          break;
+        }
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setProductData(initialProductState);
+    setCurrentStep(1);
+    setErrors({});
+  };
 
   return (
     <Card>
@@ -167,11 +219,39 @@ export function ProductStepperForm({ product }: { product: any | null }) {
               <div className="space-y-4 p-4 border rounded-lg">
                 <h3 className="text-lg font-medium">Core Details</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2"><Label htmlFor="name">Product Name</Label><Input id="name" value={productData.name} onChange={handleInputChange} /></div>
-                  <div className="grid gap-2"><Label htmlFor="brand">Brand</Label><Input id="brand" value={productData.brand} onChange={handleInputChange} /></div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Product Name <span className="text-red-500">*</span></Label>
+                    <Input id="name" value={productData.name} onChange={handleInputChange} />
+                    {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="brand">Brand <span className="text-red-500">*</span></Label>
+                    <Input id="brand" value={productData.brand} onChange={handleInputChange} />
+                    {errors.brand && <p className="text-red-500 text-sm">{errors.brand}</p>}
+                  </div>
                 </div>
-                <div className="grid gap-2"><Label htmlFor="category">Category</Label><Select onValueChange={(v) => handleSelectChange('category', v)} value={productData.category}><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger><SelectContent><SelectItem value="biometric">Biometric Devices</SelectItem><SelectItem value="electronics">Electronics</SelectItem><SelectItem value="computers">Computers & Peripherals</SelectItem><SelectItem value="surveillance">Surveillance Solutions</SelectItem><SelectItem value="networking">Networking Equipment</SelectItem><SelectItem value="printers">Printers</SelectItem><SelectItem value="rd-service">RD Service</SelectItem><SelectItem value="software">Software</SelectItem></SelectContent></Select></div>
-                <div className="grid gap-2"><Label htmlFor="description">Short Description</Label><Textarea id="description" value={productData.description} onChange={handleInputChange} /></div>
+                                <div className="grid gap-2">
+                  <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+                  <Select onValueChange={(v) => handleSelectChange('category', v)} value={productData.category}>
+                    <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="biometric">Biometric Devices</SelectItem>
+                      <SelectItem value="electronics">Electronics</SelectItem>
+                      <SelectItem value="computers">Computers & Peripherals</SelectItem>
+                      <SelectItem value="surveillance">Surveillance Solutions</SelectItem>
+                      <SelectItem value="networking">Networking Equipment</SelectItem>
+                      <SelectItem value="printers">Printers</SelectItem>
+                      <SelectItem value="rd-service">RD Service</SelectItem>
+                      <SelectItem value="software">Software</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.category && <p className="text-red-500 text-sm">{errors.category}</p>}
+                </div>
+                                <div className="grid gap-2">
+                  <Label htmlFor="description">Short Description <span className="text-red-500">*</span></Label>
+                  <Textarea id="description" value={productData.description} onChange={handleInputChange} />
+                  {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                </div>
                 <div>
                   <Label>Key Features</Label>
                   {productData.features.map((feature, index) => (
@@ -195,12 +275,24 @@ export function ProductStepperForm({ product }: { product: any | null }) {
             <div className="space-y-4 p-4 border rounded-lg">
                 <h3 className="text-lg font-medium">Commercial Details</h3>
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2"><Label htmlFor="regularPrice">Regular Price (₹)</Label><Input id="regularPrice" type="number" value={productData.regularPrice} onChange={handleInputChange} /></div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="regularPrice">Regular Price (₹) <span className="text-red-500">*</span></Label>
+                        <Input id="regularPrice" type="number" value={productData.regularPrice} onChange={handleInputChange} />
+                        {errors.regularPrice && <p className="text-red-500 text-sm">{errors.regularPrice}</p>}
+                    </div>
                     <div className="grid gap-2"><Label htmlFor="salePrice">Sale Price (₹)</Label><Input id="salePrice" type="number" value={productData.salePrice} onChange={handleInputChange} /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2"><Label htmlFor="stock">Stock Quantity</Label><Input id="stock" type="number" value={productData.stock} onChange={handleInputChange} /></div>
-                    <div className="grid gap-2"><Label htmlFor="sku">SKU</Label><Input id="sku" value={productData.sku} onChange={handleInputChange} /></div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="stock">Stock Quantity <span className="text-red-500">*</span></Label>
+                        <Input id="stock" type="number" value={productData.stock} onChange={handleInputChange} />
+                        {errors.stock && <p className="text-red-500 text-sm">{errors.stock}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="sku">SKU <span className="text-red-500">*</span></Label>
+                        <Input id="sku" value={productData.sku} onChange={handleInputChange} />
+                        {errors.sku && <p className="text-red-500 text-sm">{errors.sku}</p>}
+                    </div>
                 </div>
                 <div className="grid gap-2"><Label htmlFor="availability">Availability</Label><Select onValueChange={(v) => handleSelectChange('availability', v)} value={productData.availability}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="in-stock">In Stock</SelectItem><SelectItem value="out-of-stock">Out of Stock</SelectItem><SelectItem value="pre-order">Pre-order</SelectItem></SelectContent></Select></div>
             </div>
@@ -275,7 +367,7 @@ export function ProductStepperForm({ product }: { product: any | null }) {
       </CardContent>
       <CardFooter className="flex justify-between mt-6 border-t pt-4">
         <Button variant="outline" onClick={handlePrev} disabled={currentStep === 1}>Previous</Button>
-        {currentStep < steps.length ? <Button onClick={handleNext}>Next Step</Button> : <Button className="bg-green-600 hover:bg-green-700">Submit Product</Button>}
+        {currentStep < steps.length ? <Button onClick={handleNext}>Next Step</Button> : <Button onClick={handleFormSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700">{isSubmitting ? 'Submitting...' : 'Submit Product'}</Button>}
       </CardFooter>
     </Card>
   );

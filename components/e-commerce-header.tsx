@@ -23,10 +23,12 @@ import {
 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
+import { useSession, signOut } from "next-auth/react";
 
 export function ECommerceHeader() {
   const { totalItems } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
+  const { data: session, status } = useSession();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
@@ -174,18 +176,38 @@ export function ECommerceHeader() {
               </Link>
             </Button>
 
-            {/* Login */}
-            <Button
-              variant="default"
-              size="sm"
-              className="hidden sm:inline-flex"
-              asChild
-            >
-              <Link href="/login">
-                <User className="h-4 w-4 mr-2" />
-                Login
-              </Link>
-            </Button>
+            {status === "authenticated" ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button variant="ghost" className="relative flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    {session?.user?.name || session?.user?.email}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                className="hidden sm:inline-flex"
+                asChild
+              >
+                <Link href="/login">
+                  <User className="h-4 w-4 mr-2" />
+                  Login
+                </Link>
+              </Button>
+            )}
 
             {/* Mobile Menu */}
             <Sheet>
@@ -273,12 +295,21 @@ export function ECommerceHeader() {
                           {wishlistCount}
                         </Badge>
                       </Link>
-                      <Button asChild className="w-full">
-                        <Link href="/login">
-                          <User className="mr-2 h-5 w-5" />
-                          Login / Register
-                        </Link>
-                      </Button>
+                      {status === "authenticated" ? (
+                        <Button asChild className="w-full" variant="outline" onClick={() => signOut({ callbackUrl: '/' })}>
+                          <Link href="#">
+                            <User className="mr-2 h-5 w-5 text-red-500" />
+                            Logout
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button asChild className="w-full">
+                          <Link href="/login">
+                            <User className="mr-2 h-5 w-5" />
+                            Login / Register
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

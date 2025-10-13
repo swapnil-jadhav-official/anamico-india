@@ -8,20 +8,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, PlusCircle, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 
-const dummyProducts = [
-  { id: 1, name: "Cogent Fingerprint Scanner", image: "/cogent-fingerprint-scanner.jpg", category: "biometric", description: "A high-quality fingerprint scanner.", price: "5000", sku: "COG-FING-01", stock: "150", isActive: true },
-  { id: 2, name: "Evolis Card Printer", image: "/evolis-card-printer.jpg", category: "printers", description: "Professional card printing solution.", price: "25000", sku: "EVO-CARD-01", stock: "50", isActive: true },
-  { id: 3, name: "Logitech C525 Webcam", image: "/logitech-c525-webcam.jpg", category: "electronics", description: "HD webcam for video conferencing.", price: "4500", sku: "LOG-WEBC-01", stock: "200", isActive: false },
-  { id: 4, name: "D-Link WiFi Router", image: "/wifi-router.jpg", category: "networking", description: "High-speed wireless router.", price: "3000", sku: "DLINK-ROUT-01", stock: "120", isActive: true },
-];
 
-export function ProductListTools({ onEditProduct, onAddNew }: { onEditProduct: (product: any) => void; onAddNew: () => void; }) {
+
+export function ProductListTools({ products, onEditProduct, onAddNew, onProductUpdate }: { products: any[]; onEditProduct: (product: any) => void; onAddNew: () => void; onProductUpdate: () => void; }) {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
   const handleEdit = () => {
@@ -30,10 +36,46 @@ export function ProductListTools({ onEditProduct, onAddNew }: { onEditProduct: (
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedProduct) {
-      // In a real app, you'd show a confirmation dialog here
-      alert(`Deleting: ${selectedProduct.name}`);
+      try {
+        const res = await fetch(`/api/admin/products/${selectedProduct.id}`,
+          {
+            method: 'DELETE',
+          }
+        );
+
+        if (res.ok) {
+          onProductUpdate();
+          setSelectedProduct(null);
+        } else {
+          console.error('Failed to delete product');
+        }
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
+    }
+  };
+
+  const handleToggleActive = async (id: string, isActive: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/products/${id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ isActive }),
+        }
+      );
+
+      if (res.ok) {
+        onProductUpdate();
+      } else {
+        console.error('Failed to update product status');
+      }
+    } catch (error) {
+      console.error('Error updating product status:', error);
     }
   };
 
@@ -53,10 +95,10 @@ export function ProductListTools({ onEditProduct, onAddNew }: { onEditProduct: (
         </Button>
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Existing Products ({dummyProducts.length})
+            Existing Products ({products.length})
           </h3>
           <div className="space-y-2 pr-2">
-            {dummyProducts.map((product) => (
+            {products.map((product) => (
               <div
                 key={product.id}
                 className={`flex items-center gap-4 p-2 rounded-lg cursor-pointer transition-colors ${ 
@@ -65,7 +107,7 @@ export function ProductListTools({ onEditProduct, onAddNew }: { onEditProduct: (
                 onClick={() => setSelectedProduct(product)}
               >
                 <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                    <Image src={product.image} alt={product.name} fill className="object-cover" />
+                    <Image src={product.image || "/placeholder.jpg"} alt={product.name} fill className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{product.name}</p>
@@ -75,6 +117,7 @@ export function ProductListTools({ onEditProduct, onAddNew }: { onEditProduct: (
                 </div>
                 <Switch
                   checked={product.isActive}
+                  onCheckedChange={(value) => handleToggleActive(product.id, value)}
                   onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking switch
                   aria-label="Toggle product status"
                 />
@@ -88,10 +131,26 @@ export function ProductListTools({ onEditProduct, onAddNew }: { onEditProduct: (
           <Edit className="mr-2 h-4 w-4" />
           Edit Selected
         </Button>
-        <Button onClick={handleDelete} disabled={!selectedProduct} variant="destructive" className="flex-1">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete Selected
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button disabled={!selectedProduct} variant="destructive" className="flex-1">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the product.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );

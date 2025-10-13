@@ -8,6 +8,7 @@ import { CartProvider } from "@/lib/cart-context"
 import { WishlistProvider } from "@/lib/wishlist-context"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
+import { NextAuthSessionProvider } from "./session-provider"
 
 export const metadata: Metadata = {
   title: "ANAMICO India - Biometric Solutions & RD Services",
@@ -23,12 +24,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <CartProvider>
-          <WishlistProvider>
-            <Suspense fallback={null}>{children}</Suspense>
-            <Toaster />
-          </WishlistProvider>
-        </CartProvider>
+        <NextAuthSessionProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <Suspense fallback={null}>{children}</Suspense>
+              <Toaster />
+            </WishlistProvider>
+          </CartProvider>
+        </NextAuthSessionProvider>
         <Analytics />
       </body>
     </html>

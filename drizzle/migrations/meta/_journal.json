@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1760247847134,
+      "tag": "0000_mute_professor_monster",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1760288804392,
+      "tag": "0001_lazy_medusa",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1760292733547,
+      "tag": "0002_great_kinsey_walden",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1760292958866,
+      "tag": "0003_soft_punisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1760325625301,
+      "tag": "0004_added_isActive_to_product",
+      "breakpoints": true
+    }
+  ]
+}
