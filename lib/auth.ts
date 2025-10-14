@@ -28,6 +28,33 @@ export const authConfig: NextAuthOptions = {
       sendVerificationRequest,
     }),
     CredentialsProvider({
+      name: 'Password',
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: {  label: "Password", type: "password" },
+      },
+      async authorize(credentials, req) {
+        if (!credentials?.email || !credentials.password) {
+          return null;
+        }
+
+        const userFound = await db.query.user.findFirst({
+          where: (user, { eq }) => eq(user.email, credentials.email),
+        });
+
+        if (!userFound) {
+          return null;
+        }
+
+        // Direct comparison as per user's instruction (security risk)
+        if (userFound.password === credentials.password) {
+          return userFound;
+        } else {
+          return null;
+        }
+      }
+    }),
+    CredentialsProvider({
       name: 'OTP',
       credentials: {
         email: { label: "Email", type: "text" },

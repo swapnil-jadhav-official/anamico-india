@@ -17,6 +17,7 @@ import { Mail, Lock, MessageSquare, Smartphone } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +55,30 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const callbackUrl = session?.user?.role === "admin" ? "/admin/dashboard" : "/";
+      const result = await signIn("credentials", { email, password, callbackUrl, redirect: false });
+      if (result?.error) {
+        alert(result.error);
+      } else if (result?.ok) {
+        // Redirect is handled by next-auth if successful and redirect: true
+        // Since redirect: false, we handle it manually after successful login
+        if (session?.user?.isNewUser) {
+          router.push("/register/complete");
+        } else if (session?.user?.role === "admin") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/");
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -85,14 +110,14 @@ export default function LoginPage() {
               <TabsTrigger value="otp">OTP</TabsTrigger>
             </TabsList>
             <TabsContent value="password">
-              <form>
+              <form onSubmit={handlePasswordLogin}>
                 <Card className="border-none shadow-none">
                   <CardContent className="space-y-4 p-0 pt-4">
                     <div className="grid gap-2">
                       <Label htmlFor="email-password">Email or Mobile</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="email-password" type="text" placeholder="name@example.com / 9876543210" required className="pl-10" />
+                        <Input id="email-password" type="text" placeholder="name@example.com / 9876543210" required className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
                       </div>
                     </div>
                     <div className="grid gap-2">
@@ -104,11 +129,11 @@ export default function LoginPage() {
                       </div>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="password" type="password" required className="pl-10" />
+                        <Input id="password" type="password" required className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
                       </div>
                     </div>
-                    <Button type="submit" className="w-full mt-4">
-                      Login
+                    <Button type="submit" className="w-full mt-4" disabled={isLoading}>
+                      {isLoading ? "Loading..." : "Login"}
                     </Button>
                   </CardContent>
                 </Card>

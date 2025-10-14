@@ -36,6 +36,13 @@
       "when": 1760325625301,
       "tag": "0004_added_isActive_to_product",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1760423449113,
+      "tag": "0005_added_password_to_user",
+      "breakpoints": true
     }
   ]
 }

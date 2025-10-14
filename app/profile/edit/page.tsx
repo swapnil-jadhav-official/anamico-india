@@ -22,6 +22,8 @@ export default function EditProfilePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -52,13 +54,31 @@ export default function EditProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (password && password !== confirmPassword) {
+      alert("Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      const body: { id: string; name: string; phone: string; address: string; password?: string } = {
+        id: session?.user?.id as string,
+        name,
+        phone,
+        address,
+      };
+
+      if (password) {
+        body.password = password;
+      }
+
       const res = await fetch("/api/user/update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: session?.user?.id, name, phone, address }),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
@@ -104,6 +124,26 @@ export default function EditProfilePage() {
                 value={session?.user?.email || ""}
                 disabled
                 className="bg-gray-100"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">New Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Leave blank to keep current password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
             <div className="grid gap-2">

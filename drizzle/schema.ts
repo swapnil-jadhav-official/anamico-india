@@ -7,6 +7,7 @@ export const user = mysqlTable('user', {
   email: varchar('email', { length: 255 }).notNull(),
   emailVerified: timestamp('emailVerified', { mode: 'date', fsp: 3 }),
   image: varchar('image', { length: 255 }),
+  password: text('password'),
   phone: varchar('phone', { length: 255 }),
   address: varchar('address', { length: 255 }),
   role: varchar('role', { length: 255 }).default('user').notNull(),
