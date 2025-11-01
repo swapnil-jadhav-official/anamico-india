@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
 import {
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LineChart,
@@ -21,7 +23,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { DollarSign, ShoppingBag, Users, Package } from "lucide-react";
+import { DollarSign, ShoppingBag, Users, Package, ArrowRight } from "lucide-react";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
 const salesData = [

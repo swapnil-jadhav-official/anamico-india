@@ -32,7 +32,7 @@ const features = [
     title: "User Management",
     description: "Manage customer and admin accounts.",
     icon: <Users className="h-8 w-8 text-primary" />,
-    href: "#",
+    href: "/admin/users",
   },
   {
     title: "Store Settings",

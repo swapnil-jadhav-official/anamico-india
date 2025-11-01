@@ -190,6 +190,25 @@ export function ECommerceHeader() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {session?.user?.role === 'admin' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/dashboard">
+                          Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/products">
+                          Manage Products
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/users">
+                          Manage Users
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
                     Logout
                   </DropdownMenuItem>
