@@ -17,6 +17,9 @@ export const seedProductsData = [
     sku: "BIO-FP-001",
     stock: 45,
     availability: "in-stock",
+    rating: 4.6,
+    reviews: 143,
+    badge: "Best Seller",
     technicalSpecifications: [
       { key: "Resolution", value: "500 DPI" },
       { key: "Interface", value: "USB 2.0" },
@@ -54,6 +57,9 @@ export const seedProductsData = [
     sku: "BIO-IRIS-001",
     stock: 15,
     availability: "in-stock",
+    rating: 4.8,
+    reviews: 67,
+    badge: "Premium",
     technicalSpecifications: [
       { key: "Working Distance", value: "10-100 cm" },
       { key: "Capture Speed", value: "< 1 second" },
@@ -91,6 +97,9 @@ export const seedProductsData = [
     sku: "BIO-FACE-001",
     stock: 28,
     availability: "in-stock",
+    rating: 4.5,
+    reviews: 89,
+    badge: "New",
     technicalSpecifications: [
       { key: "Camera Resolution", value: "1080p HD" },
       { key: "Recognition Accuracy", value: "99.5%" },
@@ -128,6 +137,9 @@ export const seedProductsData = [
     sku: "COMP-DESK-I7-001",
     stock: 12,
     availability: "in-stock",
+    rating: 4.7,
+    reviews: 54,
+    badge: "Best Seller",
     technicalSpecifications: [
       { key: "Processor", value: "Intel Core i7-11700K" },
       { key: "RAM", value: "32GB DDR4 3200MHz" },
@@ -165,6 +177,9 @@ export const seedProductsData = [
     sku: "COMP-LAP-I5-001",
     stock: 20,
     availability: "in-stock",
+    rating: 4.4,
+    reviews: 178,
+    badge: "Popular",
     technicalSpecifications: [
       { key: "Processor", value: "Intel Core i5-11400H" },
       { key: "RAM", value: "16GB DDR4" },
@@ -202,6 +217,9 @@ export const seedProductsData = [
     sku: "NET-SWITCH-48-001",
     stock: 8,
     availability: "in-stock",
+    rating: 4.6,
+    reviews: 42,
+    badge: "Enterprise",
     technicalSpecifications: [
       { key: "Ports", value: "48 x 1Gbps Ethernet" },
       { key: "Uplink Ports", value: "4 x 10Gbps" },
@@ -239,6 +257,9 @@ export const seedProductsData = [
     sku: "NET-AP-WIFI6-001",
     stock: 35,
     availability: "in-stock",
+    rating: 4.5,
+    reviews: 95,
+    badge: "Latest Tech",
     technicalSpecifications: [
       { key: "WiFi Standard", value: "802.11ax WiFi 6" },
       { key: "Data Rate", value: "1200 Mbps" },
@@ -276,6 +297,9 @@ export const seedProductsData = [
     sku: "PRINT-LASER-A4-001",
     stock: 14,
     availability: "in-stock",
+    rating: 4.3,
+    reviews: 31,
+    badge: "Office Essential",
     technicalSpecifications: [
       { key: "Print Speed", value: "33 ppm (Color & B&W)" },
       { key: "Resolution", value: "1200 x 1200 dpi" },
@@ -313,6 +337,9 @@ export const seedProductsData = [
     sku: "ELEC-SCAN-2D-001",
     stock: 50,
     availability: "in-stock",
+    rating: 4.7,
+    reviews: 112,
+    badge: "Best Seller",
     technicalSpecifications: [
       { key: "Barcode Types", value: "1D/2D/QR Code" },
       { key: "Scan Speed", value: "100 scans/sec" },
@@ -350,6 +377,9 @@ export const seedProductsData = [
     sku: "ELEC-THERMAL-IR-001",
     stock: 9,
     availability: "in-stock",
+    rating: 4.4,
+    reviews: 38,
+    badge: "Premium",
     technicalSpecifications: [
       { key: "Thermal Resolution", value: "160x120 pixels" },
       { key: "Temperature Range", value: "-20°C to 250°C" },
@@ -387,6 +417,9 @@ export const seedProductsData = [
     sku: "SURV-DOME-NET-001",
     stock: 25,
     availability: "in-stock",
+    rating: 4.5,
+    reviews: 76,
+    badge: "Popular",
     technicalSpecifications: [
       { key: "Resolution", value: "1920 x 1080p" },
       { key: "Sensor", value: "1/3 inch CMOS" },
@@ -424,6 +457,9 @@ export const seedProductsData = [
     sku: "SOFT-SUITE-BIZ-001",
     stock: 40,
     availability: "in-stock",
+    rating: 4.2,
+    reviews: 52,
+    badge: "Enterprise",
     technicalSpecifications: [
       { key: "Users", value: "5 Licenses" },
       { key: "Modules", value: "6 Core Modules" },

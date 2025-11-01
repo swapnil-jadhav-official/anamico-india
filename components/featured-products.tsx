@@ -1,84 +1,52 @@
+"use client"
+
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Star, ShoppingCart } from "lucide-react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 
-const products = [
-  {
-    name: "Mantra MFS 110",
-    category: "Fingerprint Scanner",
-    image: "/mantra-fingerprint-scanner.jpg",
-    rating: 4.8,
-    reviews: 245,
-    price: "₹2,499",
-    badge: "Best Seller",
-  },
-  {
-    name: "Morpho MSO 1300 E3",
-    category: "Fingerprint Scanner",
-    image: "/morpho-biometric-device.jpg",
-    rating: 4.9,
-    reviews: 189,
-    price: "₹3,299",
-    badge: "UIDAI Certified",
-  },
-  {
-    name: "Mantra MIS100 V2",
-    category: "IRIS Scanner",
-    image: "/iris-scanner-biometric.jpg",
-    rating: 4.7,
-    reviews: 156,
-    price: "₹8,999",
-    badge: "Premium",
-  },
-  {
-    name: "Startek FM 220U L1",
-    category: "Fingerprint Scanner",
-    image: "/startek-fingerprint-device.jpg",
-    rating: 4.9,
-    reviews: 98,
-    price: "₹2,799",
-    badge: "New Arrival",
-  },
-  {
-    name: "Cogent CSD200",
-    category: "Fingerprint Scanner",
-    image: "/cogent-fingerprint-scanner.jpg",
-    rating: 4.8,
-    reviews: 134,
-    price: "₹3,499",
-    badge: "L1 Certified",
-  },
-  {
-    name: "Aratek A600",
-    category: "Fingerprint Scanner",
-    image: "/aratek-biometric-scanner.jpg",
-    rating: 4.7,
-    reviews: 112,
-    price: "₹2,899",
-    badge: "Popular",
-  },
-  {
-    name: "CMITech BMT 20 Iris",
-    category: "Dual IRIS Scanner",
-    image: "/dual-iris-scanner.jpg",
-    rating: 4.9,
-    reviews: 87,
-    price: "₹12,999",
-    badge: "Advanced",
-  },
-  {
-    name: "Suprema Realscan 4G",
-    category: "L1 Fingerprint Scanner",
-    image: "/suprema-fingerprint-device.jpg",
-    rating: 4.9,
-    reviews: 156,
-    price: "₹4,999",
-    badge: "Premium",
-  },
-]
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  originalPrice?: number
+  image: string
+  category: string
+  rating: number
+  reviews: number
+  inStock: boolean
+  featured?: boolean
+  badge?: string
+}
 
 export function FeaturedProducts() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products')
+        if (res.ok) {
+          const allProducts = await res.json()
+          // Sort by rating and take top 8 products
+          const featured = allProducts
+            .sort((a: Product, b: Product) => b.rating - a.rating)
+            .slice(0, 8)
+          setProducts(featured)
+        }
+      } catch (error) {
+        console.error('Error fetching featured products:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
@@ -89,44 +57,76 @@ export function FeaturedProducts() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <Card key={product.name} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="relative aspect-square overflow-hidden bg-muted">
-                <img
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name}
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                />
-                <Badge className="absolute top-3 right-3">{product.badge}</Badge>
-              </div>
-              <CardContent className="p-4 space-y-2">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">{product.category}</div>
-                <h3 className="font-semibold text-lg">{product.name}</h3>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{product.rating}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">({product.reviews} reviews)</span>
-                </div>
-                <div className="text-2xl font-bold text-primary">{product.price}</div>
-              </CardContent>
-              <CardFooter className="p-4 pt-0">
-                <Button className="w-full gap-2">
-                  <ShoppingCart className="h-4 w-4" />
-                  Add to Cart
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading featured products...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No products available yet.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.category}/${product.id}`}
+                >
+                  <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full cursor-pointer">
+                    <div className="relative aspect-square overflow-hidden bg-muted">
+                      <img
+                        src={product.image || "/placeholder.svg"}
+                        alt={product.name}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {product.badge && (
+                        <Badge className="absolute top-3 right-3">{product.badge}</Badge>
+                      )}
+                    </div>
+                    <CardContent className="p-4 space-y-2">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
+                        {product.category}
+                      </div>
+                      <h3 className="font-semibold text-lg line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">{product.rating}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">({product.reviews})</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <div className="text-2xl font-bold text-primary">
+                          ₹{product.price.toLocaleString()}
+                        </div>
+                        {product.originalPrice && (
+                          <div className="text-sm text-muted-foreground line-through">
+                            ₹{product.originalPrice.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0">
+                      <Button className="w-full gap-2">
+                        <ShoppingCart className="h-4 w-4" />
+                        Add to Cart
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              ))}
+            </div>
 
-        <div className="text-center mt-12">
-          <Button size="lg" variant="outline">
-            View All Products
-          </Button>
-        </div>
+            <div className="text-center mt-12">
+              <Link href="/products">
+                <Button size="lg" variant="outline">
+                  View All Products
+                </Button>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </section>
   )

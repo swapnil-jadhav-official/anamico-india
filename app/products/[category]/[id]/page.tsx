@@ -2,7 +2,6 @@
 
 import { ECommerceHeader } from "@/components/e-commerce-header"
 import { Footer } from "@/components/footer"
-import { getProductById, getProductsByCategory } from "@/lib/products"
 import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { Button } from "@/components/ui/button"
@@ -14,16 +13,83 @@ import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import Link from "next/link"
 import { Star, ShoppingCart, Heart, Truck, Shield, RefreshCw, Phone } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ProductCard } from "@/components/product-card"
 import { notFound } from "next/navigation"
 
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  originalPrice?: number
+  image: string
+  category: string
+  rating: number
+  reviews: number
+  inStock: boolean
+  featured?: boolean
+  badge?: string
+  brand?: string
+  features?: string[]
+  technicalSpecifications?: Array<{ key: string; value: string }>
+  hardwareSpecifications?: Array<{ key: string; value: string }>
+  galleryImages?: string[]
+  stock?: number
+  sku?: string
+}
+
 export default function ProductDetailPage({ params }: { params: { category: string; id: string } }) {
-  const product = getProductById(params.id)
+  const [product, setProduct] = useState<Product | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { toast } = useToast()
   const [quantity, setQuantity] = useState(1)
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products?category=${encodeURIComponent(params.category)}`)
+        if (res.ok) {
+          const products = await res.json()
+          const foundProduct = products.find((p: Product) => p.id === params.id)
+
+          if (foundProduct) {
+            setProduct(foundProduct)
+            // Get related products (same category, different product)
+            setRelatedProducts(
+              products
+                .filter((p: Product) => p.id !== params.id)
+                .slice(0, 4)
+            )
+          } else {
+            notFound()
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error)
+        notFound()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProduct()
+  }, [params.id, params.category])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <ECommerceHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground">Loading product...</p>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   if (!product) {
     notFound()
@@ -33,10 +99,6 @@ export default function ProductDetailPage({ params }: { params: { category: stri
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0
-
-  const relatedProducts = getProductsByCategory(product.category)
-    .filter((p) => p.id !== product.id)
-    .slice(0, 4)
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
