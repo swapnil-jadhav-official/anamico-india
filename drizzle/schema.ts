@@ -101,10 +101,13 @@ export const order = mysqlTable('order', {
   subtotal: int('subtotal').notNull(), // Total before tax
   tax: int('tax').notNull(), // Tax amount (18% GST)
   total: int('total').notNull(), // Final total
-  status: varchar('status', { length: 255 }).default('pending').notNull(), // pending, confirmed, shipped, delivered, cancelled
-  paymentStatus: varchar('paymentStatus', { length: 255 }).default('pending').notNull(), // pending, completed, failed
+  paidAmount: int('paidAmount').default(0).notNull(), // Amount paid so far (for partial payments)
+  status: varchar('status', { length: 255 }).default('pending').notNull(), // pending, payment_received, accepted, rejected, shipped, delivered, cancelled
+  paymentStatus: varchar('paymentStatus', { length: 255 }).default('pending').notNull(), // pending, partial_payment, completed, failed
   paymentMethod: varchar('paymentMethod', { length: 255 }), // razorpay, credit_card, etc.
   paymentId: varchar('paymentId', { length: 255 }), // Razorpay payment ID
+  adminNotes: text('adminNotes'), // Notes from admin during order review
+  rejectionReason: text('rejectionReason'), // Reason for order rejection
   // Shipping details
   shippingName: varchar('shippingName', { length: 255 }).notNull(),
   shippingEmail: varchar('shippingEmail', { length: 255 }).notNull(),

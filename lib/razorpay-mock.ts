@@ -97,9 +97,10 @@ export const verifyPaymentSignature = (
   paymentId: string,
   signature: string
 ): boolean => {
-  // In mock mode, we just verify the payment exists
-  const payment = mockPayments.get(paymentId);
-  return !!payment && payment.order_id === orderId;
+  // In mock mode, we accept any payment for a valid order
+  // This allows the mock frontend to work without creating payments in advance
+  const order = mockOrders.get(orderId);
+  return !!order; // Just verify the order exists
 };
 
 /**

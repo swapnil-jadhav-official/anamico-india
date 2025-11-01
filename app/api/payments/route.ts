@@ -7,25 +7,33 @@ import { eq } from 'drizzle-orm';
 import {
   createMockOrder,
   createMockPayment,
-  verifyPaymentSignature,
+  verifyPaymentSignature as verifyMockPaymentSignature,
   generateMockCheckoutOptions,
 } from '@/lib/razorpay-mock';
+import {
+  createRazorpayOrder,
+  verifyRazorpaySignature,
+  generateCheckoutOptions,
+  fetchRazorpayPayment,
+} from '@/lib/razorpay';
 
 /**
  * POST /api/payments
  * Create a Razorpay order and return checkout options
+ * POST /api/payments/verify
+ * Verify payment and update order status
  */
 export async function POST(req: NextRequest) {
   try {
-    const url = new URL(req.url);
+    const body = await req.json();
 
     // Check if this is a verify request
-    if (url.pathname.includes('/verify')) {
-      return handleVerifyPayment(req);
+    if (body.razorpayOrderId && body.razorpayPaymentId) {
+      return handleVerifyPayment(req, body);
     }
 
     // Otherwise, create new payment order
-    return await handleCreatePayment(req);
+    return await handleCreatePayment(req, body);
   } catch (error) {
     console.error('Payment error:', error);
     return NextResponse.json(
@@ -35,7 +43,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handleCreatePayment(req: NextRequest) {
+async function handleCreatePayment(_req: NextRequest, body: any) {
   try {
     const session = await getServerSession(authConfig);
     if (!session?.user?.email) {
@@ -45,7 +53,7 @@ async function handleCreatePayment(req: NextRequest) {
       );
     }
 
-    const { orderId, paymentType } = await req.json();
+    const { orderId, paymentType } = body;
 
     if (!orderId) {
       return NextResponse.json(
@@ -72,38 +80,73 @@ async function handleCreatePayment(req: NextRequest) {
 
     // Calculate payment amount based on payment type
     let paymentAmount = 0;
-    if (paymentType === '30') {
-      paymentAmount = Math.round((currentOrder.total * 0.3) / 100) * 100;
-    } else if (paymentType === '50') {
-      paymentAmount = Math.round((currentOrder.total * 0.5) / 100) * 100;
-    } else if (paymentType === '100') {
+    const paymentTypeStr = String(paymentType);
+
+    if (paymentTypeStr === '30') {
+      paymentAmount = Math.round(currentOrder.total * 0.3);
+    } else if (paymentTypeStr === '50') {
+      paymentAmount = Math.round(currentOrder.total * 0.5);
+    } else if (paymentTypeStr === '100') {
       paymentAmount = currentOrder.total;
     } else {
       return NextResponse.json(
-        { error: 'Invalid payment type' },
+        { error: `Invalid payment type: ${paymentType}` },
         { status: 400 }
       );
     }
 
-    // Create mock Razorpay order
-    const razorpayOrder = createMockOrder(
-      paymentAmount / 100, // Convert back to rupees
-      currentOrder.orderNumber
-    );
+    // Create Razorpay order (real or mock based on credentials)
+    let razorpayOrder;
+    let checkoutOptions;
 
-    // Generate checkout options
-    const checkoutOptions = generateMockCheckoutOptions(
-      razorpayOrder.id,
-      paymentAmount / 100,
-      session.user.email,
-      session.user.name || 'Customer'
-    );
+    const isRealRazorpay = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
+                           !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes('mock');
+
+    if (isRealRazorpay) {
+      // Use real Razorpay API
+      try {
+        razorpayOrder = await createRazorpayOrder(
+          paymentAmount,
+          currentOrder.orderNumber,
+          {
+            orderId: orderId,
+            userId: currentOrder.userId,
+          }
+        );
+
+        checkoutOptions = generateCheckoutOptions(
+          razorpayOrder.id,
+          paymentAmount,
+          session.user.email,
+          session.user.name || 'Customer'
+        );
+      } catch (error) {
+        console.error('Razorpay API error:', error);
+        return NextResponse.json(
+          { error: 'Failed to initialize payment. Please try again.' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Use mock Razorpay for development
+      razorpayOrder = createMockOrder(
+        paymentAmount,
+        currentOrder.orderNumber
+      );
+
+      checkoutOptions = generateMockCheckoutOptions(
+        razorpayOrder.id,
+        paymentAmount,
+        session.user.email,
+        session.user.name || 'Customer'
+      );
+    }
 
     return NextResponse.json({
       success: true,
       razorpayOrderId: razorpayOrder.id,
       checkoutOptions,
-      paymentAmount: paymentAmount / 100,
+      paymentAmount,
       paymentType,
     });
   } catch (error) {
@@ -115,7 +158,7 @@ async function handleCreatePayment(req: NextRequest) {
   }
 }
 
-async function handleVerifyPayment(req: NextRequest) {
+async function handleVerifyPayment(_req: NextRequest, body: any) {
   try {
     const session = await getServerSession(authConfig);
     if (!session?.user?.email) {
@@ -131,7 +174,7 @@ async function handleVerifyPayment(req: NextRequest) {
       razorpayPaymentId,
       razorpaySignature,
       paymentType,
-    } = await req.json();
+    } = body;
 
     if (!razorpayOrderId || !razorpayPaymentId) {
       return NextResponse.json(
@@ -140,12 +183,36 @@ async function handleVerifyPayment(req: NextRequest) {
       );
     }
 
-    // Verify signature
-    const isSignatureValid = verifyPaymentSignature(
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature
-    );
+    // Check if using real Razorpay
+    const isRealRazorpay = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
+                           !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes('mock');
+
+    // Verify signature (real or mock based on credentials)
+    let isSignatureValid = false;
+
+    if (isRealRazorpay) {
+      // Verify with real Razorpay signature
+      try {
+        isSignatureValid = verifyRazorpaySignature(
+          razorpayOrderId,
+          razorpayPaymentId,
+          razorpaySignature
+        );
+      } catch (error) {
+        console.error('Signature verification error:', error);
+        return NextResponse.json(
+          { error: 'Payment verification failed' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Use mock verification
+      isSignatureValid = verifyMockPaymentSignature(
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature
+      );
+    }
 
     if (!isSignatureValid) {
       return NextResponse.json(
@@ -154,11 +221,7 @@ async function handleVerifyPayment(req: NextRequest) {
       );
     }
 
-    // Create mock payment
-    const payment = createMockPayment(razorpayOrderId, 0);
-
-    // Calculate payment amount
-    let paymentAmount = 0;
+    // Fetch order to calculate payment amount
     const orders = await db
       .select()
       .from(order)
@@ -174,12 +237,40 @@ async function handleVerifyPayment(req: NextRequest) {
 
     const existingOrder = orders[0];
 
-    if (paymentType === '30') {
+    // Calculate payment amount based on payment type
+    let paymentAmount = 0;
+    const paymentTypeStr = String(paymentType);
+
+    if (paymentTypeStr === '30') {
       paymentAmount = Math.round(existingOrder.total * 0.3);
-    } else if (paymentType === '50') {
+    } else if (paymentTypeStr === '50') {
       paymentAmount = Math.round(existingOrder.total * 0.5);
-    } else if (paymentType === '100') {
+    } else if (paymentTypeStr === '100') {
       paymentAmount = existingOrder.total;
+    } else {
+      return NextResponse.json(
+        { error: `Invalid payment type: ${paymentType}` },
+        { status: 400 }
+      );
+    }
+
+    // Create or fetch payment (real or mock based on credentials)
+    let payment;
+
+    if (isRealRazorpay) {
+      // Fetch real payment from Razorpay
+      try {
+        payment = await fetchRazorpayPayment(razorpayPaymentId);
+      } catch (error) {
+        console.error('Failed to fetch payment details:', error);
+        return NextResponse.json(
+          { error: 'Failed to verify payment details' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Create mock payment
+      payment = createMockPayment(razorpayOrderId, paymentAmount);
     }
 
     // Update order with payment info
@@ -192,6 +283,8 @@ async function handleVerifyPayment(req: NextRequest) {
             ? 'completed'
             : 'partial_payment',
         status: 'payment_received',
+        paymentMethod: isRealRazorpay ? 'razorpay' : 'mock_razorpay',
+        paymentId: payment.id,
       })
       .where(eq(order.id, dbOrderId));
 
@@ -201,7 +294,7 @@ async function handleVerifyPayment(req: NextRequest) {
       payment: {
         id: payment.id,
         amount: paymentAmount,
-        status: 'captured',
+        status: isRealRazorpay ? payment.status : 'captured',
       },
     });
   } catch (error) {
