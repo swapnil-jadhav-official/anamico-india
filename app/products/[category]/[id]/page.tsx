@@ -100,14 +100,22 @@ export default function ProductDetailPage({ params }: { params: { category: stri
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0
 
-  const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product)
+  const handleAddToCart = async () => {
+    try {
+      await addToCart(product, quantity)
+      toast({
+        title: "Added to cart",
+        description: `${quantity} x ${product.name} added to your cart.`,
+      })
+      setQuantity(1)
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      })
     }
-    toast({
-      title: "Added to cart",
-      description: `${quantity} x ${product.name} added to your cart.`,
-    })
   }
 
   const handleWishlistToggle = () => {

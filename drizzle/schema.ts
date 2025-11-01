@@ -77,3 +77,17 @@ export const product = mysqlTable('product', {
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });
+
+export const cartItem = mysqlTable('cartItem', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  userId: varchar('userId', { length: 255 })
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  productId: varchar('productId', { length: 255 })
+    .notNull()
+    .references(() => product.id, { onDelete: 'cascade' }),
+  quantity: int('quantity').notNull().default(1),
+  price: int('price').notNull(), // Price at time of adding to cart
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
