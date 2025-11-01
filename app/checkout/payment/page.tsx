@@ -8,6 +8,7 @@ import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RazorpayCheckout } from "@/components/checkout/razorpay-checkout";
 import { message } from "antd";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -55,55 +56,21 @@ export default function PaymentPage() {
     fetchOrder();
   }, [orderId]);
 
-  const handlePayment = async () => {
-    if (!orderData) {
-      message.error("Order not found");
-      return;
-    }
+  const handlePaymentSuccess = (paymentData: any) => {
+    setPaymentSuccess(true);
+    message.success("Payment successful! Order awaiting admin approval...");
 
-    try {
-      setIsLoading(true);
+    // Redirect to order confirmation after 3 seconds
+    setTimeout(() => {
+      router.push(`/order-confirmation?orderId=${orderId}`);
+    }, 3000);
+  };
 
-      // Calculate partial payment amount
-      const partialAmount = Math.round((orderData.total * selectedPaymentPercent) / 100);
-
-      // In a real scenario, this would integrate with Razorpay
-      // For now, we'll simulate payment and update the order
-
-      // Simulate payment processing delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Record payment - after this, order status becomes 'payment_received'
-      const paymentRes = await fetch(`/api/orders/${orderId}/payment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paidAmount: partialAmount,
-          paymentId: `PAY-${Date.now()}`,
-          paymentMethod: "razorpay",
-        }),
-      });
-
-      if (!paymentRes.ok) {
-        const error = await paymentRes.json();
-        throw new Error(error.error || "Payment failed");
-      }
-
-      const paymentData = await paymentRes.json();
-
-      setPaymentSuccess(true);
-      message.success("Payment successful! Order awaiting admin approval...");
-
-      // Redirect to order confirmation after 3 seconds
-      setTimeout(() => {
-        router.push(`/order-confirmation?orderId=${orderId}`);
-      }, 3000);
-    } catch (error) {
-      console.error("Error processing payment:", error);
-      message.error(error instanceof Error ? error.message : "Payment failed");
-    } finally {
-      setIsLoading(false);
-    }
+  const handlePaymentFailure = (error: any) => {
+    console.error("Payment failed:", error);
+    message.error(
+      error instanceof Error ? error.message : "Payment processing failed"
+    );
   };
 
   if (!mounted || !orderData) {
@@ -223,20 +190,13 @@ export default function PaymentPage() {
                     </div>
 
                     {/* Payment Button */}
-                    <Button
-                      onClick={handlePayment}
-                      disabled={isLoading}
-                      className="w-full py-6 text-lg bg-primary hover:bg-primary/90"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Processing Payment...
-                        </>
-                      ) : (
-                        `Pay ₹${partialAmount.toLocaleString()} Now`
-                      )}
-                    </Button>
+                    <RazorpayCheckout
+                      orderId={orderId!}
+                      paymentType={selectedPaymentPercent as '30' | '50' | '100'}
+                      onPaymentSuccess={handlePaymentSuccess}
+                      onPaymentFailure={handlePaymentFailure}
+                      isProcessing={isLoading}
+                    />
                   </CardContent>
                 </Card>
               </div>
