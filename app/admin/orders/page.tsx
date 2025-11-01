@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
+import { ECommerceHeader } from "@/components/e-commerce-header";
+import { Footer } from "@/components/footer";
+import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 import {
   Card,
   CardContent,
@@ -191,13 +194,16 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Order Management</h1>
-        <p className="text-muted-foreground">
-          Review and approve pending orders with payments received
-        </p>
-      </div>
+    <div className="flex min-h-screen w-full flex-col bg-gray-100 dark:bg-gray-900">
+      <ECommerceHeader />
+      <main className="flex-1 p-4 sm:p-6">
+        <AdminBreadcrumb />
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold tracking-tight">Order Management</h1>
+          <p className="text-muted-foreground">
+            Review and approve pending orders with payments received
+          </p>
+        </div>
 
       <Card>
         <CardHeader>
@@ -224,7 +230,7 @@ export default function OrdersPage() {
               {searchTerm ? "No orders matching your search" : "No pending orders"}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-auto max-h-[600px] border rounded-md">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -319,7 +325,7 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
 
-      {/* Approve Dialog */}
+        {/* Approve Dialog */}
       {selectedOrder && actionType === "approve" && (
         <AlertDialog open={true} onOpenChange={() => setSelectedOrder(null)}>
           <AlertDialogContent>
@@ -417,6 +423,8 @@ export default function OrdersPage() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+      </main>
+      <Footer />
     </div>
   );
 }
