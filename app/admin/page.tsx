@@ -26,7 +26,7 @@ const features = [
     title: "Order Management",
     description: "View and process customer orders.",
     icon: <ShoppingCart className="h-8 w-8 text-primary" />,
-    href: "#",
+    href: "/admin/orders",
   },
   {
     title: "User Management",

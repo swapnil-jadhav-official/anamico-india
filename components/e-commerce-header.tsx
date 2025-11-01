@@ -190,6 +190,11 @@ export function ECommerceHeader() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders">
+                      My Orders
+                    </Link>
+                  </DropdownMenuItem>
                   {session?.user?.role === 'admin' && (
                     <>
                       <DropdownMenuItem asChild>
@@ -205,6 +210,11 @@ export function ECommerceHeader() {
                       <DropdownMenuItem asChild>
                         <Link href="/admin/users">
                           Manage Users
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/orders">
+                          Manage Orders
                         </Link>
                       </DropdownMenuItem>
                     </>

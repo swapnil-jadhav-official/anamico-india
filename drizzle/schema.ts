@@ -91,3 +91,42 @@ export const cartItem = mysqlTable('cartItem', {
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });
+
+export const order = mysqlTable('order', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  userId: varchar('userId', { length: 255 })
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  orderNumber: varchar('orderNumber', { length: 255 }).notNull().unique(),
+  subtotal: int('subtotal').notNull(), // Total before tax
+  tax: int('tax').notNull(), // Tax amount (18% GST)
+  total: int('total').notNull(), // Final total
+  status: varchar('status', { length: 255 }).default('pending').notNull(), // pending, confirmed, shipped, delivered, cancelled
+  paymentStatus: varchar('paymentStatus', { length: 255 }).default('pending').notNull(), // pending, completed, failed
+  paymentMethod: varchar('paymentMethod', { length: 255 }), // razorpay, credit_card, etc.
+  paymentId: varchar('paymentId', { length: 255 }), // Razorpay payment ID
+  // Shipping details
+  shippingName: varchar('shippingName', { length: 255 }).notNull(),
+  shippingEmail: varchar('shippingEmail', { length: 255 }).notNull(),
+  shippingPhone: varchar('shippingPhone', { length: 255 }).notNull(),
+  shippingAddress: text('shippingAddress').notNull(),
+  shippingCity: varchar('shippingCity', { length: 255 }).notNull(),
+  shippingState: varchar('shippingState', { length: 255 }).notNull(),
+  shippingPincode: varchar('shippingPincode', { length: 255 }).notNull(),
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
+
+export const orderItem = mysqlTable('orderItem', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  orderId: varchar('orderId', { length: 255 })
+    .notNull()
+    .references(() => order.id, { onDelete: 'cascade' }),
+  productId: varchar('productId', { length: 255 })
+    .notNull()
+    .references(() => product.id, { onDelete: 'restrict' }),
+  productName: varchar('productName', { length: 255 }).notNull(),
+  quantity: int('quantity').notNull(),
+  price: int('price').notNull(), // Price per unit at time of order
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+});

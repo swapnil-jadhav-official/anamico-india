@@ -242,9 +242,11 @@ export function ShoppingCart() {
                   </span>
                 </div>
 
-                <Button className="w-full" size="lg">
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  Proceed to Checkout
+                <Button className="w-full" size="lg" asChild>
+                  <Link href="/checkout">
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Proceed to Checkout
+                  </Link>
                 </Button>
 
                 <Button variant="outline" className="w-full" asChild>
