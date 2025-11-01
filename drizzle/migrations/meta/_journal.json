@@ -43,6 +43,13 @@
       "when": 1760423449113,
       "tag": "0005_added_password_to_user",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1730470400000,
+      "tag": "0006_add_gallery_images_to_product",
+      "breakpoints": true
     }
   ]
 }

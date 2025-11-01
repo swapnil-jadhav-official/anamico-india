@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl } = await req.json();
+  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages } = await req.json();
 
   if (!name || !category) {
     return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
       price: regularPrice ? parseInt(regularPrice) : 0, // Assuming regularPrice is the main price
       category,
       imageUrl,
+      galleryImages: galleryImages ? JSON.stringify(galleryImages) : JSON.stringify([]),
+      isActive: true, // New products are active by default
     });
 
     return NextResponse.json({ message: 'Product created successfully', product: newProduct }, { status: 201 });

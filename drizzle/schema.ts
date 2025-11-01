@@ -72,6 +72,7 @@ export const product = mysqlTable('product', {
   price: int('price').notNull(), // Keeping original price field, assuming it's the final price
   category: varchar('category', { length: 255 }).notNull(),
   imageUrl: varchar('imageUrl', { length: 255 }),
+  galleryImages: text('galleryImages'), // Stored as JSON string array of image URLs
   isActive: boolean('isActive').default(false).notNull(),
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),

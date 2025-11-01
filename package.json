@@ -6,11 +6,16 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:push": "drizzle-kit push",
+    "drizzle:introspect": "drizzle-kit introspect:mysql"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "@auth/core": "^0.41.0",
     "@auth/drizzle-adapter": "^1.11.0",
+    "@aws-sdk/client-s3": "^3.922.0",
     "@hookform/resolvers": "^3.10.0",
     "@neondatabase/serverless": "^1.0.2",
     "@radix-ui/react-accordion": "1.2.2",
