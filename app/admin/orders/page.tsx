@@ -260,15 +260,15 @@ export default function OrdersPage() {
                       <TableCell>
                         <div className="text-sm">
                           <p className="font-medium">
-                            ₹{order.paidAmount.toLocaleString()} ({getPaymentPercentage(order.paidAmount, order.total)}%)
+                            ₹{(order.paidAmount || 0).toLocaleString()} ({getPaymentPercentage(order.paidAmount || 0, order.total || 1)}%)
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Remaining: ₹{(order.total - order.paidAmount).toLocaleString()}
+                            Remaining: ₹{((order.total || 0) - (order.paidAmount || 0)).toLocaleString()}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell className="font-semibold">
-                        ₹{order.total.toLocaleString()}
+                        ₹{(order.total || 0).toLocaleString()}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(order.createdAt).toLocaleDateString()}

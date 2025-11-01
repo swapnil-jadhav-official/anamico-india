@@ -32,10 +32,10 @@ interface Order {
   orderNumber: string;
   status: string;
   paymentStatus: string;
-  subtotal: number;
-  tax: number;
-  total: number;
-  paidAmount: number;
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+  paidAmount?: number;
   createdAt: string;
   items: any[];
 }
@@ -240,15 +240,15 @@ export default function OrdersPage() {
                             <TableCell>
                               <div className="text-sm">
                                 <p className="font-medium">
-                                  {getPaymentPercentage(order.paidAmount || 0, order.total)}%
+                                  {getPaymentPercentage(order.paidAmount || 0, order.total || 1)}%
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  ₹{(order.paidAmount || 0).toLocaleString()} / ₹{order.total.toLocaleString()}
+                                  ₹{(order.paidAmount || 0).toLocaleString()} / ₹{(order.total || 0).toLocaleString()}
                                 </p>
                               </div>
                             </TableCell>
                             <TableCell className="font-semibold">
-                              ₹{order.total.toLocaleString()}
+                              ₹{(order.total || 0).toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="outline" size="sm" asChild>

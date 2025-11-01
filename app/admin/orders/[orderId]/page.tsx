@@ -217,12 +217,12 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
             <CardHeader>
               <CardTitle>Order Items</CardTitle>
               <CardDescription>
-                {order.items.length} item(s) in this order
+                {(order.items || []).length} item(s) in this order
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {(order.items || []).map((item) => (
                   <div
                     key={item.id}
                     className="flex justify-between items-center p-4 border rounded-lg"
@@ -277,15 +277,15 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{order.subtotal.toLocaleString()}</span>
+                  <span>₹{(order.subtotal || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax (18% GST)</span>
-                  <span>₹{order.tax.toLocaleString()}</span>
+                  <span>₹{(order.tax || 0).toLocaleString()}</span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-bold">
                   <span>Total</span>
-                  <span className="text-lg">₹{order.total.toLocaleString()}</span>
+                  <span className="text-lg">₹{(order.total || 0).toLocaleString()}</span>
                 </div>
               </div>
             </CardContent>
@@ -313,13 +313,13 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Paid Amount</span>
                   <span className="font-semibold">
-                    ₹{order.paidAmount.toLocaleString()}
+                    ₹{(order.paidAmount || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Remaining</span>
                   <span className="font-semibold text-orange-600">
-                    ₹{(order.total - order.paidAmount).toLocaleString()}
+                    ₹{((order.total || 0) - (order.paidAmount || 0)).toLocaleString()}
                   </span>
                 </div>
               </div>
