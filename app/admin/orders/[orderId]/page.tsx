@@ -34,6 +34,10 @@ interface OrderDetail {
   shippingCity: string;
   shippingState: string;
   shippingPincode: string;
+  trackingNumber?: string;
+  shippingCarrier?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
   items: any[];
 }
 
@@ -43,9 +47,11 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const [mounted, setMounted] = useState(false);
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | "ship" | "deliver" | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [shippingCarrier, setShippingCarrier] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { orderId } = params;
@@ -147,6 +153,82 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     }
   };
 
+  const handleShip = async () => {
+    if (!order || !trackingNumber.trim() || !shippingCarrier.trim()) {
+      message.error("Please provide tracking number and shipping carrier");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ship",
+          trackingNumber,
+          shippingCarrier,
+          adminNotes,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to ship order");
+      }
+
+      message.success("Order marked as shipped!");
+      // Refresh order data
+      const refreshRes = await fetch(`/api/admin/orders/${order.id}`);
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        setOrder(data);
+      }
+      setActionType(null);
+      setTrackingNumber("");
+      setShippingCarrier("");
+    } catch (error) {
+      console.error("Error shipping order:", error);
+      message.error(error instanceof Error ? error.message : "Failed to ship order");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeliver = async () => {
+    if (!order) return;
+
+    try {
+      setIsProcessing(true);
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deliver",
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to deliver order");
+      }
+
+      message.success("Order marked as delivered!");
+      // Refresh order data
+      const refreshRes = await fetch(`/api/admin/orders/${order.id}`);
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        setOrder(data);
+      }
+      setActionType(null);
+    } catch (error) {
+      console.error("Error delivering order:", error);
+      message.error(error instanceof Error ? error.message : "Failed to deliver order");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "payment_received":
@@ -155,6 +237,10 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
         return <Badge className="bg-green-600 text-lg px-3 py-1">Accepted</Badge>;
       case "rejected":
         return <Badge className="bg-red-600 text-lg px-3 py-1">Rejected</Badge>;
+      case "shipped":
+        return <Badge className="bg-blue-600 text-lg px-3 py-1">Shipped</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-700 text-lg px-3 py-1">Delivered</Badge>;
       default:
         return <Badge className="text-lg px-3 py-1">{status}</Badge>;
     }
@@ -326,7 +412,44 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
             </CardContent>
           </Card>
 
-          {/* Action Buttons - Only if order is pending approval */}
+          {/* Tracking Information */}
+          {(order.status === "shipped" || order.status === "delivered") && order.trackingNumber && (
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+              <CardHeader>
+                <CardTitle className="text-base">Tracking Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">Tracking Number</p>
+                  <p className="font-semibold text-lg">{order.trackingNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Shipping Carrier</p>
+                  <p className="font-semibold">{order.shippingCarrier}</p>
+                </div>
+                {order.shippedAt && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Shipped On</p>
+                    <p className="font-semibold">
+                      {new Date(order.shippedAt).toLocaleDateString()} at{" "}
+                      {new Date(order.shippedAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                )}
+                {order.deliveredAt && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Delivered On</p>
+                    <p className="font-semibold">
+                      {new Date(order.deliveredAt).toLocaleDateString()} at{" "}
+                      {new Date(order.deliveredAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Buttons - Approve/Reject (payment_received) */}
           {order.status === "payment_received" && (
             <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
               <CardHeader>
@@ -336,7 +459,6 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {/* Notes */}
                 <div>
                   <label className="text-sm font-medium">Admin Notes</label>
                   <textarea
@@ -348,7 +470,6 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   />
                 </div>
 
-                {/* Approve Button */}
                 <Button
                   onClick={handleApprove}
                   disabled={isProcessing}
@@ -358,7 +479,6 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   {isProcessing ? "Processing..." : "Approve Order"}
                 </Button>
 
-                {/* Reject Button */}
                 <Button
                   onClick={() => setActionType("reject")}
                   disabled={isProcessing}
@@ -367,6 +487,48 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                 >
                   <X className="mr-2 h-4 w-4" />
                   Reject Order
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Ship Order (accepted) */}
+          {order.status === "accepted" && (
+            <Card className="border-green-200 bg-green-50 dark:bg-green-950">
+              <CardHeader>
+                <CardTitle className="text-base">Ship Order</CardTitle>
+                <CardDescription>
+                  Mark this order as shipped with tracking details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  onClick={() => setActionType("ship")}
+                  disabled={isProcessing}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {isProcessing ? "Processing..." : "Mark as Shipped"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Mark as Delivered (shipped) */}
+          {order.status === "shipped" && (
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+              <CardHeader>
+                <CardTitle className="text-base">Delivery Confirmation</CardTitle>
+                <CardDescription>
+                  Mark this order as delivered
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  onClick={() => setActionType("deliver")}
+                  disabled={isProcessing}
+                  className="w-full bg-green-700 hover:bg-green-800"
+                >
+                  {isProcessing ? "Processing..." : "Mark as Delivered"}
                 </Button>
               </CardContent>
             </Card>
@@ -414,6 +576,111 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   className="flex-1"
                 >
                   {isProcessing ? "Processing..." : "Reject"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Ship Dialog */}
+      {actionType === "ship" && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Ship Order</CardTitle>
+              <CardDescription>
+                Provide tracking information for the shipment
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Tracking Number *</label>
+                <input
+                  type="text"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="Enter tracking number..."
+                  className="w-full p-2 border rounded-md text-sm mt-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Shipping Carrier *</label>
+                <input
+                  type="text"
+                  value={shippingCarrier}
+                  onChange={(e) => setShippingCarrier(e.target.value)}
+                  placeholder="e.g., FedEx, DHL, BlueDart, etc."
+                  className="w-full p-2 border rounded-md text-sm mt-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Admin Notes (Optional)</label>
+                <textarea
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  placeholder="Additional notes..."
+                  className="w-full p-2 border rounded-md text-sm mt-2"
+                  rows={2}
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setActionType(null);
+                    setTrackingNumber("");
+                    setShippingCarrier("");
+                  }}
+                  disabled={isProcessing}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleShip}
+                  disabled={isProcessing || !trackingNumber.trim() || !shippingCarrier.trim()}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  {isProcessing ? "Processing..." : "Ship Order"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Deliver Dialog */}
+      {actionType === "deliver" && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Mark as Delivered</CardTitle>
+              <CardDescription>
+                Confirm that this order has been delivered to the customer
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-green-50 dark:bg-green-950 p-4 rounded-md">
+                <p className="text-sm text-green-800 dark:text-green-200">
+                  This action will mark the order as completed and delivered. The customer will be notified.
+                </p>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setActionType(null)}
+                  disabled={isProcessing}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeliver}
+                  disabled={isProcessing}
+                  className="flex-1 bg-green-700 hover:bg-green-800"
+                >
+                  {isProcessing ? "Processing..." : "Confirm Delivery"}
                 </Button>
               </div>
             </CardContent>

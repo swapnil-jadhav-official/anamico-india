@@ -116,6 +116,11 @@ export const order = mysqlTable('order', {
   shippingCity: varchar('shippingCity', { length: 255 }).notNull(),
   shippingState: varchar('shippingState', { length: 255 }).notNull(),
   shippingPincode: varchar('shippingPincode', { length: 255 }).notNull(),
+  // Tracking details
+  trackingNumber: varchar('trackingNumber', { length: 255 }), // Courier tracking number
+  shippingCarrier: varchar('shippingCarrier', { length: 255 }), // Courier company name
+  shippedAt: timestamp('shippedAt', { mode: 'date' }), // When order was shipped
+  deliveredAt: timestamp('deliveredAt', { mode: 'date' }), // When order was delivered
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });

@@ -53,7 +53,7 @@ export async function GET(
 
 /**
  * PATCH /api/admin/orders/[orderId]
- * Admin can approve or reject orders
+ * Admin can approve, reject, ship, or deliver orders
  */
 export async function PATCH(
   req: NextRequest,
@@ -68,11 +68,11 @@ export async function PATCH(
 
     const { orderId } = params;
     const body = await req.json();
-    const { action, adminNotes, rejectionReason } = body;
+    const { action, adminNotes, rejectionReason, trackingNumber, shippingCarrier } = body;
 
-    if (!action || !['approve', 'reject'].includes(action)) {
+    if (!action || !['approve', 'reject', 'ship', 'deliver'].includes(action)) {
       return NextResponse.json(
-        { error: 'Invalid action. Must be "approve" or "reject"' },
+        { error: 'Invalid action. Must be "approve", "reject", "ship", or "deliver"' },
         { status: 400 }
       );
     }
@@ -86,22 +86,46 @@ export async function PATCH(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    if (existingOrder.status !== 'payment_received') {
+    // Validate status transitions
+    if (action === 'approve' && existingOrder.status !== 'payment_received') {
       return NextResponse.json(
-        { error: 'Order cannot be approved/rejected. It must be in "payment_received" status.' },
+        { error: 'Order cannot be approved. It must be in "payment_received" status.' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'reject' && existingOrder.status !== 'payment_received') {
+      return NextResponse.json(
+        { error: 'Order cannot be rejected. It must be in "payment_received" status.' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'ship' && existingOrder.status !== 'accepted') {
+      return NextResponse.json(
+        { error: 'Order cannot be shipped. It must be in "accepted" status.' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'deliver' && existingOrder.status !== 'shipped') {
+      return NextResponse.json(
+        { error: 'Order cannot be delivered. It must be in "shipped" status.' },
         { status: 400 }
       );
     }
 
     let updateData: any = {
-      adminNotes: adminNotes || null,
+      adminNotes: adminNotes || existingOrder.adminNotes,
       updatedAt: new Date(),
     };
 
+    let successMessage = '';
+
     if (action === 'approve') {
       // Order accepted by admin - ready for processing/shipping
-      updateData.status = 'accepted'; // Order accepted by admin
-      updateData.adminApprovedAt = new Date();
+      updateData.status = 'accepted';
+      successMessage = 'Order accepted! Ready for processing.';
 
       console.log('Order approved by admin:', {
         orderId,
@@ -116,13 +140,44 @@ export async function PATCH(
           { status: 400 }
         );
       }
-      updateData.status = 'rejected'; // Order rejected
+      updateData.status = 'rejected';
       updateData.rejectionReason = rejectionReason;
+      successMessage = 'Order rejected. Customer will be notified for refund.';
 
       console.log('Order rejected by admin:', {
         orderId,
         rejectionReason,
         rejectedAt: new Date(),
+      });
+    } else if (action === 'ship') {
+      // Order shipped - provide tracking information
+      if (!trackingNumber || !shippingCarrier) {
+        return NextResponse.json(
+          { error: 'trackingNumber and shippingCarrier are required for shipping' },
+          { status: 400 }
+        );
+      }
+      updateData.status = 'shipped';
+      updateData.trackingNumber = trackingNumber;
+      updateData.shippingCarrier = shippingCarrier;
+      updateData.shippedAt = new Date();
+      successMessage = 'Order marked as shipped!';
+
+      console.log('Order shipped:', {
+        orderId,
+        trackingNumber,
+        shippingCarrier,
+        shippedAt: new Date(),
+      });
+    } else if (action === 'deliver') {
+      // Order delivered - mark as completed
+      updateData.status = 'delivered';
+      updateData.deliveredAt = new Date();
+      successMessage = 'Order marked as delivered!';
+
+      console.log('Order delivered:', {
+        orderId,
+        deliveredAt: new Date(),
       });
     }
 
@@ -133,9 +188,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      message: action === 'approve'
-        ? 'Order accepted! Ready for processing.'
-        : 'Order rejected. Customer will be notified for refund.',
+      message: successMessage,
       orderId,
       status: updateData.status,
     });
