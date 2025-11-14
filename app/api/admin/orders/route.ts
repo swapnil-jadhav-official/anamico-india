@@ -19,13 +19,13 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status') || 'payment_received'; // Default: pending approval orders
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const status = searchParams.get('status'); // No default - fetch all if not specified
+    const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    console.log('Fetching orders for admin:', { status, limit, offset });
+    console.log('Fetching orders for admin:', { status: status || 'all', limit, offset });
 
-    // Fetch all orders with the specified status
+    // Fetch all orders or filter by status
     let ordersQuery = db.select().from(order);
 
     if (status) {
