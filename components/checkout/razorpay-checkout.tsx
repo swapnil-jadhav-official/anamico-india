@@ -62,12 +62,18 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
+    // Debug: Log environment variable
+    console.log('Razorpay Key ID:', process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
+
     // Only load real Razorpay script in production
     if (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
         !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes('mock')) {
+      console.log('Loading Razorpay script...');
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.async = true;
+      script.onload = () => console.log('Razorpay script loaded successfully');
+      script.onerror = () => console.error('Failed to load Razorpay script');
       document.body.appendChild(script);
 
       return () => {
@@ -75,11 +81,15 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           document.body.removeChild(script);
         }
       };
+    } else {
+      console.log('Using mock Razorpay (no valid key found)');
     }
   }, []);
 
   const handlePayment = async () => {
     try {
+      console.log('Initiating payment for order:', orderId, 'Payment type:', paymentType);
+
       // Create payment order
       const response = await fetch('/api/payments', {
         method: 'POST',
@@ -90,12 +100,16 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         }),
       });
 
+      console.log('Payment API response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('Payment API error:', error);
         throw new Error(error.error || 'Failed to create payment order');
       }
 
       const data = await response.json();
+      console.log('Payment order created:', data);
       checkoutOptionsRef.current = data.checkoutOptions;
 
       // Razorpay checkout handler
@@ -146,16 +160,27 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
       const isProduction = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
                           !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes('mock');
 
+      console.log('Is production mode?', isProduction);
+      console.log('Razorpay options:', options);
+
       if (isProduction) {
         // Use real Razorpay
+        console.log('Using real Razorpay checkout');
         const Razorpay = (window as any).Razorpay;
         if (!Razorpay) {
-          throw new Error('Razorpay script not loaded');
+          console.error('Razorpay script not loaded on window object');
+          throw new Error('Razorpay script not loaded. Please refresh the page and try again.');
         }
+        console.log('Opening Razorpay checkout...');
         const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response: any){
+          console.error('Payment failed:', response);
+          message.error('Payment failed: ' + response.error.description);
+        });
         rzp.open();
       } else {
         // Use mock Razorpay for development
+        console.log('Using mock Razorpay checkout');
         const rzp = new MockRazorpay(options);
         rzp.setOnModalOpen(() => {
           setShowMockModal(true);
