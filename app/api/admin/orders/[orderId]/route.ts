@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { order } from '@/drizzle/schema';
+import { order, orderItem } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
@@ -31,7 +31,17 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    return NextResponse.json(existingOrder);
+    // Fetch order items
+    const items = await db
+      .select()
+      .from(orderItem)
+      .where(eq(orderItem.orderId, orderId));
+
+    // Return order with items
+    return NextResponse.json({
+      ...existingOrder,
+      items,
+    });
   } catch (error) {
     console.error('Error fetching order:', error);
     return NextResponse.json(
