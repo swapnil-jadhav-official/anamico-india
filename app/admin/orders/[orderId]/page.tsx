@@ -606,13 +606,29 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
               </div>
               <div>
                 <label className="text-sm font-medium">Shipping Carrier *</label>
-                <input
-                  type="text"
+                <select
                   value={shippingCarrier}
                   onChange={(e) => setShippingCarrier(e.target.value)}
-                  placeholder="e.g., FedEx, DHL, BlueDart, etc."
                   className="w-full p-2 border rounded-md text-sm mt-2"
-                />
+                >
+                  <option value="">Select shipping carrier...</option>
+                  <optgroup label="Indian Couriers">
+                    <option value="BlueDart">BlueDart</option>
+                    <option value="DTDC">DTDC</option>
+                    <option value="Delhivery">Delhivery</option>
+                    <option value="India Post Speed Post">India Post Speed Post</option>
+                    <option value="Ecom Express">Ecom Express</option>
+                    <option value="Xpressbees">Xpressbees</option>
+                    <option value="Shadowfax">Shadowfax</option>
+                  </optgroup>
+                  <optgroup label="International Couriers">
+                    <option value="FedEx">FedEx</option>
+                    <option value="DHL">DHL</option>
+                    <option value="UPS">UPS</option>
+                    <option value="Aramex">Aramex</option>
+                    <option value="TNT">TNT</option>
+                  </optgroup>
+                </select>
               </div>
               <div>
                 <label className="text-sm font-medium">Admin Notes (Optional)</label>
