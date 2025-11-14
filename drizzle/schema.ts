@@ -119,6 +119,7 @@ export const order = mysqlTable('order', {
   // Tracking details
   trackingNumber: varchar('trackingNumber', { length: 255 }), // Courier tracking number
   shippingCarrier: varchar('shippingCarrier', { length: 255 }), // Courier company name
+  trackingUrl: varchar('trackingUrl', { length: 500 }), // Tracking URL for customer
   shippedAt: timestamp('shippedAt', { mode: 'date' }), // When order was shipped
   deliveredAt: timestamp('deliveredAt', { mode: 'date' }), // When order was delivered
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),

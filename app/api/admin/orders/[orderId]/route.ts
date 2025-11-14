@@ -68,7 +68,7 @@ export async function PATCH(
 
     const { orderId } = params;
     const body = await req.json();
-    const { action, adminNotes, rejectionReason, trackingNumber, shippingCarrier } = body;
+    const { action, adminNotes, rejectionReason, trackingNumber, shippingCarrier, trackingUrl } = body;
 
     if (!action || !['approve', 'reject', 'ship', 'deliver'].includes(action)) {
       return NextResponse.json(
@@ -160,6 +160,7 @@ export async function PATCH(
       updateData.status = 'shipped';
       updateData.trackingNumber = trackingNumber;
       updateData.shippingCarrier = shippingCarrier;
+      updateData.trackingUrl = trackingUrl || null; // Optional tracking URL
       updateData.shippedAt = new Date();
       successMessage = 'Order marked as shipped!';
 
@@ -167,6 +168,7 @@ export async function PATCH(
         orderId,
         trackingNumber,
         shippingCarrier,
+        trackingUrl,
         shippedAt: new Date(),
       });
     } else if (action === 'deliver') {

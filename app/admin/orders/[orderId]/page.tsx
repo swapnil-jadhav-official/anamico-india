@@ -36,6 +36,7 @@ interface OrderDetail {
   shippingPincode: string;
   trackingNumber?: string;
   shippingCarrier?: string;
+  trackingUrl?: string;
   shippedAt?: string;
   deliveredAt?: string;
   items: any[];
@@ -52,6 +53,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const [adminNotes, setAdminNotes] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [shippingCarrier, setShippingCarrier] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { orderId } = params;
@@ -168,6 +170,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
           action: "ship",
           trackingNumber,
           shippingCarrier,
+          trackingUrl: trackingUrl.trim() || undefined, // Optional
           adminNotes,
         }),
       });
@@ -187,6 +190,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
       setActionType(null);
       setTrackingNumber("");
       setShippingCarrier("");
+      setTrackingUrl("");
     } catch (error) {
       console.error("Error shipping order:", error);
       message.error(error instanceof Error ? error.message : "Failed to ship order");
@@ -427,6 +431,19 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   <p className="text-sm text-muted-foreground">Shipping Carrier</p>
                   <p className="font-semibold">{order.shippingCarrier}</p>
                 </div>
+                {order.trackingUrl && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tracking Link</p>
+                    <a
+                      href={order.trackingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Track Shipment →
+                    </a>
+                  </div>
+                )}
                 {order.shippedAt && (
                   <div>
                     <p className="text-sm text-muted-foreground">Shipped On</p>
@@ -631,6 +648,16 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                 </select>
               </div>
               <div>
+                <label className="text-sm font-medium">Tracking URL (Optional)</label>
+                <input
+                  type="url"
+                  value={trackingUrl}
+                  onChange={(e) => setTrackingUrl(e.target.value)}
+                  placeholder="https://track.courier.com/..."
+                  className="w-full p-2 border rounded-md text-sm mt-2"
+                />
+              </div>
+              <div>
                 <label className="text-sm font-medium">Admin Notes (Optional)</label>
                 <textarea
                   value={adminNotes}
@@ -648,6 +675,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                     setActionType(null);
                     setTrackingNumber("");
                     setShippingCarrier("");
+                    setTrackingUrl("");
                   }}
                   disabled={isProcessing}
                 >
