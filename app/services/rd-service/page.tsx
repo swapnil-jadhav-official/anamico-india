@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +17,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Shield, Truck, RotateCcw } from "lucide-react";
+import { CheckCircle2, Shield, Truck, RotateCcw, Loader2 } from "lucide-react";
+
+// Declare Razorpay global
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 // Indian states
 const INDIAN_STATES = [
@@ -38,7 +47,31 @@ const DEVICE_OPTIONS = [
   { name: "Mantra Iris", models: ["IRIS MIS100 V2"] }
 ];
 
+// Mock Razorpay for development
+class MockRazorpay {
+  options: any;
+  constructor(options: any) {
+    this.options = options;
+  }
+  open() {
+    setTimeout(() => {
+      const mockResponse = {
+        razorpay_payment_id: `pay_${Date.now()}`,
+        razorpay_order_id: this.options.order_id,
+        razorpay_signature: `sig_${Date.now()}`,
+      };
+      if (this.options.handler) {
+        this.options.handler(mockResponse);
+      }
+    }, 2000);
+  }
+}
+
 export default function RDServicePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     email: "",
     customerName: "",
@@ -68,6 +101,35 @@ export default function RDServicePage() {
     gst: 0,
     total: 0,
   });
+
+  // Load Razorpay script
+  useEffect(() => {
+    const isRealRazorpay = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
+                           !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes('mock');
+
+    if (isRealRazorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
+    }
+  }, []);
+
+  // Pre-fill user data if logged in
+  useEffect(() => {
+    if (session?.user) {
+      setFormData(prev => ({
+        ...prev,
+        email: session.user.email || "",
+        customerName: session.user.name || "",
+      }));
+    }
+  }, [session]);
 
   const calculatePricing = () => {
     const supportFees: { [key: string]: number } = {
@@ -103,32 +165,148 @@ export default function RDServicePage() {
     });
   };
 
+  useEffect(() => {
+    calculatePricing();
+  }, [formData.rdSupport, formData.amcSupport, formData.deliveryType]);
+
   const handleDeviceChange = (value: string) => {
     setSelectedDevice(value);
     setFormData({ ...formData, deviceName: value, deviceModel: "" });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFieldChange = (field: string, value: any) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handlePayment = async (registrationId: string, razorpayOrderId: string, amount: number) => {
+    const isRealRazorpay = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID &&
+                           !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID.includes('mock');
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: amount * 100, // Razorpay expects amount in paise
+      currency: "INR",
+      name: "Anamico India",
+      description: "RD Service Registration",
+      order_id: razorpayOrderId,
+      handler: async (response: any) => {
+        try {
+          // Record payment
+          const paymentResponse = await fetch(`/api/rd-service/${registrationId}/payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              amount: amount,
+            }),
+          });
+
+          if (!paymentResponse.ok) {
+            throw new Error('Payment recording failed');
+          }
+
+          // Success - redirect to success page
+          alert('Payment successful! Your RD service registration is confirmed. Check your email for details.');
+          router.push('/profile');
+        } catch (error) {
+          console.error('Payment error:', error);
+          alert('Payment verification failed. Please contact support.');
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      prefill: {
+        name: formData.customerName,
+        email: formData.email,
+        contact: formData.mobile,
+      },
+      theme: {
+        color: "#667eea",
+      },
+    };
+
+    if (isRealRazorpay && typeof window.Razorpay !== 'undefined') {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      // Use mock Razorpay for development
+      const rzp = new MockRazorpay(options);
+      rzp.open();
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!session?.user) {
+      alert('Please login to register for RD service');
+      router.push('/login');
+      return;
+    }
 
     if (!formData.acceptTerms) {
       alert("Please accept the terms and conditions");
       return;
     }
 
-    // TODO: Implement form submission
-    console.log("Form submitted:", formData);
-    alert("Thank you for your registration! We will contact you shortly.");
+    setIsSubmitting(true);
+
+    try {
+      // Create registration
+      const response = await fetch('/api/rd-service', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formData,
+          pricing,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create registration');
+      }
+
+      const data = await response.json();
+
+      // Create Razorpay order
+      const paymentResponse = await fetch('/api/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: data.registrationId,
+          paymentType: '100', // Full payment required for RD service
+        }),
+      });
+
+      if (!paymentResponse.ok) {
+        throw new Error('Failed to initialize payment');
+      }
+
+      const paymentData = await paymentResponse.json();
+
+      // Open Razorpay checkout
+      await handlePayment(
+        data.registrationId,
+        paymentData.razorpayOrderId,
+        pricing.total
+      );
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to process registration');
+      setIsSubmitting(false);
+    }
   };
 
-  // Calculate pricing whenever relevant fields change
-  const handleFieldChange = (field: string, value: any) => {
-    const newFormData = { ...formData, [field]: value };
-    setFormData(newFormData);
-
-    // Recalculate pricing
-    setTimeout(() => calculatePricing(), 0);
-  };
+  // Redirect to login if not authenticated
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -170,6 +348,14 @@ export default function RDServicePage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {!session?.user && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800">
+              Please <a href="/login" className="underline font-semibold">login</a> to register for RD service.
+            </p>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Registration Form */}
           <div className="lg:col-span-2">
@@ -365,7 +551,6 @@ export default function RDServicePage() {
                             placeholder="15-digit GST Number"
                             value={formData.gstNumber}
                             onChange={(e) => handleFieldChange("gstNumber", e.target.value)}
-                            pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
                           />
                         </div>
                       )}
@@ -509,8 +694,20 @@ export default function RDServicePage() {
                       </Label>
                     </div>
 
-                    <Button type="submit" size="lg" className="w-full" onClick={calculatePricing}>
-                      Register Now
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full"
+                      disabled={isSubmitting || !session?.user}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        'Proceed to Payment'
+                      )}
                     </Button>
                   </div>
                 </form>
