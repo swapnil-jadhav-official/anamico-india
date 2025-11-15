@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -13,16 +13,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, MessageSquare, Smartphone } from "lucide-react";
+import { Mail, Lock, Smartphone } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -49,9 +50,47 @@ export default function LoginPage() {
       });
       if (res.ok) {
         setOtpSent(true);
+        // Focus first OTP input after sending
+        setTimeout(() => {
+          otpInputRefs.current[0]?.focus();
+        }, 100);
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    // Only allow digits
+    if (value && !/^\d$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      // Move to previous input on backspace if current is empty
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
+
+    // Only process if it's 6 digits
+    if (/^\d{6}$/.test(pastedData)) {
+      const newOtp = pastedData.split("");
+      setOtp(newOtp);
+      // Focus last input
+      otpInputRefs.current[5]?.focus();
     }
   };
 
@@ -83,15 +122,26 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
+      const otpString = otp.join("");
+
+      if (otpString.length !== 6) {
+        alert("Please enter all 6 digits of the OTP.");
+        setIsLoading(false);
+        return;
+      }
+
       const result = await signIn("otp", {
         email,
-        otp,
+        otp: otpString,
         redirect: false
       });
 
       if (result?.error) {
         alert("Invalid OTP. Please try again.");
         console.error("OTP login error:", result.error);
+        // Clear OTP on error
+        setOtp(["", "", "", "", "", ""]);
+        otpInputRefs.current[0]?.focus();
       } else if (result?.ok) {
         // Login successful - session will update via useSession hook
         // The useEffect will handle the redirect based on user role
@@ -164,11 +214,30 @@ export default function LoginPage() {
                     </div>
                     {otpSent && (
                       <div className="grid gap-2">
-                        <Label htmlFor="otp">OTP</Label>
-                        <div className="relative">
-                          <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input id="otp" type="text" required className="pl-10" placeholder="Enter your 6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value)} disabled={isLoading} />
+                        <Label htmlFor="otp-0" className="text-center">Enter 6-Digit OTP</Label>
+                        <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                          {otp.map((digit, index) => (
+                            <Input
+                              key={index}
+                              id={`otp-${index}`}
+                              ref={(el) => {
+                                otpInputRefs.current[index] = el;
+                              }}
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => handleOtpChange(index, e.target.value)}
+                              onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                              disabled={isLoading}
+                              className="w-12 h-12 text-center text-lg font-semibold"
+                              required
+                            />
+                          ))}
                         </div>
+                        <p className="text-xs text-center text-muted-foreground">
+                          Enter the OTP sent to your email
+                        </p>
                       </div>
                     )}
                     <Button type="submit" variant="outline" className="w-full" disabled={isLoading}>
