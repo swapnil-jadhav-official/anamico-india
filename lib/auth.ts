@@ -1,4 +1,3 @@
-import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from './db';
 import * as schema from '../drizzle/schema';
 import type { NextAuthOptions } from 'next-auth';
@@ -15,7 +14,7 @@ export const authConfig: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  adapter: DrizzleAdapter(db, schema),
+  // Note: adapter removed - not needed for JWT strategy
   providers: [
     EmailProvider({
       server: {
@@ -30,6 +29,7 @@ export const authConfig: NextAuthOptions = {
       sendVerificationRequest,
     }),
     CredentialsProvider({
+      id: 'password',
       name: 'Password',
       credentials: {
         email: { label: "Email", type: "text" },
@@ -57,6 +57,7 @@ export const authConfig: NextAuthOptions = {
       }
     }),
     CredentialsProvider({
+      id: 'otp',
       name: 'OTP',
       credentials: {
         email: { label: "Email", type: "text" },

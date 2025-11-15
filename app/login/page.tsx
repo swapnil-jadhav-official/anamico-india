@@ -60,7 +60,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const callbackUrl = session?.user?.role === "admin" ? "/admin/dashboard" : "/";
-      const result = await signIn("credentials", { email, password, callbackUrl, redirect: false });
+      const result = await signIn("password", { email, password, callbackUrl, redirect: false });
       if (result?.error) {
         alert(result.error);
       } else if (result?.ok) {
@@ -83,8 +83,20 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const callbackUrl = session?.user?.role === "admin" ? "/admin/dashboard" : "/";
-      await signIn("credentials", { email, otp, callbackUrl });
+      const result = await signIn("otp", {
+        email,
+        otp,
+        redirect: false
+      });
+
+      if (result?.error) {
+        alert("Invalid OTP. Please try again.");
+        console.error("OTP login error:", result.error);
+      } else if (result?.ok) {
+        // Login successful - session will update via useSession hook
+        // The useEffect will handle the redirect based on user role
+        console.log("OTP login successful");
+      }
     } finally {
       setIsLoading(false);
     }
