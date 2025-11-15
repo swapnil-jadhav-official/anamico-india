@@ -1,5 +1,5 @@
 // Base Email Template
-const emailWrapper = (content: string, title: string = 'Anamico India') => `
+export const emailWrapper = (content: string, title: string = 'Anamico India') => `
 <!DOCTYPE html>
 <html lang="en">
 <head>

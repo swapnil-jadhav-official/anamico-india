@@ -253,7 +253,7 @@ export default function RDServicePage() {
     setIsSubmitting(true);
 
     try {
-      // Create registration
+      // Step 1: Create registration with 'pending' status
       const response = await fetch('/api/rd-service', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -269,29 +269,29 @@ export default function RDServicePage() {
       }
 
       const data = await response.json();
+      console.log('Registration created (pending payment):', data.registrationId);
 
-      // Create Razorpay order
-      const paymentResponse = await fetch('/api/payments', {
+      // Step 2: Create Razorpay order for RD service
+      const paymentResponse = await fetch(`/api/rd-service/${data.registrationId}/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: data.registrationId,
-          paymentType: '100', // Full payment required for RD service
-        }),
       });
 
       if (!paymentResponse.ok) {
-        throw new Error('Failed to initialize payment');
+        const error = await paymentResponse.json();
+        throw new Error(error.error || 'Failed to initialize payment');
       }
 
       const paymentData = await paymentResponse.json();
 
-      // Open Razorpay checkout
+      // Step 3: Open Razorpay checkout - this is where payment must complete
       await handlePayment(
         data.registrationId,
         paymentData.razorpayOrderId,
         pricing.total
       );
+
+      // Note: Success message and redirect happen in handlePayment's payment handler callback
     } catch (error) {
       console.error('Registration error:', error);
       alert(error instanceof Error ? error.message : 'Failed to process registration');
