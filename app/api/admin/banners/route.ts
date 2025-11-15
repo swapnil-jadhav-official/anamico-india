@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { db } from '@/drizzle/db';
+import { authConfig } from '@/lib/auth';
+import { db } from '@/lib/db';
 import { banner } from '@/drizzle/schema';
 import { eq, asc } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 // GET /api/admin/banners - Get all banners (admin only)
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
 
     if (!session?.user?.id || session.user.role !== 'admin') {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 // POST /api/admin/banners - Create new banner (admin only)
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
 
     if (!session?.user?.id || session.user.role !== 'admin') {
       return NextResponse.json(

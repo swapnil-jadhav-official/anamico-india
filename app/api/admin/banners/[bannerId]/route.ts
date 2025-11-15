@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { db } from '@/drizzle/db';
+import { authConfig } from '@/lib/auth';
+import { db } from '@/lib/db';
 import { banner } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 
@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: { bannerId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
 
     if (!session?.user?.id || session.user.role !== 'admin') {
       return NextResponse.json(
@@ -47,7 +47,7 @@ export async function PATCH(
   { params }: { params: { bannerId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
 
     if (!session?.user?.id || session.user.role !== 'admin') {
       return NextResponse.json(
@@ -124,7 +124,7 @@ export async function DELETE(
   { params }: { params: { bannerId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authConfig);
 
     if (!session?.user?.id || session.user.role !== 'admin') {
       return NextResponse.json(
