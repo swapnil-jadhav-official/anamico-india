@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { order } from '@/drizzle/schema';
+import { order, user } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
+import { sendEmail, sendAdminEmail } from '@/lib/email';
+import { generatePaymentReceivedEmail, generateAdminPaymentReceivedEmail } from '@/lib/email-templates';
 
 /**
  * POST /api/orders/[orderId]/payment
@@ -59,13 +61,16 @@ export async function POST(
       paymentId,
     });
 
+    // Determine payment status based on amount paid
+    const newPaymentStatus = paidAmount >= existingOrder.total ? 'completed' : 'partial_payment';
+
     // Update order status to 'payment_received' after partial payment
     // Order is now awaiting admin approval
     await db
       .update(order)
       .set({
         status: 'payment_received', // Payment received, awaiting admin approval
-        paymentStatus: 'partial_payment', // Marked as partial payment
+        paymentStatus: newPaymentStatus,
         paymentId,
         paymentMethod: paymentMethod || 'razorpay',
         paidAmount,
@@ -75,6 +80,55 @@ export async function POST(
 
     console.log('Payment recorded and order awaiting admin approval:', orderId);
 
+    // Get customer details for email
+    const [customerData] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, existingOrder.userId));
+
+    // Send payment confirmation email to customer
+    try {
+      const emailContent = generatePaymentReceivedEmail(
+        existingOrder.shippingName || customerData?.name || 'Customer',
+        existingOrder.orderNumber,
+        paidAmount,
+        existingOrder.total,
+        newPaymentStatus
+      );
+
+      await sendEmail({
+        to: existingOrder.shippingEmail || customerData?.email || '',
+        subject: `Payment Received - ${existingOrder.orderNumber}`,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      console.log(`✅ Payment confirmation email sent to ${existingOrder.shippingEmail}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send payment confirmation email:', emailError);
+    }
+
+    // Send payment notification to admin
+    try {
+      const adminEmailContent = generateAdminPaymentReceivedEmail(
+        existingOrder.orderNumber,
+        existingOrder.shippingName || customerData?.name || 'Customer',
+        paidAmount,
+        existingOrder.total,
+        newPaymentStatus
+      );
+
+      await sendAdminEmail(
+        `Payment Received - ${existingOrder.orderNumber}`,
+        adminEmailContent.html,
+        adminEmailContent.text
+      );
+
+      console.log(`✅ Admin payment notification sent for order ${existingOrder.orderNumber}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send admin payment notification:', emailError);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Payment recorded. Order is now awaiting admin approval.',
@@ -82,7 +136,7 @@ export async function POST(
       orderData: {
         id: orderId,
         status: 'payment_received',
-        paymentStatus: 'partial_payment',
+        paymentStatus: newPaymentStatus,
         paidAmount,
         percentagePaid,
         pendingApproval: true,

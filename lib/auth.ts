@@ -7,6 +7,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { sendVerificationRequest } from './otp';
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
+import { sendEmail } from './email';
+import { generateWelcomeEmail } from './email-templates';
 
 export const authConfig: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -79,6 +81,23 @@ export const authConfig: NextAuthOptions = {
           // Drizzle insert returns an array of inserted values, take the first one
           user = newUserArray[0];
           isNewUser = true;
+
+          // Send welcome email to new users
+          try {
+            const emailContent = generateWelcomeEmail(
+              user.name || credentials.email.split('@')[0],
+              credentials.email
+            );
+            await sendEmail({
+              to: credentials.email,
+              subject: 'Welcome to Anamico India! 🎉',
+              html: emailContent.html,
+              text: emailContent.text,
+            });
+            console.log(`✅ Welcome email sent to ${credentials.email}`);
+          } catch (emailError) {
+            console.error('❌ Failed to send welcome email:', emailError);
+          }
         }
 
         // Attach isNewUser flag to the user object for propagation

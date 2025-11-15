@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
+import { sendEmail, sendAdminEmail } from '@/lib/email';
+import { generateOrderConfirmationEmail, generateAdminNewOrderEmail } from '@/lib/email-templates';
 
 // Generate unique order number
 function generateOrderNumber(): string {
@@ -106,6 +108,58 @@ export async function POST(req: NextRequest) {
       .where(eq(cartItem.userId, session.user.id));
 
     console.log('Order created successfully:', orderId);
+
+    // Send order confirmation email to customer
+    try {
+      const orderItemsForEmail = items.map((item: any) => ({
+        productName: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const emailContent = generateOrderConfirmationEmail(
+        name,
+        orderNumber,
+        orderItemsForEmail,
+        subtotal,
+        tax,
+        total,
+        { name, address, city, state, pincode, phone }
+      );
+
+      await sendEmail({
+        to: email,
+        subject: `Order Confirmation - ${orderNumber}`,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      console.log(`✅ Order confirmation email sent to ${email}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send order confirmation email:', emailError);
+    }
+
+    // Send new order notification to admin
+    try {
+      const adminEmailContent = generateAdminNewOrderEmail(
+        orderNumber,
+        name,
+        email,
+        total,
+        items.length,
+        'pending'
+      );
+
+      await sendAdminEmail(
+        `New Order - ${orderNumber}`,
+        adminEmailContent.html,
+        adminEmailContent.text
+      );
+
+      console.log(`✅ Admin notification email sent for order ${orderNumber}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send admin notification email:', emailError);
+    }
 
     return NextResponse.json({
       success: true,
