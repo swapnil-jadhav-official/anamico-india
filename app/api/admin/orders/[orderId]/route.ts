@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { order, orderItem } from '@/drizzle/schema';
+import { order, orderItem, user } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
+import {
+  generateOrderApprovedEmail,
+  generateOrderRejectedEmail,
+  generateOrderShippedEmail,
+  generateOrderDeliveredEmail
+} from '@/lib/email-templates';
 
 /**
  * GET /api/admin/orders/[orderId]
@@ -172,14 +179,19 @@ export async function PATCH(
         shippedAt: new Date(),
       });
     } else if (action === 'deliver') {
-      // Order delivered - mark as completed
+      // Order delivered - mark as completed and ensure payment is 100%
       updateData.status = 'delivered';
       updateData.deliveredAt = new Date();
-      successMessage = 'Order marked as delivered!';
+      updateData.paymentStatus = 'completed';
+      updateData.paidAmount = existingOrder.total; // Set paid amount to total
+      successMessage = 'Order marked as delivered and payment completed!';
 
       console.log('Order delivered:', {
         orderId,
         deliveredAt: new Date(),
+        paymentCompleted: true,
+        paidAmount: existingOrder.total,
+        total: existingOrder.total,
       });
     }
 
@@ -187,6 +199,83 @@ export async function PATCH(
       .update(order)
       .set(updateData)
       .where(eq(order.id, orderId));
+
+    // Get customer details for email
+    const [customerData] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, existingOrder.userId));
+
+    const customerEmail = existingOrder.shippingEmail || customerData?.email || '';
+    const customerName = existingOrder.shippingName || customerData?.name || 'Customer';
+
+    // Send appropriate email based on action
+    try {
+      if (action === 'approve') {
+        const emailContent = generateOrderApprovedEmail(
+          customerName,
+          existingOrder.orderNumber
+        );
+
+        await sendEmail({
+          to: customerEmail,
+          subject: `Order Approved - ${existingOrder.orderNumber}`,
+          html: emailContent.html,
+          text: emailContent.text,
+        });
+
+        console.log(`✅ Order approved email sent to ${customerEmail}`);
+      } else if (action === 'reject') {
+        const emailContent = generateOrderRejectedEmail(
+          customerName,
+          existingOrder.orderNumber,
+          rejectionReason
+        );
+
+        await sendEmail({
+          to: customerEmail,
+          subject: `Order Update - ${existingOrder.orderNumber}`,
+          html: emailContent.html,
+          text: emailContent.text,
+        });
+
+        console.log(`✅ Order rejected email sent to ${customerEmail}`);
+      } else if (action === 'ship') {
+        const emailContent = generateOrderShippedEmail(
+          customerName,
+          existingOrder.orderNumber,
+          trackingNumber,
+          shippingCarrier,
+          trackingUrl
+        );
+
+        await sendEmail({
+          to: customerEmail,
+          subject: `Order Shipped - ${existingOrder.orderNumber}`,
+          html: emailContent.html,
+          text: emailContent.text,
+        });
+
+        console.log(`✅ Order shipped email sent to ${customerEmail}`);
+      } else if (action === 'deliver') {
+        const emailContent = generateOrderDeliveredEmail(
+          customerName,
+          existingOrder.orderNumber
+        );
+
+        await sendEmail({
+          to: customerEmail,
+          subject: `Order Delivered - ${existingOrder.orderNumber}`,
+          html: emailContent.html,
+          text: emailContent.text,
+        });
+
+        console.log(`✅ Order delivered email sent to ${customerEmail}`);
+      }
+    } catch (emailError) {
+      console.error(`❌ Failed to send ${action} email:`, emailError);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       success: true,

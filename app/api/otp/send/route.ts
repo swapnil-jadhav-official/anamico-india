@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { verificationToken } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
+import { sendEmail } from "@/lib/email";
+import { generateOTPEmail } from "@/lib/email-templates";
 
 function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -31,11 +33,33 @@ export async function POST(req: NextRequest) {
       expires,
     });
 
-    // For demonstration, we'll log the OTP to the console.
-    // In a real application, you would send this via email.
-    console.log(`OTP for ${email}: ${otp}`);
+    // Send OTP via email
+    try {
+      const emailContent = generateOTPEmail(email, otp);
+      await sendEmail({
+        to: email,
+        subject: 'Your Login OTP - Anamico India',
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+      console.log(`✅ OTP email sent to ${email}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send OTP email:', emailError);
+      // Still log to console as fallback
+      console.log(`OTP for ${email}: ${otp}`);
+    }
 
-    return NextResponse.json({ message: "OTP sent successfully", email, otp });
+    // In development, also log to console for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`OTP for ${email}: ${otp}`);
+    }
+
+    return NextResponse.json({
+      message: "OTP sent successfully",
+      email,
+      // Only include OTP in response in development mode
+      ...(process.env.NODE_ENV === 'development' && { otp })
+    });
   } catch (error) {
     console.error("Error saving OTP:", error);
     return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });
