@@ -108,31 +108,39 @@ export const authConfig: NextAuthOptions = {
           }
         }
 
-        // Attach isNewUser flag to the user object for propagation
-        if (user) {
-          (user as any).isNewUser = isNewUser;
+        // Ensure user exists
+        if (!user) {
+          console.error('Failed to create or find user');
+          return null;
         }
+
+        // Attach isNewUser flag to the user object for propagation
+        (user as any).isNewUser = isNewUser;
 
         const token = await db.query.verificationToken.findFirst({
           where: (vt, { eq }) => eq(vt.identifier, credentials.email),
         });
 
         if (!token) {
+          console.error('No OTP token found for:', credentials.email);
           return null;
         }
 
         const hashedOtp = crypto.createHash('sha256').update(credentials.otp).digest('hex');
 
         if (token.token !== hashedOtp) {
+          console.error('Invalid OTP for:', credentials.email);
           return null;
         }
 
         if (new Date() > new Date(token.expires)) {
+          console.error('Expired OTP for:', credentials.email);
           return null;
         }
 
         await db.delete(schema.verificationToken).where(eq(schema.verificationToken.identifier, credentials.email));
 
+        console.log('✅ OTP authentication successful for:', credentials.email);
         return user;
       }
     })
@@ -142,37 +150,51 @@ export const authConfig: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.sub as string;
-        session.user.isNewUser = token.isNewUser;
-
-        const userInDb = await db.query.user.findFirst({
-          where: (user, { eq }) => eq(user.id, token.sub as string),
-        });
-
-        if (userInDb) {
-          session.user.phone = userInDb.phone;
-          session.user.address = userInDb.address;
-          session.user.role = userInDb.role;
+      try {
+        if (token && session.user) {
+          session.user.id = token.sub as string;
+          session.user.isNewUser = token.isNewUser;
+          session.user.role = token.role as string;
+          session.user.phone = token.phone as string;
+          session.user.address = token.address as string;
+          session.user.name = token.name as string;
+          session.user.email = token.email as string;
         }
+      } catch (error) {
+        console.error('Error in session callback:', error);
       }
       return session;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-        token.isNewUser = (user as any).isNewUser;
-        token.role = (user as any).role; // Add role to the token
-      }
-
-      // Refresh role from database if not present in token
-      if (token.sub && !token.role) {
-        const userInDb = await db.query.user.findFirst({
-          where: (u, { eq }) => eq(u.id, token.sub as string),
-        });
-        if (userInDb) {
-          token.role = userInDb.role;
+    async jwt({ token, user, trigger }) {
+      try {
+        // When user first signs in
+        if (user) {
+          token.sub = user.id;
+          token.isNewUser = (user as any).isNewUser || false;
+          token.role = (user as any).role || 'user';
+          token.phone = (user as any).phone || null;
+          token.address = (user as any).address || null;
+          token.name = (user as any).name || null;
+          token.email = (user as any).email || null;
+          return token;
         }
+
+        // Only refresh from database if trigger is 'update' or role is missing
+        if (token.sub && (!token.role || trigger === 'update')) {
+          const userInDb = await db.query.user.findFirst({
+            where: (u, { eq }) => eq(u.id, token.sub as string),
+          });
+
+          if (userInDb) {
+            token.role = userInDb.role || 'user';
+            token.phone = userInDb.phone || null;
+            token.address = userInDb.address || null;
+            token.name = userInDb.name || null;
+            token.email = userInDb.email || null;
+          }
+        }
+      } catch (error) {
+        console.error('Error in jwt callback:', error);
       }
 
       return token;
