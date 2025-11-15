@@ -35,6 +35,11 @@ interface OrderDetail {
   shippingCity: string;
   shippingState: string;
   shippingPincode: string;
+  trackingNumber?: string;
+  shippingCarrier?: string;
+  trackingUrl?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
   items: any[];
 }
 
@@ -276,6 +281,63 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
               />
             </CardContent>
           </Card>
+
+          {/* Tracking Information */}
+          {(order.status === "shipped" || order.status === "delivered") && order.trackingNumber && (
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
+              <CardHeader>
+                <CardTitle>Tracking Information</CardTitle>
+                <CardDescription>
+                  {order.status === "shipped"
+                    ? "Your order is on its way!"
+                    : "Your order has been delivered"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tracking Number</p>
+                    <p className="font-semibold text-lg">{order.trackingNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Shipping Carrier</p>
+                    <p className="font-semibold">{order.shippingCarrier}</p>
+                  </div>
+                  {order.shippedAt && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Shipped On</p>
+                      <p className="font-semibold">
+                        {new Date(order.shippedAt).toLocaleDateString()} at{" "}
+                        {new Date(order.shippedAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  )}
+                  {order.deliveredAt && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Delivered On</p>
+                      <p className="font-semibold">
+                        {new Date(order.deliveredAt).toLocaleDateString()} at{" "}
+                        {new Date(order.deliveredAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {order.trackingUrl && (
+                  <div className="pt-4 border-t">
+                    <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                      <a
+                        href={order.trackingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Track Your Shipment →
+                      </a>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}

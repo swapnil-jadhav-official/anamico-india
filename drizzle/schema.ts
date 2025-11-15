@@ -116,6 +116,33 @@ export const order = mysqlTable('order', {
   shippingCity: varchar('shippingCity', { length: 255 }).notNull(),
   shippingState: varchar('shippingState', { length: 255 }).notNull(),
   shippingPincode: varchar('shippingPincode', { length: 255 }).notNull(),
+  // Tracking details
+  trackingNumber: varchar('trackingNumber', { length: 255 }), // Courier tracking number
+  shippingCarrier: varchar('shippingCarrier', { length: 255 }), // Courier company name
+  trackingUrl: varchar('trackingUrl', { length: 500 }), // Tracking URL for customer
+  shippedAt: timestamp('shippedAt', { mode: 'date' }), // When order was shipped
+  deliveredAt: timestamp('deliveredAt', { mode: 'date' }), // When order was delivered
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
+
+export const banner = mysqlTable('banner', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(), // Admin reference name
+  placement: varchar('placement', { length: 50 }).notNull(), // hero, top_promo, section, offer_strip, bottom
+  imageUrl: varchar('imageUrl', { length: 500 }).notNull(), // Banner image URL
+  imageUrlMobile: varchar('imageUrlMobile', { length: 500 }), // Optional mobile-optimized image
+  linkUrl: varchar('linkUrl', { length: 500 }), // Where banner links to
+  altText: varchar('altText', { length: 255 }), // Image alt text for SEO
+  heading: varchar('heading', { length: 255 }), // Text overlay heading
+  subheading: text('subheading'), // Text overlay subheading
+  ctaText: varchar('ctaText', { length: 100 }), // Call-to-action button text
+  ctaLink: varchar('ctaLink', { length: 500 }), // CTA button link
+  textPosition: varchar('textPosition', { length: 20 }).default('left'), // left, center, right
+  displayOrder: int('displayOrder').default(0).notNull(), // Sort order
+  isActive: boolean('isActive').default(true).notNull(), // Enable/disable
+  startDate: timestamp('startDate', { mode: 'date' }), // Schedule start
+  endDate: timestamp('endDate', { mode: 'date' }), // Schedule end
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });

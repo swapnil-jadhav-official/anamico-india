@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
-import { Package, ShoppingCart, Users, Settings, BarChart3 } from "lucide-react";
+import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon } from "lucide-react";
 import Link from "next/link";
 
 const features = [
@@ -20,6 +20,7 @@ const features = [
   {
     title: "Product Management",
     description: "Add, edit, and manage your products.",
+    icon: <Package className="h-8 w-8 text-primary" />,
     href: "/admin/products",
   },
   {
@@ -27,6 +28,12 @@ const features = [
     description: "View and process customer orders.",
     icon: <ShoppingCart className="h-8 w-8 text-primary" />,
     href: "/admin/orders",
+  },
+  {
+    title: "Banner Management",
+    description: "Manage landing page banners and offers.",
+    icon: <ImageIcon className="h-8 w-8 text-primary" />,
+    href: "/admin/banners",
   },
   {
     title: "User Management",

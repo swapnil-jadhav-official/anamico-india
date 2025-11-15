@@ -65,6 +65,7 @@ export default function OrdersPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     setMounted(true);
@@ -75,14 +76,18 @@ export default function OrdersPage() {
     redirect("/login");
   }
 
-  // Fetch pending orders
+  // Fetch orders (with status filter)
   useEffect(() => {
     if (!mounted || sessionStatus !== "authenticated") return;
 
     const fetchOrders = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch("/api/admin/orders?status=payment_received");
+        // Fetch all orders or filter by status
+        const url = statusFilter === "all"
+          ? "/api/admin/orders"
+          : `/api/admin/orders?status=${statusFilter}`;
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
           setOrders(data.data);
@@ -98,7 +103,7 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [mounted, sessionStatus]);
+  }, [mounted, sessionStatus, statusFilter]);
 
   const handleApprove = async (order: Order) => {
     try {
@@ -118,8 +123,16 @@ export default function OrdersPage() {
 
       message.success("Order approved successfully!");
 
-      // Remove from list
-      setOrders(orders.filter((o) => o.id !== order.id));
+      // Refresh orders list
+      const url = statusFilter === "all"
+        ? "/api/admin/orders"
+        : `/api/admin/orders?status=${statusFilter}`;
+      const refreshRes = await fetch(url);
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        setOrders(data.data);
+      }
+
       setSelectedOrder(null);
       setActionType(null);
       setAdminNotes("");
@@ -153,8 +166,16 @@ export default function OrdersPage() {
 
       message.success("Order rejected. Customer will be notified for refund.");
 
-      // Remove from list
-      setOrders(orders.filter((o) => o.id !== order.id));
+      // Refresh orders list
+      const url = statusFilter === "all"
+        ? "/api/admin/orders"
+        : `/api/admin/orders?status=${statusFilter}`;
+      const refreshRes = await fetch(url);
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        setOrders(data.data);
+      }
+
       setSelectedOrder(null);
       setActionType(null);
       setRejectionReason("");
@@ -174,15 +195,26 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "pending":
+        return <Badge className="bg-gray-600">Pending Payment</Badge>;
       case "payment_received":
         return <Badge className="bg-yellow-600">Payment Received</Badge>;
       case "accepted":
         return <Badge className="bg-green-600">Accepted</Badge>;
       case "rejected":
         return <Badge className="bg-red-600">Rejected</Badge>;
+      case "shipped":
+        return <Badge className="bg-blue-600">Shipped</Badge>;
+      case "delivered":
+        return <Badge className="bg-green-700">Delivered</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
+  };
+
+  const getStatusCount = (status: string) => {
+    if (status === "all") return orders.length;
+    return orders.filter(o => o.status === status).length;
   };
 
   const getPaymentPercentage = (paid: number, total: number) => {
@@ -201,18 +233,77 @@ export default function OrdersPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Order Management</h1>
           <p className="text-muted-foreground">
-            Review and approve pending orders with payments received
+            View and manage all orders
           </p>
         </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pending Orders</CardTitle>
+          <CardTitle>All Orders</CardTitle>
           <CardDescription>
-            {orders.length} order(s) awaiting approval
+            {orders.length} order(s) {statusFilter !== "all" && `with status: ${statusFilter}`}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Status Filter Tabs */}
+          <div className="flex gap-2 flex-wrap border-b pb-4">
+            <Button
+              variant={statusFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("all")}
+            >
+              All Orders ({orders.length})
+            </Button>
+            <Button
+              variant={statusFilter === "pending" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("pending")}
+              className={statusFilter === "pending" ? "" : "hover:bg-gray-100"}
+            >
+              Pending Payment
+            </Button>
+            <Button
+              variant={statusFilter === "payment_received" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("payment_received")}
+              className={statusFilter === "payment_received" ? "bg-yellow-600 hover:bg-yellow-700" : "hover:bg-yellow-50"}
+            >
+              Awaiting Approval
+            </Button>
+            <Button
+              variant={statusFilter === "accepted" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("accepted")}
+              className={statusFilter === "accepted" ? "bg-green-600 hover:bg-green-700" : "hover:bg-green-50"}
+            >
+              Accepted
+            </Button>
+            <Button
+              variant={statusFilter === "rejected" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("rejected")}
+              className={statusFilter === "rejected" ? "bg-red-600 hover:bg-red-700" : "hover:bg-red-50"}
+            >
+              Rejected
+            </Button>
+            <Button
+              variant={statusFilter === "shipped" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("shipped")}
+              className={statusFilter === "shipped" ? "bg-blue-600 hover:bg-blue-700" : "hover:bg-blue-50"}
+            >
+              Shipped
+            </Button>
+            <Button
+              variant={statusFilter === "delivered" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("delivered")}
+              className={statusFilter === "delivered" ? "bg-green-700 hover:bg-green-800" : "hover:bg-green-50"}
+            >
+              Delivered
+            </Button>
+          </div>
+
           {/* Search */}
           <Input
             placeholder="Search by order number, customer name, or email..."
@@ -227,7 +318,11 @@ export default function OrdersPage() {
             </div>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "No orders matching your search" : "No pending orders"}
+              {searchTerm
+                ? "No orders matching your search"
+                : statusFilter === "all"
+                  ? "No orders yet"
+                  : `No orders with status: ${statusFilter}`}
             </div>
           ) : (
             <div className="overflow-auto max-h-[600px] border rounded-md">
@@ -291,29 +386,33 @@ export default function OrdersPage() {
                               View
                             </Link>
                           </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setActionType("approve");
-                            }}
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setActionType("reject");
-                            }}
-                          >
-                            <X className="h-4 w-4 mr-1" />
-                            Reject
-                          </Button>
+                          {order.status === "payment_received" && (
+                            <>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => {
+                                  setSelectedOrder(order);
+                                  setActionType("approve");
+                                }}
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedOrder(order);
+                                  setActionType("reject");
+                                }}
+                              >
+                                <X className="h-4 w-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
