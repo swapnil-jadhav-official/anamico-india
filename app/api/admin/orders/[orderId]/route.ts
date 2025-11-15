@@ -179,14 +179,19 @@ export async function PATCH(
         shippedAt: new Date(),
       });
     } else if (action === 'deliver') {
-      // Order delivered - mark as completed
+      // Order delivered - mark as completed and ensure payment is 100%
       updateData.status = 'delivered';
       updateData.deliveredAt = new Date();
-      successMessage = 'Order marked as delivered!';
+      updateData.paymentStatus = 'completed';
+      updateData.paidAmount = existingOrder.total; // Set paid amount to total
+      successMessage = 'Order marked as delivered and payment completed!';
 
       console.log('Order delivered:', {
         orderId,
         deliveredAt: new Date(),
+        paymentCompleted: true,
+        paidAmount: existingOrder.total,
+        total: existingOrder.total,
       });
     }
 
