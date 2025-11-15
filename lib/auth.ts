@@ -73,30 +73,37 @@ export const authConfig: NextAuthOptions = {
 
         let isNewUser = false;
         if (!user) {
-          const newUserArray = await db.insert(schema.user).values({
-            id: crypto.randomUUID(),
+          const newUserId = crypto.randomUUID();
+          await db.insert(schema.user).values({
+            id: newUserId,
             email: credentials.email,
             emailVerified: new Date(),
           });
-          // Drizzle insert returns an array of inserted values, take the first one
-          user = newUserArray[0];
+
+          // Query the newly created user
+          user = await db.query.user.findFirst({
+            where: (user, { eq }) => eq(user.id, newUserId),
+          });
+
           isNewUser = true;
 
           // Send welcome email to new users
-          try {
-            const emailContent = generateWelcomeEmail(
-              user.name || credentials.email.split('@')[0],
-              credentials.email
-            );
-            await sendEmail({
-              to: credentials.email,
-              subject: 'Welcome to Anamico India! 🎉',
-              html: emailContent.html,
-              text: emailContent.text,
-            });
-            console.log(`✅ Welcome email sent to ${credentials.email}`);
-          } catch (emailError) {
-            console.error('❌ Failed to send welcome email:', emailError);
+          if (user) {
+            try {
+              const emailContent = generateWelcomeEmail(
+                user.name || credentials.email.split('@')[0],
+                credentials.email
+              );
+              await sendEmail({
+                to: credentials.email,
+                subject: 'Welcome to Anamico India! 🎉',
+                html: emailContent.html,
+                text: emailContent.text,
+              });
+              console.log(`✅ Welcome email sent to ${credentials.email}`);
+            } catch (emailError) {
+              console.error('❌ Failed to send welcome email:', emailError);
+            }
           }
         }
 
