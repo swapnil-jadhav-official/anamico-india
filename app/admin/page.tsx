@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
-import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon } from "lucide-react";
+import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon, Fingerprint } from "lucide-react";
 import Link from "next/link";
 
 const features = [
@@ -34,6 +34,12 @@ const features = [
     description: "Manage landing page banners and offers.",
     icon: <ImageIcon className="h-8 w-8 text-primary" />,
     href: "/admin/banners",
+  },
+  {
+    title: "RD Service Management",
+    description: "Manage biometric device service registrations.",
+    icon: <Fingerprint className="h-8 w-8 text-primary" />,
+    href: "/admin/rd-service",
   },
   {
     title: "User Management",
