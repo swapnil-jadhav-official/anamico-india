@@ -220,6 +220,11 @@ export function ECommerceHeader() {
                   {session?.user?.role === 'admin' && (
                     <>
                       <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href="/admin/dashboard">
                           Admin Dashboard
                         </Link>
