@@ -137,6 +137,17 @@ export const authConfig: NextAuthOptions = {
         token.isNewUser = (user as any).isNewUser;
         token.role = (user as any).role; // Add role to the token
       }
+
+      // Refresh role from database if not present in token
+      if (token.sub && !token.role) {
+        const userInDb = await db.query.user.findFirst({
+          where: (u, { eq }) => eq(u.id, token.sub as string),
+        });
+        if (userInDb) {
+          token.role = userInDb.role;
+        }
+      }
+
       return token;
     },
   },
