@@ -126,6 +126,27 @@ export const order = mysqlTable('order', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });
 
+export const banner = mysqlTable('banner', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(), // Admin reference name
+  placement: varchar('placement', { length: 50 }).notNull(), // hero, top_promo, section, offer_strip, bottom
+  imageUrl: varchar('imageUrl', { length: 500 }).notNull(), // Banner image URL
+  imageUrlMobile: varchar('imageUrlMobile', { length: 500 }), // Optional mobile-optimized image
+  linkUrl: varchar('linkUrl', { length: 500 }), // Where banner links to
+  altText: varchar('altText', { length: 255 }), // Image alt text for SEO
+  heading: varchar('heading', { length: 255 }), // Text overlay heading
+  subheading: text('subheading'), // Text overlay subheading
+  ctaText: varchar('ctaText', { length: 100 }), // Call-to-action button text
+  ctaLink: varchar('ctaLink', { length: 500 }), // CTA button link
+  textPosition: varchar('textPosition', { length: 20 }).default('left'), // left, center, right
+  displayOrder: int('displayOrder').default(0).notNull(), // Sort order
+  isActive: boolean('isActive').default(true).notNull(), // Enable/disable
+  startDate: timestamp('startDate', { mode: 'date' }), // Schedule start
+  endDate: timestamp('endDate', { mode: 'date' }), // Schedule end
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
+
 export const orderItem = mysqlTable('orderItem', {
   id: varchar('id', { length: 255 }).notNull().primaryKey(),
   orderId: varchar('orderId', { length: 255 })
