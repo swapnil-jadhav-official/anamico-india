@@ -98,12 +98,34 @@ export function ECommerceHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link
-              href="/services"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              Services
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-sm font-medium hover:text-primary transition-colors">
+                Services
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/services/rd-service">RD Services</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/pan-card">Pan Card</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/digital-signature">Digital Signature</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/token-update">Token Update</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/company-registration">Company Registration</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/digital-marketing">Digital Marketing</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/rd-status">RD Status</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Link
               href="/downloads"
@@ -284,12 +306,55 @@ export function ECommerceHeader() {
                     >
                       Products
                     </Link>
-                    <Link
-                      href="/services"
-                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
-                    >
-                      Services
-                    </Link>
+
+                    <div className="space-y-1">
+                      <div className="px-3 py-2 text-base font-medium">Services</div>
+                      <div className="ml-4 space-y-1">
+                        <Link
+                          href="/services/rd-service"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          RD Services
+                        </Link>
+                        <Link
+                          href="/services/pan-card"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          Pan Card
+                        </Link>
+                        <Link
+                          href="/services/digital-signature"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          Digital Signature
+                        </Link>
+                        <Link
+                          href="/services/token-update"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          Token Update
+                        </Link>
+                        <Link
+                          href="/services/company-registration"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          Company Registration
+                        </Link>
+                        <Link
+                          href="/services/digital-marketing"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          Digital Marketing
+                        </Link>
+                        <Link
+                          href="/services/rd-status"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          RD Status
+                        </Link>
+                      </div>
+                    </div>
+
                     <Link
                       href="/downloads"
                       className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
