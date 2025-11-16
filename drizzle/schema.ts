@@ -160,3 +160,53 @@ export const orderItem = mysqlTable('orderItem', {
   price: int('price').notNull(), // Price per unit at time of order
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
 });
+
+export const rdServiceRegistration = mysqlTable('rdServiceRegistration', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  userId: varchar('userId', { length: 255 })
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  registrationNumber: varchar('registrationNumber', { length: 255 }).notNull().unique(),
+
+  // Personal Information
+  email: varchar('email', { length: 255 }).notNull(),
+  customerName: varchar('customerName', { length: 255 }).notNull(),
+  mobile: varchar('mobile', { length: 20 }).notNull(),
+  address: text('address').notNull(),
+  state: varchar('state', { length: 255 }).notNull(),
+  district: varchar('district', { length: 255 }).notNull(),
+  pincode: varchar('pincode', { length: 10 }).notNull(),
+
+  // Device Details
+  deviceName: varchar('deviceName', { length: 255 }).notNull(),
+  deviceModel: varchar('deviceModel', { length: 255 }).notNull(),
+  serialNumber: varchar('serialNumber', { length: 255 }).notNull(),
+  gstNumber: varchar('gstNumber', { length: 255 }),
+
+  // Service Selection
+  rdSupport: varchar('rdSupport', { length: 10 }).notNull(), // 1, 2, or 3 years
+  amcSupport: varchar('amcSupport', { length: 50 }), // standard-1, comprehensive-2, etc.
+  callbackService: boolean('callbackService').default(false).notNull(),
+  deliveryType: varchar('deliveryType', { length: 20 }).notNull(), // regular or express
+
+  // Pricing
+  deviceFee: int('deviceFee').notNull(),
+  supportFee: int('supportFee').notNull(),
+  deliveryFee: int('deliveryFee').notNull(),
+  subtotal: int('subtotal').notNull(),
+  gst: int('gst').notNull(), // 18% GST
+  total: int('total').notNull(),
+
+  // Payment and Status
+  paidAmount: int('paidAmount').default(0).notNull(),
+  status: varchar('status', { length: 255 }).default('pending').notNull(), // pending, payment_received, processing, completed, cancelled
+  paymentStatus: varchar('paymentStatus', { length: 255 }).default('pending').notNull(), // pending, completed, failed
+  paymentMethod: varchar('paymentMethod', { length: 255 }),
+  paymentId: varchar('paymentId', { length: 255 }),
+
+  // Admin notes
+  adminNotes: text('adminNotes'),
+
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
