@@ -22,6 +22,7 @@ import {
   Search,
   Shield,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface RegistrationStatus {
   registrationNumber: string;
@@ -44,6 +45,7 @@ interface RegistrationStatus {
 }
 
 export default function RDStatusPage() {
+  const { toast } = useToast();
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -71,13 +73,21 @@ export default function RDStatusPage() {
 
       const data = await response.json();
       setRegistrationStatus(data.registration);
+      toast({
+        title: "Status Retrieved",
+        description: "Your registration details have been found successfully.",
+      });
     } catch (error) {
       console.error("Error checking status:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to check registration status"
-      );
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Failed to check registration status";
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Status Check Failed",
+        description: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }

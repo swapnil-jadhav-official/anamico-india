@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Shield, Truck, RotateCcw, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Declare Razorpay global
 declare global {
@@ -70,6 +71,7 @@ class MockRazorpay {
 export default function RDServicePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -207,11 +209,18 @@ export default function RDServicePage() {
           }
 
           // Success - redirect to success page
-          alert('Payment successful! Your RD service registration is confirmed. Check your email for details.');
+          toast({
+            title: "Payment Successful!",
+            description: "Your RD service registration is confirmed. Check your email for details.",
+          });
           router.push('/profile');
         } catch (error) {
           console.error('Payment error:', error);
-          alert('Payment verification failed. Please contact support.');
+          toast({
+            variant: "destructive",
+            title: "Payment Verification Failed",
+            description: "Please contact support for assistance.",
+          });
         } finally {
           setIsSubmitting(false);
         }
@@ -240,13 +249,21 @@ export default function RDServicePage() {
     e.preventDefault();
 
     if (!session?.user) {
-      alert('Please login to register for RD service');
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please login to register for RD service.",
+      });
       router.push('/login');
       return;
     }
 
     if (!formData.acceptTerms) {
-      alert("Please accept the terms and conditions");
+      toast({
+        variant: "destructive",
+        title: "Terms Required",
+        description: "Please accept the terms and conditions to continue.",
+      });
       return;
     }
 
@@ -294,7 +311,11 @@ export default function RDServicePage() {
       // Note: Success message and redirect happen in handlePayment's payment handler callback
     } catch (error) {
       console.error('Registration error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to process registration');
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error instanceof Error ? error.message : 'Failed to process registration',
+      });
       setIsSubmitting(false);
     }
   };
