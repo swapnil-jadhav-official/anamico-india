@@ -25,6 +25,7 @@ import {
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export function ECommerceHeader() {
   const { totalItems } = useCart();
@@ -33,6 +34,27 @@ export function ECommerceHeader() {
   const [productsOpen, setProductsOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/products');
+    }
+  };
+
+  const handleMobileSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mobileSearchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(mobileSearchQuery.trim())}`);
+    } else {
+      router.push('/products');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
@@ -173,20 +195,23 @@ export function ECommerceHeader() {
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-xl">
-            <div className="relative w-full">
+            <form onSubmit={handleSearch} className="relative w-full">
               <Input
                 type="search"
                 placeholder="Search for products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pr-10"
               />
               <Button
+                type="submit"
                 size="icon"
                 variant="ghost"
                 className="absolute right-0 top-0 h-full"
               >
                 <Search className="h-4 w-4" />
               </Button>
-            </div>
+            </form>
           </div>
 
           {/* Action Buttons */}
@@ -315,13 +340,16 @@ export function ECommerceHeader() {
                   </div>
 
                   <div className="p-6">
-                    <div className="relative w-full">
+                    <form onSubmit={handleMobileSearch} className="relative w-full">
                       <Input
                         type="search"
                         placeholder="Search products..."
+                        value={mobileSearchQuery}
+                        onChange={(e) => setMobileSearchQuery(e.target.value)}
                         className="w-full pr-10"
                       />
                       <Button
+                        type="submit"
                         size="icon"
                         variant="ghost"
                         className="absolute right-0 top-0 h-full"
@@ -329,7 +357,7 @@ export function ECommerceHeader() {
                       >
                         <Search className="h-4 w-4" />
                       </Button>
-                    </div>
+                    </form>
                   </div>
 
                   <nav className="flex-1 space-y-1 px-6">
