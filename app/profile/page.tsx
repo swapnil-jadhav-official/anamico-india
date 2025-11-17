@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { ECommerceHeader } from "@/components/e-commerce-header";
+import { Footer } from "@/components/footer";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -54,8 +56,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-8 px-4 md:px-6">
-      <Card>
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <ECommerceHeader />
+      <main className="flex-1 p-4 sm:p-6">
+        <div className="max-w-4xl mx-auto">
+          <Card>
         <CardHeader className="border-b">
           <CardTitle className="text-2xl font-bold">User Profile</CardTitle>
           <CardDescription>View and manage your profile details.</CardDescription>
@@ -90,6 +95,9 @@ export default function ProfilePage() {
           </Button>
         </div>
       </Card>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

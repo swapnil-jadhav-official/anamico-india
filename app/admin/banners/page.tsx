@@ -19,6 +19,8 @@ import {
 import { message } from "antd";
 import { Plus, Edit, Trash2, Eye, EyeOff, Info } from "lucide-react";
 import Link from "next/link";
+import { ECommerceHeader } from "@/components/e-commerce-header";
+import { Footer } from "@/components/footer";
 
 interface Banner {
   id: string;
@@ -187,6 +189,7 @@ export default function AdminBannersPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <ECommerceHeader />
       <main className="flex-1 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
@@ -403,6 +406,7 @@ export default function AdminBannersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Footer />
     </div>
   );
 }

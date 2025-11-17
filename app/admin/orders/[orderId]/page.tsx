@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { message } from "antd";
 import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
+import { ECommerceHeader } from "@/components/e-commerce-header";
+import { Footer } from "@/components/footer";
 
 interface OrderDetail {
   id: string;
@@ -275,7 +277,10 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <ECommerceHeader />
+      <main className="flex-1 p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -731,6 +736,9 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
           </Card>
         </div>
       )}
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }
