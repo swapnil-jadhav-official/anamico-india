@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 export interface InvoiceItem {
   productName: string;
@@ -137,21 +138,26 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     // Generate items rows HTML
     const itemsRowsHtml = data.items.map((item, index) => {
       const itemSubtotal = item.quantity * item.price;
-      const itemTotal = item.total || itemSubtotal;
+      const taxAmount = item.igstAmount || (itemSubtotal * taxRate / 100);
 
       return `
-  <tr>
-    <td class="center">${index + 1}</td>
-    <td>
-      <b>${item.productName}</b><br>
-      ${item.productName}
-    </td>
-    <td>${item.hsnCode || '85444292'}</td>
-    <td class="right">${formatNumber(item.quantity)}</td>
-    <td class="right">${item.price.toFixed(2)}</td>
-    <td class="center">${taxRate}%</td>
-    <td class="right">${formatCurrency(itemTotal)}</td>
-  </tr>`;
+      <tr>
+        <td class="text-center">${index + 1}</td>
+        <td>
+          <div class="item-description">${item.productName}</div>
+          <div class="item-detail">${item.productName}</div>
+        </td>
+        <td class="text-center">${item.hsnCode || '85444292'}</td>
+        <td class="text-right">${formatNumber(item.quantity)}</td>
+        <td class="text-right">${item.price.toFixed(2)}</td>
+        <td>
+          <div style="display: flex; justify-content: space-around; align-items: center;">
+            <span>${taxRate}%</span>
+            <span>${formatNumber(taxAmount)}</span>
+          </div>
+        </td>
+        <td class="text-right">${formatNumber(itemSubtotal)}</td>
+      </tr>`;
     }).join('');
 
     // Calculate totals
@@ -175,7 +181,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     // Replace placeholders in template
     const replacements: Record<string, string> = {
       '{{LOGO_PATH}}': logoBase64,
-      '{{COMPANY_ADDRESS}}': 'WZ-663, Office No-204, Near Punjabi Bagh Apartment, Madipur, Delhi 110063, India',
+      '{{COMPANY_ADDRESS}}': 'WZ-663, Office No-204, Near Punjabi Bagh Apartment, Madipur, Delhi 110063',
       '{{COMPANY_GSTIN}}': '07AAXCA2423P1Z3',
       '{{INVOICE_NUMBER}}': invoiceNumber,
       '{{INVOICE_DATE}}': invoiceDate,
@@ -185,11 +191,11 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       '{{CUSTOMER_NAME}}': data.customerName,
       '{{CUSTOMER_ADDRESS}}': customerAddress,
       '{{CUSTOMER_GSTIN}}': data.customerGSTIN || 'N/A',
-      '{{TAX_TYPE}}': taxType,
+      '{{TAX_TYPE}}': taxType.replace('/', ''),
       '{{TAX_RATE}}': taxRate.toString(),
       '{{ITEMS_ROWS}}': itemsRowsHtml,
-      '{{SUB_TOTAL}}': formatCurrency(subtotal),
-      '{{TAX_AMOUNT}}': formatCurrency(taxAmount),
+      '{{SUB_TOTAL}}': formatNumber(subtotal),
+      '{{TAX_AMOUNT}}': formatNumber(taxAmount),
       '{{TOTAL_AMOUNT}}': formatCurrency(total),
       '{{BALANCE_DUE}}': formatCurrency(balanceDue),
       '{{AMOUNT_IN_WORDS}}': amountInWords,
@@ -197,7 +203,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       '{{BANK_NAME}}': 'HDFC BANK',
       '{{BANK_ACCOUNT_NUMBER}}': '50200080572373',
       '{{BANK_IFSC}}': 'HDFC0000091',
-      '{{BANK_BRANCH}}': 'Punjabi Bagh, Delhi'
+      '{{BANK_BRANCH}}': 'PUNJABI BAGH, DELHI'
     };
 
     // Perform replacements
@@ -206,9 +212,19 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     });
 
     // Launch puppeteer and generate PDF
+    // Detect if running in production (serverless) or local environment
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: isProduction ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: isProduction
+        ? await chromium.executablePath()
+        : process.env.PUPPETEER_EXECUTABLE_PATH ||
+          process.platform === 'win32'
+            ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+            : '/usr/bin/google-chrome',
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
