@@ -12,9 +12,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Search,
   Heart,
   ShoppingCart,
   User,
@@ -171,24 +169,6 @@ export function ECommerceHeader() {
             </Link>
           </nav>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-xl">
-            <div className="relative w-full">
-              <Input
-                type="search"
-                placeholder="Search for products..."
-                className="w-full pr-10"
-              />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-0 top-0 h-full"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
             {/* Wishlist */}
@@ -228,7 +208,7 @@ export function ECommerceHeader() {
                 >
                   <Button variant="ghost" className="relative flex items-center gap-2">
                     <User className="h-5 w-5" />
-                    {session?.user?.name || session?.user?.email}
+                    <span className="hidden sm:inline">{session?.user?.name || session?.user?.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -282,14 +262,13 @@ export function ECommerceHeader() {
               </DropdownMenu>
             ) : (
               <Button
-                variant="default"
-                size="sm"
-                className="hidden sm:inline-flex"
+                variant="ghost"
+                size="icon"
                 asChild
               >
                 <Link href="/login">
-                  <User className="h-4 w-4 mr-2" />
-                  Login
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Login</span>
                 </Link>
               </Button>
             )}
@@ -315,25 +294,7 @@ export function ECommerceHeader() {
                     </Link>
                   </div>
 
-                  <div className="p-6">
-                    <div className="relative w-full">
-                      <Input
-                        type="search"
-                        placeholder="Search products..."
-                        className="w-full pr-10"
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="absolute right-0 top-0 h-full"
-                        aria-label="Search"
-                      >
-                        <Search className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <nav className="flex-1 space-y-1 px-6">
+                  <nav className="flex-1 space-y-1 px-6 pt-6">
                     <Link
                       href="/products"
                       className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"

@@ -91,19 +91,19 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-gray-600 text-lg px-3 py-1">Pending Payment</Badge>;
+        return <Badge className="bg-gray-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Pending Payment</Badge>;
       case "payment_received":
-        return <Badge className="bg-yellow-600 text-lg px-3 py-1">Under Review</Badge>;
+        return <Badge className="bg-yellow-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Under Review</Badge>;
       case "accepted":
-        return <Badge className="bg-green-600 text-lg px-3 py-1">Accepted</Badge>;
+        return <Badge className="bg-green-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Accepted</Badge>;
       case "rejected":
-        return <Badge className="bg-red-600 text-lg px-3 py-1">Rejected</Badge>;
+        return <Badge className="bg-red-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Rejected</Badge>;
       case "shipped":
-        return <Badge className="bg-blue-600 text-lg px-3 py-1">Shipped</Badge>;
+        return <Badge className="bg-blue-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Shipped</Badge>;
       case "delivered":
-        return <Badge className="bg-green-700 text-lg px-3 py-1">Delivered</Badge>;
+        return <Badge className="bg-green-700 text-sm sm:text-lg px-2 sm:px-3 py-1">Delivered</Badge>;
       default:
-        return <Badge className="text-lg px-3 py-1">{status}</Badge>;
+        return <Badge className="text-sm sm:text-lg px-2 sm:px-3 py-1">{status}</Badge>;
     }
   };
 
@@ -235,17 +235,19 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
           </Button>
 
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight break-words">
                 {order.orderNumber}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Placed on {new Date(order.createdAt).toLocaleDateString()} at{" "}
                 {new Date(order.createdAt).toLocaleTimeString()}
               </p>
             </div>
-            {getStatusBadge(order.status)}
+            <div className="flex-shrink-0">
+              {getStatusBadge(order.status)}
+            </div>
           </div>
 
           {/* Status Info */}
@@ -294,37 +296,37 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Tracking Number</p>
-                    <p className="font-semibold text-lg">{order.trackingNumber}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Tracking Number</p>
+                    <p className="font-semibold text-sm sm:text-lg break-all">{order.trackingNumber}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Shipping Carrier</p>
-                    <p className="font-semibold">{order.shippingCarrier}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Shipping Carrier</p>
+                    <p className="font-semibold text-sm sm:text-base">{order.shippingCarrier}</p>
                   </div>
                   {order.shippedAt && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Shipped On</p>
-                      <p className="font-semibold">
-                        {new Date(order.shippedAt).toLocaleDateString()} at{" "}
-                        {new Date(order.shippedAt).toLocaleTimeString()}
+                      <p className="text-xs sm:text-sm text-muted-foreground">Shipped On</p>
+                      <p className="font-semibold text-xs sm:text-base">
+                        {new Date(order.shippedAt).toLocaleDateString()}<br className="sm:hidden" />{" "}
+                        <span className="text-xs sm:text-sm">{new Date(order.shippedAt).toLocaleTimeString()}</span>
                       </p>
                     </div>
                   )}
                   {order.deliveredAt && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Delivered On</p>
-                      <p className="font-semibold">
-                        {new Date(order.deliveredAt).toLocaleDateString()} at{" "}
-                        {new Date(order.deliveredAt).toLocaleTimeString()}
+                      <p className="text-xs sm:text-sm text-muted-foreground">Delivered On</p>
+                      <p className="font-semibold text-xs sm:text-base">
+                        {new Date(order.deliveredAt).toLocaleDateString()}<br className="sm:hidden" />{" "}
+                        <span className="text-xs sm:text-sm">{new Date(order.deliveredAt).toLocaleTimeString()}</span>
                       </p>
                     </div>
                   )}
                 </div>
                 {order.trackingUrl && (
                   <div className="pt-4 border-t">
-                    <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                    <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-sm sm:text-base">
                       <a
                         href={order.trackingUrl}
                         target="_blank"
@@ -355,21 +357,27 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                     {order.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center p-4 border rounded-lg"
+                        className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 border rounded-lg"
                       >
-                        <div>
-                          <p className="font-semibold">{item.productName}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm sm:text-base break-words">{item.productName}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             Quantity: {item.quantity}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold">
-                            ₹{item.price.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Total: ₹{(item.price * item.quantity).toLocaleString()}
-                          </p>
+                        <div className="sm:text-right flex sm:flex-col justify-between sm:justify-end gap-2">
+                          <div>
+                            <p className="text-xs sm:text-sm text-muted-foreground sm:hidden">Unit Price:</p>
+                            <p className="font-semibold text-sm sm:text-base">
+                              ₹{item.price.toLocaleString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Total:</p>
+                            <p className="font-semibold text-sm sm:text-base">
+                              ₹{(item.price * item.quantity).toLocaleString()}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -380,19 +388,19 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
               {/* Shipping Address */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Shipping Address</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Shipping Address</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="font-semibold text-lg">{order.shippingName}</p>
-                    <p className="text-muted-foreground">{order.shippingEmail}</p>
-                    <p className="text-muted-foreground">{order.shippingPhone}</p>
+                    <p className="font-semibold text-base sm:text-lg break-words">{order.shippingName}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground break-words">{order.shippingEmail}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground">{order.shippingPhone}</p>
                   </div>
                   <div className="pt-4 border-t">
-                    <p className="text-sm whitespace-pre-wrap">
+                    <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
                       {order.shippingAddress}
                     </p>
-                    <p className="text-sm font-medium mt-2">
+                    <p className="text-xs sm:text-sm font-medium mt-2 break-words">
                       {order.shippingCity}, {order.shippingState}{" "}
                       {order.shippingPincode}
                     </p>
