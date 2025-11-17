@@ -1,10 +1,56 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Phone, Mail, MapPin } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export function ContactCTA() {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/contact/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        toast({
+          title: "Quote Request Sent!",
+          description: "Thank you for your interest. We'll contact you soon.",
+        });
+        // Reset form
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      } else {
+        throw new Error("Failed to send quote request");
+      }
+    } catch (error) {
+      console.error("Error submitting quote:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send quote request. Please try again or contact us directly.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-20 bg-primary text-primary-foreground">
       <div className="container mx-auto px-4">
@@ -52,15 +98,42 @@ export function ContactCTA() {
           <Card className="bg-background text-foreground">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-xl font-semibold">Request a Quote</h3>
-              <div className="space-y-4">
-                <Input placeholder="Your Name" />
-                <Input type="email" placeholder="Email Address" />
-                <Input type="tel" placeholder="Phone Number" />
-                <Textarea placeholder="Tell us about your requirements" rows={4} />
-                <Button className="w-full" size="lg">
-                  Submit Request
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  placeholder="Your Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  disabled={isSubmitting}
+                />
+                <Input
+                  type="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  disabled={isSubmitting}
+                />
+                <Input
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                  disabled={isSubmitting}
+                />
+                <Textarea
+                  placeholder="Tell us about your requirements"
+                  rows={4}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  required
+                  disabled={isSubmitting}
+                />
+                <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? "Sending..." : "Submit Request"}
                 </Button>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </div>

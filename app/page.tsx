@@ -11,6 +11,7 @@ import { WhyChooseUs } from "@/components/why-choose-us"
 import { ContactCTA } from "@/components/contact-cta"
 import { Footer } from "@/components/footer"
 import { DynamicBanner, PromoBanner } from "@/components/dynamic-banner"
+import { ScrollToTop } from "@/components/scroll-to-top"
 
 interface Banner {
   id: string;
@@ -134,6 +135,7 @@ export default function Home() {
         <ContactCTA />
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   )
 }
