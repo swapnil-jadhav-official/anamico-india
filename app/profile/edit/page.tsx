@@ -15,8 +15,10 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 export default function EditProfilePage() {
+  const { toast } = useToast();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [name, setName] = useState("");
@@ -56,7 +58,11 @@ export default function EditProfilePage() {
     setIsLoading(true);
 
     if (password && password !== confirmPassword) {
-      alert("Passwords do not match.");
+      toast({
+        variant: "destructive",
+        title: "Password Mismatch",
+        description: "Passwords do not match. Please try again.",
+      });
       setIsLoading(false);
       return;
     }

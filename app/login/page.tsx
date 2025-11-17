@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Lock, Smartphone } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -101,7 +103,11 @@ export default function LoginPage() {
       const callbackUrl = session?.user?.role === "admin" ? "/admin/dashboard" : "/";
       const result = await signIn("password", { email, password, callbackUrl, redirect: false });
       if (result?.error) {
-        alert(result.error);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: result.error,
+        });
       } else if (result?.ok) {
         // Redirect is handled by next-auth if successful and redirect: true
         // Since redirect: false, we handle it manually after successful login
@@ -125,7 +131,11 @@ export default function LoginPage() {
       const otpString = otp.join("");
 
       if (otpString.length !== 6) {
-        alert("Please enter all 6 digits of the OTP.");
+        toast({
+          variant: "destructive",
+          title: "Invalid OTP",
+          description: "Please enter all 6 digits of the OTP.",
+        });
         setIsLoading(false);
         return;
       }
@@ -137,7 +147,11 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        alert("Invalid OTP. Please try again.");
+        toast({
+          variant: "destructive",
+          title: "Invalid OTP",
+          description: "The OTP you entered is incorrect. Please try again.",
+        });
         console.error("OTP login error:", result.error);
         // Clear OTP on error
         setOtp(["", "", "", "", "", ""]);

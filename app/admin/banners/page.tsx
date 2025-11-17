@@ -6,6 +6,16 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { message } from "antd";
 import { Plus, Edit, Trash2, Eye, EyeOff, Info } from "lucide-react";
 import Link from "next/link";
@@ -68,6 +78,8 @@ export default function AdminBannersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPlacement, setSelectedPlacement] = useState<string>("all");
   const [showGuidelines, setShowGuidelines] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bannerToDelete, setBannerToDelete] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -106,25 +118,31 @@ export default function AdminBannersPage() {
     fetchBanners();
   }, [mounted, sessionStatus, selectedPlacement]);
 
-  const handleDelete = async (bannerId: string, bannerTitle: string) => {
-    if (!confirm(`Are you sure you want to delete "${bannerTitle}"?`)) {
-      return;
-    }
+  const handleDeleteClick = (bannerId: string, bannerTitle: string) => {
+    setBannerToDelete({ id: bannerId, title: bannerTitle });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!bannerToDelete) return;
 
     try {
-      const res = await fetch(`/api/admin/banners/${bannerId}`, {
+      const res = await fetch(`/api/admin/banners/${bannerToDelete.id}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
         message.success("Banner deleted successfully");
-        setBanners(banners.filter((b) => b.id !== bannerId));
+        setBanners(banners.filter((b) => b.id !== bannerToDelete.id));
       } else {
         throw new Error("Failed to delete banner");
       }
     } catch (error) {
       console.error("Error deleting banner:", error);
       message.error("Failed to delete banner");
+    } finally {
+      setDeleteDialogOpen(false);
+      setBannerToDelete(null);
     }
   };
 
@@ -349,7 +367,7 @@ export default function AdminBannersPage() {
                           variant="destructive"
                           size="sm"
                           className="flex-1"
-                          onClick={() => handleDelete(banner.id, banner.title)}
+                          onClick={() => handleDeleteClick(banner.id, banner.title)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
@@ -363,6 +381,28 @@ export default function AdminBannersPage() {
           )}
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the banner &quot;{bannerToDelete?.title}&quot;.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
