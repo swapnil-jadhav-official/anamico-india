@@ -170,15 +170,15 @@ export default function OrderConfirmationPage() {
               {/* Order Number and Status */}
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                     <div>
-                      <CardTitle className="text-2xl">{order.orderNumber}</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-xl sm:text-2xl break-words">{order.orderNumber}</CardTitle>
+                      <CardDescription className="text-sm">
                         Order placed on {new Date(order.createdAt).toLocaleDateString()}
                       </CardDescription>
                     </div>
                     <Badge
-                      className={`text-lg px-3 py-1 ${
+                      className={`text-sm sm:text-lg px-2 sm:px-3 py-1 flex-shrink-0 w-fit ${
                         order.status === "accepted"
                           ? "bg-green-600"
                           : order.status === "payment_received"
@@ -209,16 +209,16 @@ export default function OrderConfirmationPage() {
                     {order.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center p-4 border rounded-lg"
+                        className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 p-4 border rounded-lg"
                       >
-                        <div>
-                          <p className="font-semibold">{item.productName}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm sm:text-base break-words">{item.productName}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             Quantity: {item.quantity}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold">₹{(item.price * item.quantity).toLocaleString()}</p>
+                        <div className="sm:text-right">
+                          <p className="font-semibold text-sm sm:text-base">₹{(item.price * item.quantity).toLocaleString()}</p>
                         </div>
                       </div>
                     ))}
@@ -229,17 +229,17 @@ export default function OrderConfirmationPage() {
               {/* Shipping Address */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Shipping Address</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Shipping Address</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <p className="font-semibold text-lg">{order.shippingName}</p>
-                    <p className="text-muted-foreground">{order.shippingEmail}</p>
-                    <p className="text-muted-foreground">{order.shippingPhone}</p>
+                    <p className="font-semibold text-base sm:text-lg break-words">{order.shippingName}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground break-words">{order.shippingEmail}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground">{order.shippingPhone}</p>
                   </div>
                   <div className="pt-4 border-t">
-                    <p className="whitespace-pre-wrap text-sm">{order.shippingAddress}</p>
-                    <p className="text-sm font-medium mt-2">
+                    <p className="whitespace-pre-wrap text-xs sm:text-sm break-words">{order.shippingAddress}</p>
+                    <p className="text-xs sm:text-sm font-medium mt-2 break-words">
                       {order.shippingCity}, {order.shippingState} {order.shippingPincode}
                     </p>
                   </div>

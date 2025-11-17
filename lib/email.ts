@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import * as path from 'path';
+import * as fs from 'fs';
 
 // SMTP Configuration
 const transporter = nodemailer.createTransport({
@@ -20,12 +22,19 @@ transporter.verify((error, success) => {
   }
 });
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+}
+
 export interface EmailOptions {
   to: string | string[];
   subject: string;
   html: string;
   text?: string;
   from?: string;
+  attachments?: EmailAttachment[];
 }
 
 /**
@@ -33,12 +42,27 @@ export interface EmailOptions {
  */
 export async function sendEmail(options: EmailOptions): Promise<void> {
   try {
+    // Add logo as embedded attachment
+    const logoPath = path.join(process.cwd(), 'public', 'images', 'anamico-logo.jpeg');
+    const attachments = [...(options.attachments || [])];
+
+    // Add logo as embedded image if it exists
+    if (fs.existsSync(logoPath)) {
+      attachments.push({
+        filename: 'anamico-logo.jpeg',
+        content: fs.readFileSync(logoPath),
+        contentType: 'image/jpeg',
+        cid: 'anamico-logo', // Content ID for embedding in HTML
+      } as EmailAttachment);
+    }
+
     const mailOptions = {
       from: options.from || process.env.EMAIL_FROM || 'pardeeps@anamicoindia.com',
       to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
       subject: options.subject,
       html: options.html,
       text: options.text || '',
+      attachments: attachments,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -46,6 +70,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       messageId: info.messageId,
       to: mailOptions.to,
       subject: mailOptions.subject,
+      attachments: attachments.length,
     });
   } catch (error) {
     console.error('❌ Error sending email:', error);

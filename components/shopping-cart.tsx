@@ -111,71 +111,73 @@ export function ShoppingCart() {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors"
+                    className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors"
                   >
-                    {item.imageUrl && (
-                      <div className="h-24 w-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                    <div className="flex gap-4 flex-1">
+                      {item.imageUrl && (
+                        <div className="h-24 w-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
 
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/products/${item.category}/${item.id}`}
-                      >
-                        <h4 className="font-semibold hover:text-primary transition-colors truncate">
-                          {item.name || "Product"}
-                        </h4>
-                      </Link>
-
-                      <Badge variant="outline" className="mt-1">
-                        ₹{item.price.toLocaleString()}
-                      </Badge>
-
-                      <div className="flex items-center gap-2 mt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleUpdateQuantity(item.id, item.quantity - 1)
-                          }
-                          disabled={updating === item.id || item.quantity <= 1}
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/products/${item.category}/${item.id}`}
                         >
-                          <Minus className="h-4 w-4" />
-                        </Button>
+                          <h4 className="font-semibold hover:text-primary transition-colors break-words">
+                            {item.name || "Product"}
+                          </h4>
+                        </Link>
 
-                        <Input
-                          type="number"
-                          min="1"
-                          max="999"
-                          value={item.quantity}
-                          onChange={(e) => {
-                            const newQty = parseInt(e.target.value) || 1;
-                            handleUpdateQuantity(item.id, newQty);
-                          }}
-                          className="w-16 text-center"
-                          disabled={updating === item.id}
-                        />
+                        <Badge variant="outline" className="mt-1">
+                          ₹{item.price.toLocaleString()}
+                        </Badge>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleUpdateQuantity(item.id, item.quantity + 1)
-                          }
-                          disabled={updating === item.id}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2 mt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleUpdateQuantity(item.id, item.quantity - 1)
+                            }
+                            disabled={updating === item.id || item.quantity <= 1}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+
+                          <Input
+                            type="number"
+                            min="1"
+                            max="999"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const newQty = parseInt(e.target.value) || 1;
+                              handleUpdateQuantity(item.id, newQty);
+                            }}
+                            className="w-16 text-center"
+                            disabled={updating === item.id}
+                          />
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleUpdateQuantity(item.id, item.quantity + 1)
+                            }
+                            disabled={updating === item.id}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="text-right flex flex-col justify-between">
-                      <div>
+                    <div className="flex sm:flex-col justify-between sm:justify-between items-center sm:items-end gap-4 sm:gap-0 border-t sm:border-t-0 pt-4 sm:pt-0">
+                      <div className="sm:text-right">
                         <p className="text-sm text-muted-foreground">Subtotal</p>
                         <p className="text-lg font-bold">
                           ₹{(item.price * item.quantity).toLocaleString()}

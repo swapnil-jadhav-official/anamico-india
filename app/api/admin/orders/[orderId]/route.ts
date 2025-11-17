@@ -11,6 +11,7 @@ import {
   generateOrderShippedEmail,
   generateOrderDeliveredEmail
 } from '@/lib/email-templates';
+import { sendInvoiceEmail } from '@/lib/invoice-email';
 
 /**
  * GET /api/admin/orders/[orderId]
@@ -209,6 +210,12 @@ export async function PATCH(
     const customerEmail = existingOrder.shippingEmail || customerData?.email || '';
     const customerName = existingOrder.shippingName || customerData?.name || 'Customer';
 
+    // Fetch order items for invoice
+    const items = await db
+      .select()
+      .from(orderItem)
+      .where(eq(orderItem.orderId, orderId));
+
     // Send appropriate email based on action
     try {
       if (action === 'approve') {
@@ -257,6 +264,39 @@ export async function PATCH(
         });
 
         console.log(`✅ Order shipped email sent to ${customerEmail}`);
+
+        // Send updated invoice when order is shipped
+        try {
+          const orderForInvoice = {
+            id: existingOrder.id,
+            orderNumber: existingOrder.orderNumber,
+            createdAt: existingOrder.createdAt,
+            shippingName: existingOrder.shippingName,
+            shippingEmail: existingOrder.shippingEmail,
+            shippingPhone: existingOrder.shippingPhone,
+            shippingAddress: existingOrder.shippingAddress,
+            shippingCity: existingOrder.shippingCity,
+            shippingState: existingOrder.shippingState,
+            shippingPincode: existingOrder.shippingPincode,
+            subtotal: existingOrder.subtotal,
+            tax: existingOrder.tax,
+            total: existingOrder.total,
+            paidAmount: existingOrder.paidAmount,
+            paymentStatus: existingOrder.paymentStatus,
+            status: 'shipped',
+            shippedAt: updateData.shippedAt,
+            items: items.map((item) => ({
+              productName: item.productName,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          };
+
+          await sendInvoiceEmail(orderForInvoice);
+          console.log(`✅ Invoice email sent for shipped order ${existingOrder.orderNumber}`);
+        } catch (invoiceError) {
+          console.error('❌ Failed to send invoice for shipped order:', invoiceError);
+        }
       } else if (action === 'deliver') {
         const emailContent = generateOrderDeliveredEmail(
           customerName,
@@ -271,6 +311,40 @@ export async function PATCH(
         });
 
         console.log(`✅ Order delivered email sent to ${customerEmail}`);
+
+        // Send final invoice when order is delivered (with 100% payment)
+        try {
+          const orderForInvoice = {
+            id: existingOrder.id,
+            orderNumber: existingOrder.orderNumber,
+            createdAt: existingOrder.createdAt,
+            shippingName: existingOrder.shippingName,
+            shippingEmail: existingOrder.shippingEmail,
+            shippingPhone: existingOrder.shippingPhone,
+            shippingAddress: existingOrder.shippingAddress,
+            shippingCity: existingOrder.shippingCity,
+            shippingState: existingOrder.shippingState,
+            shippingPincode: existingOrder.shippingPincode,
+            subtotal: existingOrder.subtotal,
+            tax: existingOrder.tax,
+            total: existingOrder.total,
+            paidAmount: updateData.paidAmount || existingOrder.total, // 100% payment on delivery
+            paymentStatus: 'completed',
+            status: 'delivered',
+            shippedAt: existingOrder.shippedAt,
+            deliveredAt: updateData.deliveredAt,
+            items: items.map((item) => ({
+              productName: item.productName,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          };
+
+          await sendInvoiceEmail(orderForInvoice);
+          console.log(`✅ Final invoice email sent for delivered order ${existingOrder.orderNumber}`);
+        } catch (invoiceError) {
+          console.error('❌ Failed to send invoice for delivered order:', invoiceError);
+        }
       }
     } catch (emailError) {
       console.error(`❌ Failed to send ${action} email:`, emailError);
