@@ -38,6 +38,8 @@ export default function ContactPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         toast({
           title: "Message Sent!",
@@ -46,7 +48,12 @@ export default function ContactPage() {
         // Reset form
         setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
       } else {
-        throw new Error("Failed to send message");
+        // Display the actual error message from the API
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: data.error || "Failed to send message. Please try again.",
+        });
       }
     } catch (error) {
       console.error("Error submitting message:", error);

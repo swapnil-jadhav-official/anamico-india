@@ -29,6 +29,8 @@ export function ContactCTA() {
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         toast({
           title: "Quote Request Sent!",
@@ -37,7 +39,12 @@ export function ContactCTA() {
         // Reset form
         setFormData({ name: "", email: "", phone: "", message: "" });
       } else {
-        throw new Error("Failed to send quote request");
+        // Display the actual error message from the API
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: data.error || "Failed to send quote request. Please try again.",
+        });
       }
     } catch (error) {
       console.error("Error submitting quote:", error);
