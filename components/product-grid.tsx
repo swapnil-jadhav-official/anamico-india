@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 
 interface ProductGridProps {
   category?: string
+  searchQuery?: string
 }
 
 interface Product {
@@ -23,7 +24,7 @@ interface Product {
   badge?: string
 }
 
-export function ProductGrid({ category }: ProductGridProps) {
+export function ProductGrid({ category, searchQuery }: ProductGridProps) {
   const [sortBy, setSortBy] = useState("featured")
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,9 +32,14 @@ export function ProductGrid({ category }: ProductGridProps) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const url = category
-          ? `/api/products?category=${encodeURIComponent(category)}`
+        const params = new URLSearchParams()
+        if (category) params.append('category', category)
+        if (searchQuery) params.append('search', searchQuery)
+
+        const url = params.toString()
+          ? `/api/products?${params.toString()}`
           : '/api/products'
+
         const res = await fetch(url)
         if (res.ok) {
           const data = await res.json()
@@ -47,7 +53,7 @@ export function ProductGrid({ category }: ProductGridProps) {
     }
 
     fetchProducts()
-  }, [category])
+  }, [category, searchQuery])
 
   let sortedProducts = [...products]
 

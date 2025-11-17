@@ -1,8 +1,25 @@
+"use client";
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Zap, Award } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { ArrowRight, Shield, Zap, Award, Search } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function Hero() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/products');
+    }
+  };
+
   return (
     <section
       id="home"
@@ -24,6 +41,25 @@ export function Hero() {
               ANAMICO India Private Limited delivers comprehensive IT solutions, biometric devices, and project
               management services to government and enterprise organizations across India.
             </p>
+
+            {/* Search Box */}
+            <form onSubmit={handleSearch} className="w-full max-w-2xl">
+              <div className="relative flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search for products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-12 text-base"
+                  />
+                </div>
+                <Button type="submit" size="lg" className="h-12 px-6">
+                  Search
+                </Button>
+              </div>
+            </form>
 
             <div className="flex flex-wrap gap-4">
               <Button size="lg" className="gap-2" asChild>

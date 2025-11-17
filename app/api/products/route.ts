@@ -1,18 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { product } from '@/drizzle/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, like, SQL } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
+    const search = searchParams.get('search');
 
-    let whereCondition = eq(product.isActive, true);
+    const conditions: SQL<unknown>[] = [eq(product.isActive, true)];
 
     if (category) {
-      whereCondition = and(eq(product.category, category), eq(product.isActive, true));
+      conditions.push(eq(product.category, category));
     }
+
+    if (search) {
+      const searchTerm = `%${search}%`;
+      conditions.push(
+        or(
+          like(product.name, searchTerm),
+          like(product.description, searchTerm),
+          like(product.brand, searchTerm),
+          like(product.category, searchTerm)
+        )!
+      );
+    }
+
+    const whereCondition = conditions.length > 1 ? and(...conditions) : conditions[0];
 
     const products = await db.select().from(product).where(whereCondition);
 

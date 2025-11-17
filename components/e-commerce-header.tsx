@@ -228,7 +228,7 @@ export function ECommerceHeader() {
                 >
                   <Button variant="ghost" className="relative flex items-center gap-2">
                     <User className="h-5 w-5" />
-                    {session?.user?.name || session?.user?.email}
+                    <span className="hidden sm:inline">{session?.user?.name || session?.user?.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -282,14 +282,13 @@ export function ECommerceHeader() {
               </DropdownMenu>
             ) : (
               <Button
-                variant="default"
-                size="sm"
-                className="hidden sm:inline-flex"
+                variant="ghost"
+                size="icon"
                 asChild
               >
                 <Link href="/login">
-                  <User className="h-4 w-4 mr-2" />
-                  Login
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">Login</span>
                 </Link>
               </Button>
             )}
