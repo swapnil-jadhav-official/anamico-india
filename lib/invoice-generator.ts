@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 export interface InvoiceItem {
   productName: string;
@@ -211,9 +212,19 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     });
 
     // Launch puppeteer and generate PDF
+    // Detect if running in production (serverless) or local environment
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: isProduction ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: isProduction
+        ? await chromium.executablePath()
+        : process.env.PUPPETEER_EXECUTABLE_PATH ||
+          process.platform === 'win32'
+            ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+            : '/usr/bin/google-chrome',
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
