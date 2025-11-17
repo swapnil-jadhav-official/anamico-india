@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { message } from "antd";
 import { ArrowLeft, Upload, Info } from "lucide-react";
 import Link from "next/link";
-import { ECommerceHeader } from "@/components/e-commerce-header";
-import { Footer } from "@/components/footer";
 
 const PLACEMENT_INFO = {
   hero: { name: "Hero Banner", size: "1920 x 800 px", mobileSize: "800 x 600 px" },
@@ -97,10 +95,8 @@ export default function NewBannerPage() {
   const selectedPlacementInfo = PLACEMENT_INFO[placement as keyof typeof PLACEMENT_INFO];
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <ECommerceHeader />
-      <main className="flex-1 p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+    <main className="flex-1 p-4 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div>
             <Button variant="outline" asChild className="mb-4">
@@ -393,9 +389,7 @@ export default function NewBannerPage() {
               </Button>
             </div>
           </form>
-        </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </main>
   );
 }
