@@ -134,6 +134,21 @@ export default function ProductDetailPage({ params }: { params: { category: stri
     }
   }
 
+  const handleBuyNow = async () => {
+    try {
+      await addToCart(product, quantity)
+      // Redirect to checkout page
+      window.location.href = "/checkout"
+    } catch (error) {
+      console.error('Error during buy now:', error)
+      toast({
+        title: "Error",
+        description: "Failed to process buy now. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <ECommerceHeader />
@@ -255,7 +270,13 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                   </Button>
                 </div>
 
-                <Button variant="outline" size="lg" className="w-full bg-transparent" disabled={!product.inStock}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full bg-transparent"
+                  disabled={!product.inStock}
+                  onClick={handleBuyNow}
+                >
                   Buy Now
                 </Button>
               </div>
