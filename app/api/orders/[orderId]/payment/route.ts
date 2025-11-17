@@ -11,6 +11,7 @@ import {
   generateOrderConfirmationEmail,
   generateAdminNewOrderEmail
 } from '@/lib/email-templates';
+import { sendInvoiceEmail } from '@/lib/invoice-email';
 
 /**
  * POST /api/orders/[orderId]/payment
@@ -200,6 +201,39 @@ export async function POST(
       console.log(`✅ Admin payment notification sent for order ${existingOrder.orderNumber}`);
     } catch (emailError) {
       console.error('❌ Failed to send admin payment notification:', emailError);
+    }
+
+    // Send invoice email to customer
+    try {
+      const orderForInvoice = {
+        id: existingOrder.id,
+        orderNumber: existingOrder.orderNumber,
+        createdAt: existingOrder.createdAt,
+        shippingName: existingOrder.shippingName,
+        shippingEmail: existingOrder.shippingEmail,
+        shippingPhone: existingOrder.shippingPhone,
+        shippingAddress: existingOrder.shippingAddress,
+        shippingCity: existingOrder.shippingCity,
+        shippingState: existingOrder.shippingState,
+        shippingPincode: existingOrder.shippingPincode,
+        subtotal: existingOrder.subtotal,
+        tax: existingOrder.tax,
+        total: existingOrder.total,
+        paidAmount: paidAmount,
+        paymentStatus: newPaymentStatus,
+        status: 'payment_received',
+        items: items.map((item) => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      };
+
+      await sendInvoiceEmail(orderForInvoice);
+      console.log(`✅ Invoice email sent to ${customerEmail}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send invoice email:', emailError);
+      // Don't fail the request if invoice email fails
     }
 
     return NextResponse.json({

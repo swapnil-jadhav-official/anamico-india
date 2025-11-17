@@ -20,12 +20,19 @@ transporter.verify((error, success) => {
   }
 });
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+}
+
 export interface EmailOptions {
   to: string | string[];
   subject: string;
   html: string;
   text?: string;
   from?: string;
+  attachments?: EmailAttachment[];
 }
 
 /**
@@ -39,6 +46,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       subject: options.subject,
       html: options.html,
       text: options.text || '',
+      attachments: options.attachments || [],
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -46,6 +54,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       messageId: info.messageId,
       to: mailOptions.to,
       subject: mailOptions.subject,
+      attachments: options.attachments?.length || 0,
     });
   } catch (error) {
     console.error('❌ Error sending email:', error);
