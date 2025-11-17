@@ -6,6 +6,9 @@ import { order, orderItem, user } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoice-generator';
 
+// Increase timeout for PDF generation
+export const maxDuration = 60;
+
 /**
  * GET /api/orders/[orderId]/invoice
  * Generate and download invoice PDF for an order
@@ -90,12 +93,13 @@ export async function GET(
     const filename = getInvoiceFilename(existingOrder.orderNumber);
 
     // Return PDF as download
-    const response = new NextResponse(pdfBuffer);
-    response.headers.set('Content-Type', 'application/pdf');
-    response.headers.set('Content-Disposition', `attachment; filename="${filename}"`);
-    response.headers.set('Content-Length', pdfBuffer.length.toString());
-
-    return response;
+    return new NextResponse(new Uint8Array(pdfBuffer), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': pdfBuffer.length.toString(),
+      },
+    });
   } catch (error) {
     console.error('Error generating invoice:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
