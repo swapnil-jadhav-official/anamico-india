@@ -11,7 +11,7 @@ import {
   generateOrderConfirmationEmail,
   generateAdminNewOrderEmail
 } from '@/lib/email-templates';
-import { sendInvoiceEmail } from '@/lib/invoice-email';
+import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoice-generator';
 
 /**
  * POST /api/orders/[orderId]/payment
@@ -101,7 +101,7 @@ export async function POST(
     const customerEmail = existingOrder.shippingEmail || customerData?.email || '';
     const customerName = existingOrder.shippingName || customerData?.name || 'Customer';
 
-    // Send order confirmation email to customer (sent after payment, not at order creation)
+    // Send order confirmation email to customer with invoice PDF (sent after payment, not at order creation)
     try {
       const orderItemsForEmail = items.map((item) => ({
         productName: item.productName,
@@ -126,19 +126,54 @@ export async function POST(
         }
       );
 
+      // Generate PDF invoice
+      const invoiceData: InvoiceData = {
+        orderNumber: existingOrder.orderNumber,
+        orderDate: typeof existingOrder.createdAt === 'string' ? new Date(existingOrder.createdAt) : existingOrder.createdAt,
+        customerName: existingOrder.shippingName,
+        customerEmail: existingOrder.shippingEmail,
+        customerPhone: existingOrder.shippingPhone,
+        shippingAddress: existingOrder.shippingAddress,
+        shippingCity: existingOrder.shippingCity,
+        shippingState: existingOrder.shippingState,
+        shippingPincode: existingOrder.shippingPincode,
+        items: orderItemsForEmail.map(item => ({
+          ...item,
+          total: item.price * item.quantity,
+        })),
+        subtotal: existingOrder.subtotal,
+        tax: existingOrder.tax,
+        total: existingOrder.total,
+        paidAmount: paidAmount,
+        dueAmount: existingOrder.total - paidAmount,
+        paymentStatus: newPaymentStatus,
+        status: 'payment_received',
+        invoiceNumber: `INV-${existingOrder.orderNumber}`,
+      };
+
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+      const filename = getInvoiceFilename(existingOrder.orderNumber);
+
       await sendEmail({
         to: customerEmail,
         subject: `Order Confirmation - ${existingOrder.orderNumber}`,
         html: emailContent.html,
         text: emailContent.text,
+        attachments: [
+          {
+            filename,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
       });
 
-      console.log(`✅ Order confirmation email sent to ${customerEmail}`);
+      console.log(`✅ Order confirmation email with invoice PDF sent to ${customerEmail}`);
     } catch (emailError) {
       console.error('❌ Failed to send order confirmation email:', emailError);
     }
 
-    // Send payment confirmation email to customer
+    // Send payment confirmation email to customer with invoice PDF
     try {
       const emailContent = generatePaymentReceivedEmail(
         customerName,
@@ -148,14 +183,51 @@ export async function POST(
         newPaymentStatus
       );
 
+      // Generate PDF invoice for payment confirmation
+      const invoiceData: InvoiceData = {
+        orderNumber: existingOrder.orderNumber,
+        orderDate: typeof existingOrder.createdAt === 'string' ? new Date(existingOrder.createdAt) : existingOrder.createdAt,
+        customerName: existingOrder.shippingName,
+        customerEmail: existingOrder.shippingEmail,
+        customerPhone: existingOrder.shippingPhone,
+        shippingAddress: existingOrder.shippingAddress,
+        shippingCity: existingOrder.shippingCity,
+        shippingState: existingOrder.shippingState,
+        shippingPincode: existingOrder.shippingPincode,
+        items: items.map(item => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.price * item.quantity,
+        })),
+        subtotal: existingOrder.subtotal,
+        tax: existingOrder.tax,
+        total: existingOrder.total,
+        paidAmount: paidAmount,
+        dueAmount: existingOrder.total - paidAmount,
+        paymentStatus: newPaymentStatus,
+        status: 'payment_received',
+        invoiceNumber: `INV-${existingOrder.orderNumber}`,
+      };
+
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+      const filename = getInvoiceFilename(existingOrder.orderNumber);
+
       await sendEmail({
         to: customerEmail,
         subject: `Payment Received - ${existingOrder.orderNumber}`,
         html: emailContent.html,
         text: emailContent.text,
+        attachments: [
+          {
+            filename,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
       });
 
-      console.log(`✅ Payment confirmation email sent to ${customerEmail}`);
+      console.log(`✅ Payment confirmation email with invoice PDF sent to ${customerEmail}`);
     } catch (emailError) {
       console.error('❌ Failed to send payment confirmation email:', emailError);
     }
@@ -201,39 +273,6 @@ export async function POST(
       console.log(`✅ Admin payment notification sent for order ${existingOrder.orderNumber}`);
     } catch (emailError) {
       console.error('❌ Failed to send admin payment notification:', emailError);
-    }
-
-    // Send invoice email to customer
-    try {
-      const orderForInvoice = {
-        id: existingOrder.id,
-        orderNumber: existingOrder.orderNumber,
-        createdAt: existingOrder.createdAt,
-        shippingName: existingOrder.shippingName,
-        shippingEmail: existingOrder.shippingEmail,
-        shippingPhone: existingOrder.shippingPhone,
-        shippingAddress: existingOrder.shippingAddress,
-        shippingCity: existingOrder.shippingCity,
-        shippingState: existingOrder.shippingState,
-        shippingPincode: existingOrder.shippingPincode,
-        subtotal: existingOrder.subtotal,
-        tax: existingOrder.tax,
-        total: existingOrder.total,
-        paidAmount: paidAmount,
-        paymentStatus: newPaymentStatus,
-        status: 'payment_received',
-        items: items.map((item) => ({
-          productName: item.productName,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-      };
-
-      await sendInvoiceEmail(orderForInvoice);
-      console.log(`✅ Invoice email sent to ${customerEmail}`);
-    } catch (emailError) {
-      console.error('❌ Failed to send invoice email:', emailError);
-      // Don't fail the request if invoice email fails
     }
 
     return NextResponse.json({
