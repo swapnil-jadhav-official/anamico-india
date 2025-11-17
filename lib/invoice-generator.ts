@@ -215,17 +215,28 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     // Detect if running in production (serverless) or local environment
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-    const browser = await puppeteer.launch({
-      args: isProduction ? chromium.args : ['--no-sandbox', '--disable-setuid-sandbox'],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: isProduction
-        ? await chromium.executablePath()
-        : process.env.PUPPETEER_EXECUTABLE_PATH ||
-          process.platform === 'win32'
+    let browserConfig: any = {};
+
+    if (isProduction) {
+      // Vercel/AWS Lambda configuration
+      browserConfig = {
+        args: chromium.args,
+        executablePath: await chromium.executablePath('/tmp'),
+        headless: true,
+      };
+    } else {
+      // Local development configuration
+      browserConfig = {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ||
+          (process.platform === 'win32'
             ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-            : '/usr/bin/google-chrome',
-      headless: chromium.headless,
-    });
+            : '/usr/bin/google-chrome'),
+        headless: true,
+      };
+    }
+
+    const browser = await puppeteer.launch(browserConfig);
 
     const page = await browser.newPage();
     await page.setContent(htmlTemplate, { waitUntil: 'networkidle0' });
