@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Invoice</title>
+
+<style>
+  @page { size: A4; margin: 20mm 10mm; }
+  body { font-family: Arial, sans-serif; margin:0; padding:0; -webkit-print-color-adjust: exact; }
+  .page { width:100%; display:block; padding:0; }
+
+  /* Container */
+  .invoice-container {
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  header {
+    display:flex;
+    justify-content:space-between;
+    padding-bottom:10px;
+    border-bottom:1px solid #ccc;
+  }
+
+  .company-title { font-size:18px; font-weight:bold; }
+  .text-muted { color:#555; }
+
+  .header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+  }
+
+  .addresses { display:flex; gap:12px; margin-top:12px; }
+  .box { border:1px solid #ddd; padding:10px; font-size:13px; flex:1; line-height:1.4; }
+
+  table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+
+  table.items th {
+    background:#efefef;
+    font-weight:bold;
+    border:1px solid #cfcfcf;
+    padding:8px;
+  }
+
+  table.items td {
+    border:1px solid #cfcfcf;
+    padding:8px;
+  }
+
+  td.right { text-align:right; }
+  td.center { text-align:center; }
+
+  .summary {
+    width:300px;
+    margin-left:auto;
+    margin-top:10px;
+  }
+
+  .signature {
+    margin-top:35px;
+    display:flex;
+    justify-content:flex-end;
+  }
+
+  /* prevent table break issues */
+  table, tr, td, th { page-break-inside: avoid !important; }
+  .no-break { page-break-inside: avoid; }
+
+</style>
+</head>
+
+<body>
+
+<div class="page">
+<div class="invoice-container">
+
+<header>
+  <div class="header-left">
+    <img src="{{LOGO_PATH}}" alt="Company Logo" class="logo">
+    <div>
+      <div class="company-title">ANAMICO INDIA PRIVATE LIMITED</div>
+      <div class="text-muted">
+        {{COMPANY_ADDRESS}}<br>
+        India<br>
+        GSTIN {{COMPANY_GSTIN}}
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:right;">
+    <div><b>TAX INVOICE</b></div>
+    <div># : {{INVOICE_NUMBER}}</div>
+    <div>Invoice Date : {{INVOICE_DATE}}</div>
+    <div>Terms : {{PAYMENT_TERMS}}</div>
+    <div>Due Date : {{DUE_DATE}}</div>
+    <div>Place Of Supply : {{PLACE_OF_SUPPLY}}</div>
+  </div>
+</header>
+
+<div class="addresses">
+  <div class="box">
+    <b>Bill To</b><br>
+    {{CUSTOMER_NAME}}<br>
+    {{CUSTOMER_ADDRESS}}<br>
+    GSTIN {{CUSTOMER_GSTIN}}
+  </div>
+
+  <div class="box">
+    <b>Ship To</b><br>
+    {{CUSTOMER_NAME}}<br>
+    {{CUSTOMER_ADDRESS}}<br>
+    GSTIN {{CUSTOMER_GSTIN}}
+  </div>
+</div>
+
+<br>
+
+<table class="items">
+<thead>
+  <tr>
+    <th style="width:30px">#</th>
+    <th>Item & Description</th>
+    <th style="width:80px">HSN/SAC</th>
+    <th style="width:70px">Qty</th>
+    <th style="width:70px">Rate</th>
+    <th style="width:55px">{{TAX_TYPE}}</th>
+    <th style="width:90px">Amount</th>
+  </tr>
+</thead>
+<tbody>
+  {{ITEMS_ROWS}}
+</tbody>
+</table>
+
+<div class="summary">
+  <table>
+    <tr><td>Sub Total</td><td class="right">{{SUB_TOTAL}}</td></tr>
+    <tr><td>{{TAX_TYPE}} ({{TAX_RATE}}%)</td><td class="right">{{TAX_AMOUNT}}</td></tr>
+    <tr style="font-weight:bold; background:#f6f6f6;">
+      <td>Total</td><td class="right">{{TOTAL_AMOUNT}}</td>
+    </tr>
+    <tr><td>Balance Due</td><td class="right">{{BALANCE_DUE}}</td></tr>
+  </table>
+</div>
+
+<br>
+<b>Total in Words:</b> {{AMOUNT_IN_WORDS}}
+
+<br><br>
+
+<b>Bank Account Detail</b><br>
+Name - {{BANK_ACCOUNT_NAME}}<br>
+Bank - {{BANK_NAME}}<br>
+A/c - {{BANK_ACCOUNT_NUMBER}}<br>
+IFSC CODE - {{BANK_IFSC}}<br>
+BRANCH - {{BANK_BRANCH}}
+<br><br>
+
+<b>Terms & Conditions</b>
+<ol style="font-size:13px; color:#444;">
+  <li>Goods once sold will not be taken back or exchanged</li>
+  <li>Seller is not responsible for any loss or damaged of goods in transit</li>
+  <li>Disputes if any will be subject to Delhi Jurisdiction only</li>
+  <li>Warranty by Principal of Company</li>
+  <li>Interest @ 24% p.a. will be Charged if any payment is not made within the stipulated time</li>
+  <li>Cheque bounce charges will be Rs. 500/- per cheque</li>
+</ol>
+
+<div class="signature">
+  <div style="text-align:center;">
+    Authorized Signature
+  </div>
+</div>
+
+</div>
+</div>
+
+</body>
+</html>
