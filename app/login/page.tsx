@@ -13,13 +13,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Lock, Smartphone } from "lucide-react";
+import { Mail, Lock, Smartphone, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,9 +176,9 @@ export default function LoginPage() {
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-md gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Admin Login</h1>
+            <h1 className="text-3xl font-bold">Welcome Back</h1>
             <p className="text-balance text-muted-foreground">
-              Enter your credentials to access your admin panel
+              Sign in to your account to continue
             </p>
           </div>
           <Tabs defaultValue="otp" className="w-full">
@@ -197,16 +198,34 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div className="grid gap-2">
-                      <div className="flex items-center">
-                        <Label htmlFor="password">Password</Label>
-                        <Link href="#" className="ml-auto inline-block text-sm underline">
-                          Forgot your password?
-                        </Link>
-                      </div>
+                      <Label htmlFor="password">Password</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="password" type="password" required className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          className="pl-10 pr-10"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          disabled={isLoading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Forgot your password? Use the OTP tab to login via email
+                      </p>
                     </div>
                     <Button type="submit" className="w-full mt-4" disabled={isLoading}>
                       {isLoading ? "Loading..." : "Login"}
