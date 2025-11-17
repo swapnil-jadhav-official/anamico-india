@@ -220,7 +220,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     if (isProduction) {
       // Vercel/AWS Lambda configuration
       browserConfig = {
-        args: chromium.args,
+        args: [...chromium.args, '--disable-dev-shm-usage'],
         executablePath: await chromium.executablePath(),
         headless: true,
       };
