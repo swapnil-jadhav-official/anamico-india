@@ -95,6 +95,10 @@ export default function Home() {
           <Hero />
         )}
 
+        {/* Featured Products - Moved up for immediate visibility */}
+        <FeaturedProducts />
+
+        {/* Product Categories */}
         <ProductCategories />
 
         {/* Section Banners */}
@@ -108,8 +112,6 @@ export default function Home() {
           </section>
         )}
 
-        <FeaturedProducts />
-
         {/* Offer Strip Banner */}
         {banners.offer_strip.length > 0 && (
           <section className="container mx-auto px-4 py-8">
@@ -119,9 +121,9 @@ export default function Home() {
           </section>
         )}
 
+        <WhyChooseUs />
         <Services />
         <AboutCompany />
-        <WhyChooseUs />
 
         {/* Bottom Banner */}
         {banners.bottom.length > 0 && (
