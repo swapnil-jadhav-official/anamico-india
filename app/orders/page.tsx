@@ -205,7 +205,8 @@ export default function OrdersPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="overflow-x-auto">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -262,6 +263,59 @@ export default function OrdersPage() {
                         ))}
                       </TableBody>
                     </Table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-4">
+                    {paginatedOrders.map((order) => (
+                      <Card key={order.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <Link
+                              href={`/orders/${order.id}`}
+                              className="font-semibold text-sm hover:text-primary transition-colors break-words flex-1"
+                            >
+                              {order.orderNumber}
+                            </Link>
+                            {getStatusBadge(order.status)}
+                          </div>
+
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t">
+                            {getStatusIcon(order.status)}
+                            <span className="text-xs text-muted-foreground">Status</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Payment</p>
+                              <p className="text-sm font-semibold">
+                                {getPaymentPercentage(order.paidAmount || 0, order.total || 1)}%
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                ₹{(order.paidAmount || 0).toLocaleString()} / ₹{(order.total || 0).toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Total</p>
+                              <p className="text-lg font-bold">
+                                ₹{(order.total || 0).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+
+                          <Button variant="outline" size="sm" asChild className="w-full mt-2">
+                            <Link href={`/orders/${order.id}`}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </Link>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
 
                   {/* Pagination */}
