@@ -154,6 +154,8 @@ export async function POST(
       const pdfBuffer = await generateInvoicePDF(invoiceData);
       const filename = getInvoiceFilename(existingOrder.orderNumber);
 
+      console.log(`📄 Generated invoice PDF: ${filename}, size: ${pdfBuffer.length} bytes`);
+
       await sendEmail({
         to: customerEmail,
         subject: `Order Confirmation - ${existingOrder.orderNumber}`,
@@ -212,6 +214,8 @@ export async function POST(
 
       const pdfBuffer = await generateInvoicePDF(invoiceData);
       const filename = getInvoiceFilename(existingOrder.orderNumber);
+
+      console.log(`📄 Generated payment invoice PDF: ${filename}, size: ${pdfBuffer.length} bytes`);
 
       await sendEmail({
         to: customerEmail,

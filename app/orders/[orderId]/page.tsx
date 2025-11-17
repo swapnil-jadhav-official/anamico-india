@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { message, Steps } from "antd";
-import { ArrowLeft, Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Clock, XCircle, Download } from "lucide-react";
 import Link from "next/link";
 
 interface OrderDetail {
@@ -182,6 +182,32 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
         return "Unfortunately, your order was rejected. You will receive a full refund within 5-7 business days.";
       default:
         return status;
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    try {
+      message.loading({ content: "Generating invoice...", key: "invoice" });
+      const res = await fetch(`/api/orders/${orderId}/invoice`);
+
+      if (!res.ok) {
+        throw new Error("Failed to generate invoice");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Invoice-${order?.orderNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      message.success({ content: "Invoice downloaded!", key: "invoice" });
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      message.error({ content: "Failed to download invoice", key: "invoice" });
     }
   };
 
@@ -492,6 +518,16 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                     <Link href={`/checkout/payment?orderId=${order.id}`}>
                       Complete Payment
                     </Link>
+                  </Button>
+                )}
+                {order.status !== "pending" && order.paidAmount > 0 && (
+                  <Button
+                    variant="default"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={handleDownloadInvoice}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Invoice
                   </Button>
                 )}
                 <Button variant="outline" className="w-full" asChild>
