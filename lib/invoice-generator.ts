@@ -3,15 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Workaround for Next.js server environment: prevent PDFKit from loading font files
-// This is needed because pdfkit tries to load .afm files from the filesystem,
-// which doesn't work in Next.js bundled server environment
 const originalReadFileSync = fs.readFileSync;
 
 (fs.readFileSync as any) = function(filePath: any, options?: any) {
   if (typeof filePath === 'string' && filePath.includes('.afm')) {
-    // Return a minimal but valid AFM font file format
     console.log('🚫 Blocked font file access:', filePath);
-    // Minimal AFM format that PDFKit can parse
     const minimalAFM = `StartFontMetrics 4.1
 FontName Helvetica
 FullName Helvetica
@@ -24,7 +20,6 @@ StartCharMetrics 1
 C 32 ; WX 278 ; N space ; B 0 0 0 0 ;
 EndCharMetrics
 EndFontMetrics`;
-    // Return as string if encoding is specified, otherwise as Buffer
     if (options === 'utf8' || options === 'utf-8' || (typeof options === 'object' && options?.encoding)) {
       return minimalAFM;
     }
@@ -38,6 +33,9 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   total: number;
+  hsnCode?: string;
+  igstPercent?: number;
+  igstAmount?: number;
 }
 
 export interface InvoiceData {
@@ -46,10 +44,12 @@ export interface InvoiceData {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerGSTIN?: string;
   shippingAddress: string;
   shippingCity: string;
   shippingState: string;
   shippingPincode: string;
+  placeOfSupply?: string;
   items: InvoiceItem[];
   subtotal: number;
   tax: number;
@@ -59,187 +59,278 @@ export interface InvoiceData {
   paymentStatus: string;
   status: string;
   invoiceNumber?: string;
+  invoiceDate?: Date;
+  dueDate?: Date;
   shippedAt?: Date;
   deliveredAt?: Date;
 }
 
-/**
- * Generate PDF invoice buffer
- * Fixed to work in Next.js server environment without font file issues
- */
 export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
     try {
-      // Create PDFDocument - font loading is handled by our fs.readFileSync override
       const doc = new PDFDocument({
         size: 'A4',
-        margin: 50,
-        autoFirstPage: true,
+        margin: 30,
         bufferPages: false,
-      } as any);
+      });
 
       const buffers: Buffer[] = [];
-
       doc.on('data', (chunk: Buffer) => buffers.push(chunk));
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(buffers);
-        resolve(pdfBuffer);
-      });
-      doc.on('error', (error: Error) => {
-        reject(error);
-      });
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
 
       try {
-        // Fixed-width layout with precise positioning
-        // All text in plain black (#000000)
         const pageWidth = 595;
-        const margin = 50;
-        const contentWidth = pageWidth - (margin * 2); // 495
+        const pageHeight = 842;
+        const margin = 30;
+        const contentWidth = pageWidth - (margin * 2);
+        let y = margin;
 
-        // Define fixed column positions
-        const leftCol = margin; // 50
-        const rightCol = 320; // Start of right column
+        // Draw border around entire page
+        doc.rect(margin, margin, contentWidth, pageHeight - (margin * 2)).stroke('#000000');
 
-        // Add logo at the top left
+        // Header Section
+        y = margin + 15;
+
+        // Logo on left
         try {
           const logoPath = path.join(process.cwd(), 'public', 'images', 'anamico-logo.jpeg');
-          if (originalReadFileSync(logoPath)) {
-            doc.image(logoPath, leftCol, 30, { width: 80 });
+          if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, margin + 15, y, { width: 80, height: 80 });
           }
         } catch (logoError) {
-          console.log('Logo not found, skipping:', logoError);
+          console.log('Logo not found, skipping');
         }
 
-        // Header - Company and Invoice Info (left side - adjusted for logo)
-        doc.fontSize(14).fillColor('#000000').text('ANAMICO INDIA', leftCol, 115);
-        doc.fontSize(8).fillColor('#000000')
-          .text('UIDAI Certified Partner', leftCol, 131)
-          .text('Email: info@anamicoindia.com', leftCol, 141)
-          .text('Phone: +91 9818424815', leftCol, 151);
+        // Company details in center
+        doc.fontSize(14).font('Helvetica-Bold').text('ANAMICO INDIA PRIVATE LIMITED', margin + 110, y, { width: 240, align: 'center' });
+        y += 18;
+        doc.fontSize(8).font('Helvetica').text('WZ-663, Office No-204, Near Punjabi Bagh Apartment,', margin + 110, y, { width: 240, align: 'center' });
+        y += 10;
+        doc.text('Madipur', margin + 110, y, { width: 240, align: 'center' });
+        y += 10;
+        doc.text('Delhi 110063', margin + 110, y, { width: 240, align: 'center' });
+        y += 10;
+        doc.text('India', margin + 110, y, { width: 240, align: 'center' });
+        y += 10;
+        doc.text('GSTIN 07AAXCA2423P1Z3', margin + 110, y, { width: 240, align: 'center' });
 
-        // Invoice Title and Details (right side - fixed positions)
-        const invoiceNum = data.invoiceNumber || `INV-${data.orderNumber}`;
-        const invoiceType = data.paymentStatus === 'completed' || data.paymentStatus === 'paid' ? 'TAX INVOICE' : 'PROFORMA INVOICE';
+        // TAX INVOICE on right
+        y = margin + 30;
+        doc.fontSize(20).font('Helvetica-Bold').text('TAX INVOICE', pageWidth - margin - 130, y, { width: 130, align: 'left' });
 
-        doc.fontSize(12).fillColor('#000000').text(invoiceType, rightCol, 115);
-        doc.fontSize(8).fillColor('#000000')
-          .text(`Invoice No: ${invoiceNum}`, rightCol, 131)
-          .text(`Order No: ${data.orderNumber}`, rightCol, 141)
-          .text(`Date: ${data.orderDate.toLocaleDateString('en-IN')}`, rightCol, 151);
+        // Horizontal line after header
+        y = margin + 100;
+        doc.moveTo(margin, y).lineTo(pageWidth - margin, y).stroke('#000000');
 
-        // Separator line
-        doc.moveTo(margin, 165).lineTo(pageWidth - margin, 165).stroke('#000000');
+        // Invoice Details Table
+        y += 1;
+        const detailsHeight = 65;
+        const midX = margin + (contentWidth / 2);
 
-        // Customer Info - side by side with fixed columns
-        let yPos = 173;
+        // Left column
+        let rowY = y;
+        doc.fontSize(8).font('Helvetica-Bold').text('#', margin + 5, rowY + 5);
+        doc.font('Helvetica').text(`: ${data.invoiceNumber || `INV-${data.orderNumber}`}`, margin + 80, rowY + 5);
 
-        doc.fontSize(8).fillColor('#000000').text('BILL TO:', leftCol, yPos);
-        doc.fontSize(8).fillColor('#000000')
-          .text(data.customerName, leftCol, yPos + 12)
-          .text(data.customerEmail, leftCol, yPos + 22)
-          .text(data.customerPhone, leftCol, yPos + 32);
+        rowY += 16;
+        doc.moveTo(margin, rowY).lineTo(pageWidth - margin, rowY).stroke('#000000');
+        doc.font('Helvetica-Bold').text('Invoice Date', margin + 5, rowY + 5);
+        doc.font('Helvetica').text(`: ${(data.invoiceDate || data.orderDate).toLocaleDateString('en-IN')}`, margin + 80, rowY + 5);
 
-        doc.fontSize(8).fillColor('#000000').text('SHIP TO:', rightCol, yPos);
-        doc.fontSize(8).fillColor('#000000')
-          .text(data.shippingAddress, rightCol, yPos + 12, { width: 220 })
-          .text(`${data.shippingCity}, ${data.shippingState} ${data.shippingPincode}`, rightCol, yPos + 32);
+        rowY += 16;
+        doc.moveTo(margin, rowY).lineTo(pageWidth - margin, rowY).stroke('#000000');
+        doc.font('Helvetica-Bold').text('Terms', margin + 5, rowY + 5);
+        doc.font('Helvetica').text(': Due on Receipt', margin + 80, rowY + 5);
 
-        // Items Table Header with fixed column positions
-        yPos = 220;
-        const colItem = leftCol + 5;
-        const colQty = 360;
-        const colPrice = 410;
-        const colAmount = 470;
+        rowY += 16;
+        doc.moveTo(margin, rowY).lineTo(pageWidth - margin, rowY).stroke('#000000');
+        doc.font('Helvetica-Bold').text('Due Date', margin + 5, rowY + 5);
+        doc.font('Helvetica').text(`: ${(data.dueDate || data.orderDate).toLocaleDateString('en-IN')}`, margin + 80, rowY + 5);
 
-        doc.moveTo(leftCol, yPos).lineTo(pageWidth - margin, yPos).stroke('#000000');
-        yPos += 5;
+        // Right column
+        rowY = y;
+        doc.moveTo(midX, y).lineTo(midX, y + detailsHeight).stroke('#000000');
 
-        doc.fontSize(8).fillColor('#000000')
-          .text('ITEM DESCRIPTION', colItem, yPos)
-          .text('QTY', colQty, yPos)
-          .text('PRICE', colPrice, yPos)
-          .text('AMOUNT', colAmount, yPos);
+        doc.font('Helvetica-Bold').text('Place Of Supply', midX + 5, rowY + 5);
+        doc.font('Helvetica').text(`: ${data.placeOfSupply || data.shippingState}`, midX + 80, rowY + 5);
 
-        yPos += 10;
-        doc.moveTo(leftCol, yPos).lineTo(pageWidth - margin, yPos).stroke('#000000');
+        y += detailsHeight;
+        doc.moveTo(margin, y).lineTo(pageWidth - margin, y).stroke('#000000');
 
-        // Table Items with fixed columns
-        yPos += 8;
+        // Bill To / Ship To Section
+        y += 1;
+        const billToHeight = 85;
+
+        doc.fontSize(9).font('Helvetica-Bold').text('Bill To', margin + 5, y + 5);
+        doc.text('Ship To', midX + 5, y + 5);
+
+        y += 15;
+        doc.moveTo(margin, y).lineTo(pageWidth - margin, y).stroke('#000000');
+        doc.moveTo(midX, y - 15).lineTo(midX, y + billToHeight - 15).stroke('#000000');
+
+        // Bill To content
+        doc.fontSize(9).font('Helvetica-Bold').text(data.customerName, margin + 5, y + 5, { width: (contentWidth / 2) - 10 });
+        y += 12;
+        doc.fontSize(8).font('Helvetica').text(data.shippingAddress, margin + 5, y, { width: (contentWidth / 2) - 10 });
+        y += 10;
+        doc.text(`${data.shippingCity}`, margin + 5, y);
+        y += 10;
+        doc.text(`${data.shippingPincode} ${data.shippingState}`, margin + 5, y);
+        y += 10;
+        doc.text('India', margin + 5, y);
+        if (data.customerGSTIN) {
+          y += 10;
+          doc.text(`GSTIN ${data.customerGSTIN}`, margin + 5, y);
+        }
+
+        // Ship To content (same as Bill To)
+        y -= (data.customerGSTIN ? 50 : 40);
+        doc.fontSize(8).font('Helvetica').text(data.shippingAddress, midX + 5, y, { width: (contentWidth / 2) - 10 });
+        y += 10;
+        doc.text(`${data.shippingCity}`, midX + 5, y);
+        y += 10;
+        doc.text(`${data.shippingPincode} ${data.shippingState}`, midX + 5, y);
+        y += 10;
+        doc.text('India', midX + 5, y);
+        if (data.customerGSTIN) {
+          y += 10;
+          doc.text(`GSTIN ${data.customerGSTIN}`, midX + 5, y);
+        }
+
+        y = y + (data.customerGSTIN ? 25 : 35);
+        doc.moveTo(margin, y).lineTo(pageWidth - margin, y).stroke('#000000');
+
+        // Items Table
+        y += 1;
+        const itemsTableY = y;
+
+        // Table header
+        doc.rect(margin, y, contentWidth, 18).fillAndStroke('#e6e6e6', '#000000');
+
+        doc.fontSize(7).fillColor('#000000').font('Helvetica-Bold');
+        doc.text('#', margin + 3, y + 6);
+        doc.text('Item & Description', margin + 20, y + 6);
+        doc.text('HSN/SAC', margin + 210, y + 6);
+        doc.text('Qty', margin + 265, y + 6);
+        doc.text('Rate', margin + 310, y + 6);
+        doc.text('IGST', margin + 365, y + 2);
+        doc.fontSize(6).text('%', margin + 370, y + 10);
+        doc.fontSize(7).text('Amt', margin + 385, y + 10);
+        doc.text('Amount', margin + 470, y + 6);
+
+        y += 18;
+
+        // Table items
+        doc.fontSize(8).font('Helvetica');
         data.items.forEach((item, index) => {
-          doc.fillColor('#000000').fontSize(8)
-            .text(item.productName, colItem, yPos, { width: 290 })
-            .text(item.quantity.toString(), colQty, yPos)
-            .text(`Rs.${item.price.toLocaleString('en-IN')}`, colPrice, yPos)
-            .text(`Rs.${item.total.toLocaleString('en-IN')}`, colAmount, yPos);
+          const rowHeight = 35;
 
-          yPos += 18;
+          doc.rect(margin, y, contentWidth, rowHeight).stroke('#000000');
+
+          // Vertical lines
+          doc.moveTo(margin + 17, y).lineTo(margin + 17, y + rowHeight).stroke('#000000');
+          doc.moveTo(margin + 207, y).lineTo(margin + 207, y + rowHeight).stroke('#000000');
+          doc.moveTo(margin + 262, y).lineTo(margin + 262, y + rowHeight).stroke('#000000');
+          doc.moveTo(margin + 307, y).lineTo(margin + 307, y + rowHeight).stroke('#000000');
+          doc.moveTo(margin + 360, y).lineTo(margin + 360, y + rowHeight).stroke('#000000');
+          doc.moveTo(margin + 423, y).lineTo(margin + 423, y + rowHeight).stroke('#000000');
+
+          doc.text((index + 1).toString(), margin + 5, y + 5);
+          doc.font('Helvetica-Bold').text(item.productName, margin + 20, y + 5, { width: 180 });
+          doc.fontSize(7).font('Helvetica').text(item.productName, margin + 20, y + 14, { width: 180 });
+          doc.fontSize(8).text(item.hsnCode || '85444292', margin + 212, y + 12);
+          doc.text(item.quantity.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), margin + 267, y + 12);
+          doc.text(item.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), margin + 312, y + 12);
+          doc.text(`${item.igstPercent || 18}%`, margin + 368, y + 12);
+
+          // Calculate IGST amount from the item total (which already includes tax)
+          const igstAmount = item.igstAmount || (item.total - (item.total / 1.18));
+          doc.text(igstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), margin + 363, y + 22);
+          doc.text(item.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), margin + 428, y + 12, { width: 137, align: 'right' });
+
+          y += rowHeight;
         });
 
-        // Bottom line for items
-        doc.moveTo(margin, yPos).lineTo(pageWidth - margin, yPos).stroke('#000000');
+        // Summary section
+        const summaryStartY = y;
+        const summaryLeft = margin;
+        const summaryRight = margin + (contentWidth * 0.6);
 
-        // Summary section with fixed columns
-        yPos += 10;
-        const summaryLabel = 380;
-        const summaryValue = 470;
+        // Total in words section (left side)
+        doc.fontSize(8).font('Helvetica-Bold').text('Total In Words', summaryLeft + 5, summaryStartY + 5);
+        y += 12;
+        doc.fontSize(8).font('Helvetica-BoldOblique').text('Indian Rupee One Lakh Three Hundred Only', summaryLeft + 5, summaryStartY + 17, { width: (contentWidth * 0.6) - 10 });
 
-        doc.fontSize(8).fillColor('#000000')
-          .text('Subtotal:', summaryLabel, yPos)
-          .text(`Rs.${data.subtotal.toLocaleString('en-IN')}`, summaryValue, yPos);
+        y += 25;
+        doc.fontSize(8).font('Helvetica-Bold').text('Notes', summaryLeft + 5, summaryStartY + 42);
 
-        yPos += 12;
-        doc.text('Tax (GST 18%):', summaryLabel, yPos)
-          .text(`Rs.${data.tax.toLocaleString('en-IN')}`, summaryValue, yPos);
+        y += 30;
+        doc.fontSize(8).font('Helvetica-Bold').text('Bank Account Detail', summaryLeft + 5, summaryStartY + 72);
+        y += 12;
+        doc.fontSize(7).font('Helvetica')
+          .text('Name - ANAMICO INDIA PRIVATE LIMITED', summaryLeft + 5, summaryStartY + 84)
+          .text('Bank - HDFC BANK', summaryLeft + 5, summaryStartY + 94)
+          .text('A/c - 50200080572373', summaryLeft + 5, summaryStartY + 104)
+          .text('IFSC CODE - HDFC0000091', summaryLeft + 5, summaryStartY + 114)
+          .text('BRANCH - PUNJABI BAGH, DELHI', summaryLeft + 5, summaryStartY + 124);
 
-        yPos += 12;
-        doc.text('Shipping:', summaryLabel, yPos)
-          .text('FREE', summaryValue, yPos);
+        // Summary box (right side)
+        doc.moveTo(summaryRight, summaryStartY).lineTo(summaryRight, summaryStartY + 80).stroke('#000000');
 
-        yPos += 3;
-        doc.moveTo(summaryLabel, yPos).lineTo(pageWidth - margin, yPos).stroke('#000000');
+        doc.fontSize(9).font('Helvetica-Bold');
+        let summaryY = summaryStartY + 5;
+        const summaryValueWidth = (pageWidth - margin) - (summaryRight + 10);
 
-        yPos += 8;
-        doc.fontSize(9).fillColor('#000000')
-          .text('TOTAL:', summaryLabel, yPos)
-          .text(`Rs.${data.total.toLocaleString('en-IN')}`, summaryValue, yPos);
+        doc.text('Sub Total', summaryRight + 5, summaryY, { width: 100 });
+        doc.font('Helvetica').text(data.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), summaryRight + 110, summaryY, { width: summaryValueWidth - 110, align: 'right' });
 
-        // Payment Information
-        yPos += 16;
-        doc.fontSize(8).fillColor('#000000')
-          .text('Amount Paid:', summaryLabel, yPos)
-          .text(`Rs.${data.paidAmount.toLocaleString('en-IN')}`, summaryValue, yPos);
+        summaryY += 16;
+        doc.moveTo(summaryRight, summaryY).lineTo(pageWidth - margin, summaryY).stroke('#000000');
 
-        if (data.dueAmount > 0) {
-          yPos += 12;
-          doc.text('Amount Due:', summaryLabel, yPos)
-            .text(`Rs.${data.dueAmount.toLocaleString('en-IN')}`, summaryValue, yPos);
-        }
+        summaryY += 5;
+        doc.font('Helvetica-Bold').text('IGST18 (18%)', summaryRight + 5, summaryY, { width: 100 });
+        doc.font('Helvetica').text(data.tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), summaryRight + 110, summaryY, { width: summaryValueWidth - 110, align: 'right' });
 
-        // Delivery Status (if available)
-        yPos += 20;
-        if (data.deliveredAt) {
-          doc.fontSize(8).fillColor('#000000')
-            .text(`Delivered on: ${data.deliveredAt.toLocaleDateString('en-IN')}`, leftCol, yPos);
-        } else if (data.shippedAt) {
-          doc.fontSize(8).fillColor('#000000')
-            .text(`Shipped on: ${data.shippedAt.toLocaleDateString('en-IN')}`, leftCol, yPos);
-        }
+        summaryY += 16;
+        doc.moveTo(summaryRight, summaryY).lineTo(pageWidth - margin, summaryY).stroke('#000000');
 
-        // Footer with fixed columns
-        const footerY = 740;
-        doc.moveTo(leftCol, footerY).lineTo(pageWidth - margin, footerY).stroke('#000000');
+        summaryY += 5;
+        doc.font('Helvetica-Bold').text('Total', summaryRight + 5, summaryY, { width: 100 });
+        doc.text(`\u20B9${data.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, summaryRight + 110, summaryY, { width: summaryValueWidth - 110, align: 'right' });
 
-        // Terms and conditions on the left
-        doc.fontSize(7).fillColor('#000000')
-          .text('Terms & Conditions:', leftCol, footerY + 8)
-          .text('1. Payment terms as agreed', leftCol, footerY + 18)
-          .text('2. Goods once sold will not be taken back', leftCol, footerY + 28)
-          .text('3. Subject to Delhi jurisdiction', leftCol, footerY + 38);
+        summaryY += 16;
+        doc.moveTo(summaryRight, summaryY).lineTo(pageWidth - margin, summaryY).stroke('#000000');
 
-        // Signature on the right - fixed position
-        doc.fontSize(8).fillColor('#000000')
-          .text('For ANAMICO India Private Limited', rightCol, footerY + 20)
-          .text('Authorized Signatory', rightCol, footerY + 40);
+        summaryY += 5;
+        doc.font('Helvetica-Bold').text('Balance Due', summaryRight + 5, summaryY, { width: 100 });
+        doc.text(`\u20B9${data.dueAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, summaryRight + 110, summaryY, { width: summaryValueWidth - 110, align: 'right' });
+
+        // Terms & Conditions
+        y = summaryStartY + 145;
+        doc.fontSize(8).font('Helvetica-Bold').text('Terms & Conditions', summaryLeft + 5, y);
+        y += 10;
+        doc.fontSize(8).text('Terms & Conditions', summaryLeft + 5, y);
+        y += 10;
+
+        doc.fontSize(6).font('Helvetica');
+        const terms = [
+          '1) Goods once sold will bot be taken back or exchanged',
+          '2) Seller is not responsible for any loss or damaged of goods in transit',
+          '3) Disputes if any will be subject to Delhi Jurisdiction only',
+          '4) Warranty by Principal of Company',
+          '5) Interest @ 24% p.a. will be Charged if any payment is not made within the',
+          '   stipulated time',
+          '6) Cheque bounce charges will be Rs. 500/- per cheque'
+        ];
+
+        terms.forEach((term) => {
+          doc.text(term, summaryLeft + 5, y);
+          y += 8;
+        });
+
+        // Authorized Signature (right side)
+        doc.fontSize(8).font('Helvetica-Bold').text('Authorized Signature', summaryRight + 5, summaryStartY + 145);
 
         doc.end();
       } catch (error) {
@@ -252,9 +343,6 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
   });
 }
 
-/**
- * Get invoice filename
- */
 export function getInvoiceFilename(orderNumber: string): string {
   return `Invoice-${orderNumber}.pdf`;
 }
