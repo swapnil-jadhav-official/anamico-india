@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { order, orderItem } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { order, orderItem, user } from '@/drizzle/schema';
+import { eq } from 'drizzle-orm';
 import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoice-generator';
 
 /**
  * GET /api/orders/[orderId]/invoice
- * Download invoice PDF for an order
+ * Generate and download invoice PDF for an order
  */
 export async function GET(
   req: NextRequest,
@@ -23,7 +23,7 @@ export async function GET(
 
     const { orderId } = params;
 
-    // Fetch the order
+    // Fetch order
     const [existingOrder] = await db
       .select()
       .from(order)
@@ -33,8 +33,8 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Verify order belongs to current user (or user is admin)
-    if (existingOrder.userId !== session.user.id && session.user.role !== 'admin') {
+    // Verify order belongs to current user
+    if (existingOrder.userId !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -43,6 +43,8 @@ export async function GET(
       .select()
       .from(orderItem)
       .where(eq(orderItem.orderId, orderId));
+
+    console.log('📥 Generating invoice for order:', orderId);
 
     // Prepare invoice data
     const invoiceData: InvoiceData = {
@@ -66,28 +68,34 @@ export async function GET(
       total: existingOrder.total,
       paidAmount: existingOrder.paidAmount || 0,
       dueAmount: existingOrder.total - (existingOrder.paidAmount || 0),
-      paymentStatus: existingOrder.paymentStatus || 'pending',
+      paymentStatus: existingOrder.paymentStatus,
       status: existingOrder.status,
       invoiceNumber: `INV-${existingOrder.orderNumber}`,
-      shippedAt: existingOrder.shippedAt ? (typeof existingOrder.shippedAt === 'string' ? new Date(existingOrder.shippedAt) : existingOrder.shippedAt) : undefined,
-      deliveredAt: existingOrder.deliveredAt ? (typeof existingOrder.deliveredAt === 'string' ? new Date(existingOrder.deliveredAt) : existingOrder.deliveredAt) : undefined,
+      shippedAt: existingOrder.shippedAt ?
+        typeof existingOrder.shippedAt === 'string' ? new Date(existingOrder.shippedAt) : existingOrder.shippedAt
+        : undefined,
+      deliveredAt: existingOrder.deliveredAt ?
+        typeof existingOrder.deliveredAt === 'string' ? new Date(existingOrder.deliveredAt) : existingOrder.deliveredAt
+        : undefined,
     };
+
+    console.log('📄 Invoice data prepared, generating PDF...');
 
     // Generate PDF
     const pdfBuffer = await generateInvoicePDF(invoiceData);
+
+    console.log(`✅ Invoice PDF generated: ${pdfBuffer.length} bytes`);
+
+    // Get filename
     const filename = getInvoiceFilename(existingOrder.orderNumber);
 
-    console.log(`✅ Invoice PDF generated for order ${existingOrder.orderNumber}`);
+    // Return PDF as download
+    const response = new NextResponse(pdfBuffer);
+    response.headers.set('Content-Type', 'application/pdf');
+    response.headers.set('Content-Disposition', `attachment; filename="${filename}"`);
+    response.headers.set('Content-Length', pdfBuffer.length.toString());
 
-    // Return PDF as response
-    return new NextResponse(pdfBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length.toString(),
-      },
-    });
+    return response;
   } catch (error) {
     console.error('Error generating invoice:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

@@ -23,6 +23,7 @@ import {
   generateOrderConfirmationEmail,
   generateAdminNewOrderEmail
 } from '@/lib/email-templates';
+import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoice-generator';
 
 /**
  * POST /api/payments
@@ -314,13 +315,17 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
     const customerEmail = existingOrder.shippingEmail || customerData?.email || '';
     const customerName = existingOrder.shippingName || customerData?.name || 'Customer';
 
-    // Send order confirmation email to customer (sent after payment, not at order creation)
+    // Send order confirmation email to customer with invoice PDF (sent after payment, not at order creation)
     try {
+      console.log('🔵 STEP 1: Entering order confirmation email block');
+
       const orderItemsForEmail = items.map((item) => ({
         productName: item.productName,
         quantity: item.quantity,
         price: item.price,
       }));
+
+      console.log('🔵 STEP 2: Order items mapped for email');
 
       const emailContent = generateOrderConfirmationEmail(
         customerName,
@@ -339,20 +344,73 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
         }
       );
 
+      console.log('🔵 STEP 3: Email content generated');
+
+      // Generate PDF invoice
+      console.log('🔵 STEP 4: About to create invoice data object');
+
+      const invoiceData: InvoiceData = {
+        orderNumber: existingOrder.orderNumber,
+        orderDate: typeof existingOrder.createdAt === 'string' ? new Date(existingOrder.createdAt) : existingOrder.createdAt,
+        customerName: existingOrder.shippingName,
+        customerEmail: existingOrder.shippingEmail,
+        customerPhone: existingOrder.shippingPhone,
+        shippingAddress: existingOrder.shippingAddress,
+        shippingCity: existingOrder.shippingCity,
+        shippingState: existingOrder.shippingState,
+        shippingPincode: existingOrder.shippingPincode,
+        items: orderItemsForEmail.map(item => ({
+          ...item,
+          total: item.price * item.quantity,
+        })),
+        subtotal: existingOrder.subtotal,
+        tax: existingOrder.tax,
+        total: existingOrder.total,
+        paidAmount: paymentAmount,
+        dueAmount: existingOrder.total - paymentAmount,
+        paymentStatus: newPaymentStatus,
+        status: 'payment_received',
+        invoiceNumber: `INV-${existingOrder.orderNumber}`,
+      };
+
+      console.log('🔵 STEP 5: Invoice data object created, calling generateInvoicePDF()...');
+
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+
+      console.log('🔵 STEP 6: PDF generated, getting filename...');
+
+      const filename = getInvoiceFilename(existingOrder.orderNumber);
+
+      console.log(`📄 STEP 7: Generated invoice PDF: ${filename}, size: ${pdfBuffer.length} bytes`);
+
+      console.log('🔵 STEP 8: About to send email with attachment...');
+
       await sendEmail({
         to: customerEmail,
         subject: `Order Confirmation - ${existingOrder.orderNumber}`,
         html: emailContent.html,
         text: emailContent.text,
+        attachments: [
+          {
+            filename,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
       });
 
-      console.log(`✅ Order confirmation email sent to ${customerEmail}`);
+      console.log(`🔵 STEP 9: ✅ Order confirmation email with invoice PDF sent to ${customerEmail}`);
     } catch (emailError) {
-      console.error('❌ Failed to send order confirmation email:', emailError);
+      console.error('❌❌❌ FAILED in order confirmation email block:');
+      console.error('Error message:', emailError);
+      console.error('Error stack:', emailError instanceof Error ? emailError.stack : 'No stack trace');
+      console.error('Error details:', JSON.stringify(emailError, null, 2));
     }
 
-    // Send payment confirmation email to customer
+    // Send payment confirmation email to customer with invoice PDF
     try {
+      console.log('🟢 PAYMENT STEP 1: Entering payment confirmation email block');
+
       const emailContent = generatePaymentReceivedEmail(
         customerName,
         existingOrder.orderNumber,
@@ -361,16 +419,67 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
         newPaymentStatus
       );
 
+      console.log('🟢 PAYMENT STEP 2: Payment email content generated, creating invoice data...');
+
+      // Generate PDF invoice for payment confirmation
+      const invoiceData: InvoiceData = {
+        orderNumber: existingOrder.orderNumber,
+        orderDate: typeof existingOrder.createdAt === 'string' ? new Date(existingOrder.createdAt) : existingOrder.createdAt,
+        customerName: existingOrder.shippingName,
+        customerEmail: existingOrder.shippingEmail,
+        customerPhone: existingOrder.shippingPhone,
+        shippingAddress: existingOrder.shippingAddress,
+        shippingCity: existingOrder.shippingCity,
+        shippingState: existingOrder.shippingState,
+        shippingPincode: existingOrder.shippingPincode,
+        items: items.map(item => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.price * item.quantity,
+        })),
+        subtotal: existingOrder.subtotal,
+        tax: existingOrder.tax,
+        total: existingOrder.total,
+        paidAmount: paymentAmount,
+        dueAmount: existingOrder.total - paymentAmount,
+        paymentStatus: newPaymentStatus,
+        status: 'payment_received',
+        invoiceNumber: `INV-${existingOrder.orderNumber}`,
+      };
+
+      console.log('🟢 PAYMENT STEP 3: Calling generateInvoicePDF()...');
+
+      const pdfBuffer = await generateInvoicePDF(invoiceData);
+
+      console.log('🟢 PAYMENT STEP 4: PDF generated, getting filename...');
+
+      const filename = getInvoiceFilename(existingOrder.orderNumber);
+
+      console.log(`📄 PAYMENT STEP 5: Generated payment invoice PDF: ${filename}, size: ${pdfBuffer.length} bytes`);
+
+      console.log('🟢 PAYMENT STEP 6: Sending email with attachment...');
+
       await sendEmail({
         to: customerEmail,
         subject: `Payment Received - ${existingOrder.orderNumber}`,
         html: emailContent.html,
         text: emailContent.text,
+        attachments: [
+          {
+            filename,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
       });
 
-      console.log(`✅ Payment confirmation email sent to ${customerEmail}`);
+      console.log(`🟢 PAYMENT STEP 7: ✅ Payment confirmation email with invoice PDF sent to ${customerEmail}`);
     } catch (emailError) {
-      console.error('❌ Failed to send payment confirmation email:', emailError);
+      console.error('❌❌❌ FAILED in payment confirmation email block:');
+      console.error('Error message:', emailError);
+      console.error('Error stack:', emailError instanceof Error ? emailError.stack : 'No stack trace');
+      console.error('Error details:', JSON.stringify(emailError, null, 2));
     }
 
     // Send new order notification to admin
