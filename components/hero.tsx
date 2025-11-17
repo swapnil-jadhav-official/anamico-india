@@ -126,8 +126,9 @@ export function Hero() {
                     </div>
                   )}
                 </div>
-                <Button type="submit" size="lg" className="h-12 px-6">
-                  Search
+                <Button type="submit" size="icon" className="h-12 w-12 flex-shrink-0">
+                  <Search className="h-5 w-5" />
+                  <span className="sr-only">Search</span>
                 </Button>
               </div>
             </form>
