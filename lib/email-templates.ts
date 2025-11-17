@@ -29,6 +29,11 @@ export const emailWrapper = (content: string, title: string = 'Anamico India') =
       padding: 30px 20px;
       text-align: center;
     }
+    .header img {
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 15px;
+    }
     .header h1 {
       margin: 0;
       font-size: 28px;
@@ -127,7 +132,8 @@ export const emailWrapper = (content: string, title: string = 'Anamico India') =
 <body>
   <div class="container">
     <div class="header">
-      <h1>🛒 Anamico India</h1>
+      <img src="cid:anamico-logo" alt="Anamico India" style="max-width: 150px; height: auto; margin-bottom: 15px;" />
+      <h1>Anamico India</h1>
     </div>
     <div class="content">
       ${content}

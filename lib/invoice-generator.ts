@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
+import * as path from 'path';
 
 // Workaround for Next.js server environment: prevent PDFKit from loading font files
 // This is needed because pdfkit tries to load .afm files from the filesystem,
@@ -99,28 +100,38 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
         const leftCol = margin; // 50
         const rightCol = 320; // Start of right column
 
-        // Header - Company and Invoice Info (left side - fixed width)
-        doc.fontSize(14).fillColor('#000000').text('ANAMICO INDIA', leftCol, 40);
+        // Add logo at the top left
+        try {
+          const logoPath = path.join(process.cwd(), 'public', 'images', 'anamico-logo.jpeg');
+          if (originalReadFileSync(logoPath)) {
+            doc.image(logoPath, leftCol, 30, { width: 80 });
+          }
+        } catch (logoError) {
+          console.log('Logo not found, skipping:', logoError);
+        }
+
+        // Header - Company and Invoice Info (left side - adjusted for logo)
+        doc.fontSize(14).fillColor('#000000').text('ANAMICO INDIA', leftCol, 115);
         doc.fontSize(8).fillColor('#000000')
-          .text('UIDAI Certified Partner', leftCol, 56)
-          .text('Email: info@anamicoindia.com', leftCol, 66)
-          .text('Phone: +91 9818424815', leftCol, 76);
+          .text('UIDAI Certified Partner', leftCol, 131)
+          .text('Email: info@anamicoindia.com', leftCol, 141)
+          .text('Phone: +91 9818424815', leftCol, 151);
 
         // Invoice Title and Details (right side - fixed positions)
         const invoiceNum = data.invoiceNumber || `INV-${data.orderNumber}`;
         const invoiceType = data.paymentStatus === 'completed' || data.paymentStatus === 'paid' ? 'TAX INVOICE' : 'PROFORMA INVOICE';
 
-        doc.fontSize(12).fillColor('#000000').text(invoiceType, rightCol, 40);
+        doc.fontSize(12).fillColor('#000000').text(invoiceType, rightCol, 115);
         doc.fontSize(8).fillColor('#000000')
-          .text(`Invoice No: ${invoiceNum}`, rightCol, 56)
-          .text(`Order No: ${data.orderNumber}`, rightCol, 66)
-          .text(`Date: ${data.orderDate.toLocaleDateString('en-IN')}`, rightCol, 76);
+          .text(`Invoice No: ${invoiceNum}`, rightCol, 131)
+          .text(`Order No: ${data.orderNumber}`, rightCol, 141)
+          .text(`Date: ${data.orderDate.toLocaleDateString('en-IN')}`, rightCol, 151);
 
         // Separator line
-        doc.moveTo(margin, 90).lineTo(pageWidth - margin, 90).stroke('#000000');
+        doc.moveTo(margin, 165).lineTo(pageWidth - margin, 165).stroke('#000000');
 
         // Customer Info - side by side with fixed columns
-        let yPos = 98;
+        let yPos = 173;
 
         doc.fontSize(8).fillColor('#000000').text('BILL TO:', leftCol, yPos);
         doc.fontSize(8).fillColor('#000000')
@@ -134,7 +145,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
           .text(`${data.shippingCity}, ${data.shippingState} ${data.shippingPincode}`, rightCol, yPos + 32);
 
         // Items Table Header with fixed column positions
-        yPos = 145;
+        yPos = 220;
         const colItem = leftCol + 5;
         const colQty = 360;
         const colPrice = 410;
