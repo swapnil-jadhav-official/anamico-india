@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { order } from '@/drizzle/schema';
+import { order, orderItem, user } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import {
   createMockOrder,
@@ -16,6 +16,13 @@ import {
   generateCheckoutOptions,
   fetchRazorpayPayment,
 } from '@/lib/razorpay';
+import { sendEmail, sendAdminEmail } from '@/lib/email';
+import {
+  generatePaymentReceivedEmail,
+  generateAdminPaymentReceivedEmail,
+  generateOrderConfirmationEmail,
+  generateAdminNewOrderEmail
+} from '@/lib/email-templates';
 
 /**
  * POST /api/payments
@@ -273,20 +280,141 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
       payment = createMockPayment(razorpayOrderId, paymentAmount);
     }
 
+    // Calculate new payment status
+    const newPaidAmount = (existingOrder.paidAmount || 0) + paymentAmount;
+    const newPaymentStatus = newPaidAmount >= existingOrder.total ? 'completed' : 'partial_payment';
+
     // Update order with payment info
     await db
       .update(order)
       .set({
-        paidAmount: (existingOrder.paidAmount || 0) + paymentAmount,
-        paymentStatus:
-          (existingOrder.paidAmount || 0) + paymentAmount >= existingOrder.total
-            ? 'completed'
-            : 'partial_payment',
+        paidAmount: newPaidAmount,
+        paymentStatus: newPaymentStatus,
         status: 'payment_received',
         paymentMethod: isRealRazorpay ? 'razorpay' : 'mock_razorpay',
         paymentId: payment.id,
+        updatedAt: new Date(),
       })
       .where(eq(order.id, dbOrderId));
+
+    console.log('Payment recorded and order awaiting admin approval:', dbOrderId);
+
+    // Get customer details for email
+    const [customerData] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, existingOrder.userId));
+
+    // Fetch order items for confirmation email
+    const items = await db
+      .select()
+      .from(orderItem)
+      .where(eq(orderItem.orderId, dbOrderId));
+
+    const customerEmail = existingOrder.shippingEmail || customerData?.email || '';
+    const customerName = existingOrder.shippingName || customerData?.name || 'Customer';
+
+    // Send order confirmation email to customer (sent after payment, not at order creation)
+    try {
+      const orderItemsForEmail = items.map((item) => ({
+        productName: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const emailContent = generateOrderConfirmationEmail(
+        customerName,
+        existingOrder.orderNumber,
+        orderItemsForEmail,
+        existingOrder.subtotal,
+        existingOrder.tax,
+        existingOrder.total,
+        {
+          name: existingOrder.shippingName,
+          address: existingOrder.shippingAddress,
+          city: existingOrder.shippingCity,
+          state: existingOrder.shippingState,
+          pincode: existingOrder.shippingPincode,
+          phone: existingOrder.shippingPhone,
+        }
+      );
+
+      await sendEmail({
+        to: customerEmail,
+        subject: `Order Confirmation - ${existingOrder.orderNumber}`,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      console.log(`✅ Order confirmation email sent to ${customerEmail}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send order confirmation email:', emailError);
+    }
+
+    // Send payment confirmation email to customer
+    try {
+      const emailContent = generatePaymentReceivedEmail(
+        customerName,
+        existingOrder.orderNumber,
+        paymentAmount,
+        existingOrder.total,
+        newPaymentStatus
+      );
+
+      await sendEmail({
+        to: customerEmail,
+        subject: `Payment Received - ${existingOrder.orderNumber}`,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      console.log(`✅ Payment confirmation email sent to ${customerEmail}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send payment confirmation email:', emailError);
+    }
+
+    // Send new order notification to admin
+    try {
+      const adminEmailContent = generateAdminNewOrderEmail(
+        existingOrder.orderNumber,
+        customerName,
+        customerEmail,
+        existingOrder.total,
+        items.length,
+        'payment_received'
+      );
+
+      await sendAdminEmail(
+        `New Order - ${existingOrder.orderNumber}`,
+        adminEmailContent.html,
+        adminEmailContent.text
+      );
+
+      console.log(`✅ Admin order notification sent for order ${existingOrder.orderNumber}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send admin order notification:', emailError);
+    }
+
+    // Send payment notification to admin
+    try {
+      const adminEmailContent = generateAdminPaymentReceivedEmail(
+        existingOrder.orderNumber,
+        customerName,
+        paymentAmount,
+        existingOrder.total,
+        newPaymentStatus
+      );
+
+      await sendAdminEmail(
+        `Payment Received - ${existingOrder.orderNumber}`,
+        adminEmailContent.html,
+        adminEmailContent.text
+      );
+
+      console.log(`✅ Admin payment notification sent for order ${existingOrder.orderNumber}`);
+    } catch (emailError) {
+      console.error('❌ Failed to send admin payment notification:', emailError);
+    }
 
     return NextResponse.json({
       success: true,

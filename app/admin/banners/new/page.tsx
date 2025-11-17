@@ -95,9 +95,8 @@ export default function NewBannerPage() {
   const selectedPlacementInfo = PLACEMENT_INFO[placement as keyof typeof PLACEMENT_INFO];
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <main className="flex-1 p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+    <main className="flex-1 p-4 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div>
             <Button variant="outline" asChild className="mb-4">
@@ -390,8 +389,7 @@ export default function NewBannerPage() {
               </Button>
             </div>
           </form>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

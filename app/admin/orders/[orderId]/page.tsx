@@ -275,8 +275,9 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
+    <main className="flex-1 p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" asChild>
@@ -731,6 +732,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
           </Card>
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
 }

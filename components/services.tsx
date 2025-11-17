@@ -85,9 +85,6 @@ export function Services() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="w-full mt-4 bg-transparent">
-                  Learn More
-                </Button>
               </CardContent>
             </Card>
           ))}

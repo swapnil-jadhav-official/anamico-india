@@ -48,6 +48,7 @@ import {
   Clock,
   Loader2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Registration {
   id: string;
@@ -67,6 +68,7 @@ interface Registration {
 }
 
 export default function RDServiceAdminPage() {
+  const { toast } = useToast();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<
     Registration[]
@@ -101,7 +103,11 @@ export default function RDServiceAdminPage() {
       setRegistrations(data.registrations || []);
     } catch (error) {
       console.error("Error fetching registrations:", error);
-      alert("Failed to fetch registrations");
+      toast({
+        variant: "destructive",
+        title: "Fetch Failed",
+        description: "Failed to fetch registrations. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -150,14 +156,21 @@ export default function RDServiceAdminPage() {
         throw new Error("Failed to update registration");
       }
 
-      alert("Registration updated successfully");
+      toast({
+        title: "Update Successful",
+        description: "Registration has been updated successfully.",
+      });
       setSelectedRegistration(null);
       setUpdateStatus("");
       setUpdateNotes("");
       fetchRegistrations();
     } catch (error) {
       console.error("Error updating registration:", error);
-      alert("Failed to update registration");
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Failed to update registration. Please try again.",
+      });
     } finally {
       setIsUpdating(false);
     }

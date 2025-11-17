@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,6 +30,9 @@ export function ECommerceHeader() {
   const { totalItems } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
   const { data: session, status } = useSession();
+  const [productsOpen, setProductsOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
@@ -68,11 +72,20 @@ export function ECommerceHeader() {
 
           {/* Navigation Menu - Desktop */}
           <nav className="hidden lg:flex items-center gap-6">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-sm font-medium hover:text-primary transition-colors">
+            <DropdownMenu open={productsOpen} onOpenChange={setProductsOpen}>
+              <DropdownMenuTrigger
+                className="text-sm font-medium hover:text-primary transition-colors"
+                onMouseEnter={() => setProductsOpen(true)}
+                onMouseLeave={() => setProductsOpen(false)}
+              >
                 Products
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuContent
+                align="start"
+                className="w-56"
+                onMouseEnter={() => setProductsOpen(true)}
+                onMouseLeave={() => setProductsOpen(false)}
+              >
                 <DropdownMenuItem asChild>
                   <Link href="/products/biometric">Biometric Devices</Link>
                 </DropdownMenuItem>
@@ -98,11 +111,20 @@ export function ECommerceHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-sm font-medium hover:text-primary transition-colors">
+            <DropdownMenu open={servicesOpen} onOpenChange={setServicesOpen}>
+              <DropdownMenuTrigger
+                className="text-sm font-medium hover:text-primary transition-colors"
+                onMouseEnter={() => setServicesOpen(true)}
+                onMouseLeave={() => setServicesOpen(false)}
+              >
                 Services
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuContent
+                align="start"
+                className="w-56"
+                onMouseEnter={() => setServicesOpen(true)}
+                onMouseLeave={() => setServicesOpen(false)}
+              >
                 <DropdownMenuItem asChild>
                   <Link href="/services/rd-service">RD Services</Link>
                 </DropdownMenuItem>
@@ -199,14 +221,21 @@ export function ECommerceHeader() {
             </Button>
 
             {status === "authenticated" ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger>
+              <DropdownMenu open={profileOpen} onOpenChange={setProfileOpen}>
+                <DropdownMenuTrigger
+                  onMouseEnter={() => setProfileOpen(true)}
+                  onMouseLeave={() => setProfileOpen(false)}
+                >
                   <Button variant="ghost" className="relative flex items-center gap-2">
                     <User className="h-5 w-5" />
                     {session?.user?.name || session?.user?.email}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent
+                  align="end"
+                  onMouseEnter={() => setProfileOpen(true)}
+                  onMouseLeave={() => setProfileOpen(false)}
+                >
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
                       Profile
