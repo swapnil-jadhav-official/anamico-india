@@ -78,10 +78,6 @@ export default function ProfilePage() {
               <Label className="text-sm font-medium text-gray-500 dark:text-gray-400">Address</Label>
               <p className="text-base font-medium">{userData.address || "N/A"}</p>
             </div>
-            <div className="grid gap-1">
-              <Label className="text-sm font-medium text-gray-500 dark:text-gray-400">Role</Label>
-              <p className="text-base font-medium">{userData.role || "N/A"}</p>
-            </div>
           </CardContent>
           <div className="flex justify-end p-6 border-t">
             <Button asChild>
