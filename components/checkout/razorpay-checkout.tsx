@@ -7,7 +7,7 @@ import { Loader2, X } from 'lucide-react';
 
 interface RazorpayCheckoutProps {
   orderId: string;
-  paymentType: '30' | '50' | '100';
+  paymentType: '10' | '100';
   onPaymentSuccess: (paymentData: any) => void;
   onPaymentFailure: (error: any) => void;
   isProcessing?: boolean;
@@ -200,10 +200,8 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   const getButtonText = () => {
     if (isProcessing) return 'Processing...';
     switch (paymentType) {
-      case '30':
-        return 'Pay 30% Now';
-      case '50':
-        return 'Pay 50% Now';
+      case '10':
+        return 'Pay 10% Now';
       case '100':
         return 'Pay Full Amount';
       default:

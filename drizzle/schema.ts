@@ -210,3 +210,72 @@ export const rdServiceRegistration = mysqlTable('rdServiceRegistration', {
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });
+
+export const supportTicket = mysqlTable('supportTicket', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  ticketNumber: varchar('ticketNumber', { length: 255 }).notNull().unique(),
+  userId: varchar('userId', { length: 255 }).references(() => user.id, { onDelete: 'set null' }), // Optional - guest users can submit tickets
+
+  // Contact Information
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 20 }).notNull(),
+
+  // Ticket Details
+  subject: varchar('subject', { length: 500 }).notNull(),
+  message: text('message').notNull(),
+  category: varchar('category', { length: 100 }), // order_support, rd_service, payment, technical, account, service_query
+  priority: varchar('priority', { length: 20 }).default('medium').notNull(), // low, medium, high, urgent
+  status: varchar('status', { length: 50 }).default('open').notNull(), // open, in_progress, waiting_response, resolved, closed
+
+  // Admin fields
+  assignedTo: varchar('assignedTo', { length: 255 }).references(() => user.id, { onDelete: 'set null' }), // Admin user ID
+  adminNotes: text('adminNotes'),
+  resolution: text('resolution'), // Resolution details
+  resolvedAt: timestamp('resolvedAt', { mode: 'date' }),
+  closedAt: timestamp('closedAt', { mode: 'date' }),
+
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
+
+export const faq = mysqlTable('faq', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+  category: varchar('category', { length: 100 }), // general, orders, payments, services, technical
+  displayOrder: int('displayOrder').default(0).notNull(),
+  isActive: boolean('isActive').default(true).notNull(),
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});
+
+export const downloadFile = mysqlTable('downloadFile', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  category: varchar('category', { length: 100 }).notNull(), // biometric, electronics, computer_peripherals, gps_devices, rd_service, software, encrypted_token, forms
+
+  // File Information
+  fileName: varchar('fileName', { length: 255 }).notNull(),
+  fileUrl: varchar('fileUrl', { length: 500 }).notNull(),
+  fileSize: varchar('fileSize', { length: 50 }), // e.g., "2.5 MB"
+  fileType: varchar('fileType', { length: 50 }), // e.g., "PDF", "EXE", "ZIP"
+  version: varchar('version', { length: 100 }), // e.g., "1.0.0", "v2.3"
+
+  // Thumbnail
+  thumbnailUrl: varchar('thumbnailUrl', { length: 500 }), // Thumbnail image URL
+
+  // Additional Details
+  systemRequirements: text('systemRequirements'), // e.g., "Windows 10/11, 4GB RAM"
+  downloadCount: int('downloadCount').default(0).notNull(),
+  tags: text('tags'), // Stored as JSON string array for search
+
+  // Status
+  isActive: boolean('isActive').default(true).notNull(),
+  isFeatured: boolean('isFeatured').default(false).notNull(),
+  displayOrder: int('displayOrder').default(0).notNull(),
+
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});

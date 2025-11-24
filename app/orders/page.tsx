@@ -140,7 +140,9 @@ export default function OrdersPage() {
   };
 
   const getPaymentPercentage = (paid: number, total: number) => {
-    return Math.round((paid / total) * 100);
+    const percentage = Math.round((paid / total) * 100);
+    // If payment is 95% or more, consider it as 100% (due to 5% discount)
+    return percentage >= 95 ? 100 : percentage;
   };
 
   // Pagination

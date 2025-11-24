@@ -95,6 +95,7 @@ export default function RDServicePage() {
   });
 
   const [selectedDevice, setSelectedDevice] = useState<string>("");
+  const [paymentOption, setPaymentOption] = useState<'full' | 'partial'>('full');
   const [pricing, setPricing] = useState({
     deviceFee: 1500,
     supportFee: 0,
@@ -102,6 +103,10 @@ export default function RDServicePage() {
     subtotal: 0,
     gst: 0,
     total: 0,
+    discount: 0,
+    finalTotal: 0,
+    partialAmount: 0,
+    savings: 0,
   });
 
   // Load Razorpay script
@@ -157,6 +162,23 @@ export default function RDServicePage() {
     const gst = Math.round(subtotal * 0.18);
     const total = subtotal + gst;
 
+    // Calculate discount and final amounts based on payment option
+    let discount = 0;
+    let savings = 0;
+    let finalTotal = total;
+    let partialAmount = 0;
+
+    if (paymentOption === 'full') {
+      // 5% discount on full payment
+      discount = Math.round(total * 0.05);
+      savings = discount;
+      finalTotal = total - discount;
+    } else {
+      // 10% partial payment
+      partialAmount = Math.round(total * 0.10);
+      finalTotal = partialAmount;
+    }
+
     setPricing({
       deviceFee: pricing.deviceFee,
       supportFee: supportFee + amcFee,
@@ -164,12 +186,16 @@ export default function RDServicePage() {
       subtotal,
       gst,
       total,
+      discount,
+      finalTotal,
+      partialAmount,
+      savings,
     });
   };
 
   useEffect(() => {
     calculatePricing();
-  }, [formData.rdSupport, formData.amcSupport, formData.deliveryType]);
+  }, [formData.rdSupport, formData.amcSupport, formData.deliveryType, paymentOption]);
 
   const handleDeviceChange = (value: string) => {
     setSelectedDevice(value);
@@ -305,7 +331,7 @@ export default function RDServicePage() {
       await handlePayment(
         data.registrationId,
         paymentData.razorpayOrderId,
-        pricing.total
+        pricing.finalTotal
       );
 
       // Note: Success message and redirect happen in handlePayment's payment handler callback
@@ -760,6 +786,57 @@ export default function RDServicePage() {
                 <CardTitle>Price Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Payment Options */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Payment Option</Label>
+                  <div className="space-y-2">
+                    <div
+                      className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        paymentOption === 'full' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setPaymentOption('full')}
+                    >
+                      <input
+                        type="radio"
+                        checked={paymentOption === 'full'}
+                        onChange={() => setPaymentOption('full')}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-sm">100% Payment</span>
+                          <Badge variant="default" className="bg-green-600">5% OFF</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Pay full amount and save ₹{pricing.savings.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        paymentOption === 'partial' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setPaymentOption('partial')}
+                    >
+                      <input
+                        type="radio"
+                        checked={paymentOption === 'partial'}
+                        onChange={() => setPaymentOption('partial')}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <span className="font-medium text-sm">10% Partial Payment</span>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Pay ₹{pricing.partialAmount.toLocaleString()} now, rest later
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Device Fee</span>
@@ -783,10 +860,35 @@ export default function RDServicePage() {
                     <span>₹{pricing.gst.toLocaleString()}</span>
                   </div>
                   <Separator />
-                  <div className="flex justify-between text-lg font-bold">
+                  <div className="flex justify-between text-sm">
                     <span>Total Amount</span>
-                    <span className="text-primary">₹{pricing.total.toLocaleString()}</span>
+                    <span>₹{pricing.total.toLocaleString()}</span>
                   </div>
+
+                  {paymentOption === 'full' && pricing.discount > 0 && (
+                    <>
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount (5%)</span>
+                        <span>-₹{pricing.discount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>You're saving ₹{pricing.savings.toLocaleString()}!</span>
+                      </div>
+                    </>
+                  )}
+
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>{paymentOption === 'full' ? 'Final Amount' : 'Pay Now'}</span>
+                    <span className="text-primary">₹{pricing.finalTotal.toLocaleString()}</span>
+                  </div>
+
+                  {paymentOption === 'partial' && (
+                    <p className="text-xs text-muted-foreground">
+                      Remaining: ₹{(pricing.total - pricing.partialAmount).toLocaleString()}
+                    </p>
+                  )}
                 </div>
 
                 <Badge className="w-full justify-center py-2" variant="secondary">

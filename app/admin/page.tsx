@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
-import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon, Fingerprint } from "lucide-react";
+import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon, Fingerprint, Download } from "lucide-react";
 import Link from "next/link";
 
 const features = [
@@ -42,16 +42,16 @@ const features = [
     href: "/admin/rd-service",
   },
   {
+    title: "File Management",
+    description: "Manage downloadable files, drivers, and software.",
+    icon: <Download className="h-8 w-8 text-primary" />,
+    href: "/admin/downloads",
+  },
+  {
     title: "User Management",
     description: "Manage customer and admin accounts.",
     icon: <Users className="h-8 w-8 text-primary" />,
     href: "/admin/users",
-  },
-  {
-    title: "Store Settings",
-    description: "Configure your store and integrations.",
-    icon: <Settings className="h-8 w-8 text-primary" />,
-    href: "#",
   },
 ];
 

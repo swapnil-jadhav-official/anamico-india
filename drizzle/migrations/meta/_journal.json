@@ -50,6 +50,13 @@
       "when": 1730470400000,
       "tag": "0006_add_gallery_images_to_product",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1763986937015,
+      "tag": "0007_icy_riptide",
+      "breakpoints": true
     }
   ]
 }

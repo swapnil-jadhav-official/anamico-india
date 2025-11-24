@@ -90,12 +90,12 @@ async function handleCreatePayment(_req: NextRequest, body: any) {
     let paymentAmount = 0;
     const paymentTypeStr = String(paymentType);
 
-    if (paymentTypeStr === '30') {
-      paymentAmount = Math.round(currentOrder.total * 0.3);
-    } else if (paymentTypeStr === '50') {
-      paymentAmount = Math.round(currentOrder.total * 0.5);
+    if (paymentTypeStr === '10') {
+      paymentAmount = Math.round(currentOrder.total * 0.1);
     } else if (paymentTypeStr === '100') {
-      paymentAmount = currentOrder.total;
+      // Apply 5% discount on full payment
+      const discount = Math.round(currentOrder.total * 0.05);
+      paymentAmount = currentOrder.total - discount;
     } else {
       return NextResponse.json(
         { error: `Invalid payment type: ${paymentType}` },
@@ -249,12 +249,12 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
     let paymentAmount = 0;
     const paymentTypeStr = String(paymentType);
 
-    if (paymentTypeStr === '30') {
-      paymentAmount = Math.round(existingOrder.total * 0.3);
-    } else if (paymentTypeStr === '50') {
-      paymentAmount = Math.round(existingOrder.total * 0.5);
+    if (paymentTypeStr === '10') {
+      paymentAmount = Math.round(existingOrder.total * 0.1);
     } else if (paymentTypeStr === '100') {
-      paymentAmount = existingOrder.total;
+      // Apply 5% discount on full payment
+      const discount = Math.round(existingOrder.total * 0.05);
+      paymentAmount = existingOrder.total - discount;
     } else {
       return NextResponse.json(
         { error: `Invalid payment type: ${paymentType}` },

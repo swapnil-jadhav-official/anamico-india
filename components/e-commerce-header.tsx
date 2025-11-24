@@ -130,19 +130,10 @@ export function ECommerceHeader() {
                   <Link href="/services/pan-card">Pan Card</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/services/digital-signature">Digital Signature</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/services/token-update">Token Update</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/services/company-registration">Company Registration</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/services/digital-marketing">Digital Marketing</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href="/services/rd-status">RD Status</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/services/help-support">Help & Support</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -152,6 +143,13 @@ export function ECommerceHeader() {
               className="text-sm font-medium hover:text-primary transition-colors"
             >
               Downloads
+            </Link>
+
+            <Link
+              href="/services/help-support"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Help & Support
             </Link>
 
             <Link
@@ -318,34 +316,16 @@ export function ECommerceHeader() {
                           Pan Card
                         </Link>
                         <Link
-                          href="/services/digital-signature"
-                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
-                        >
-                          Digital Signature
-                        </Link>
-                        <Link
-                          href="/services/token-update"
-                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
-                        >
-                          Token Update
-                        </Link>
-                        <Link
-                          href="/services/company-registration"
-                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
-                        >
-                          Company Registration
-                        </Link>
-                        <Link
-                          href="/services/digital-marketing"
-                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
-                        >
-                          Digital Marketing
-                        </Link>
-                        <Link
                           href="/services/rd-status"
                           className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
                         >
                           RD Status
+                        </Link>
+                        <Link
+                          href="/services/help-support"
+                          className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                        >
+                          Help & Support
                         </Link>
                       </div>
                     </div>
@@ -356,6 +336,14 @@ export function ECommerceHeader() {
                     >
                       Downloads
                     </Link>
+
+                    <Link
+                      href="/services/help-support"
+                      className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"
+                    >
+                      Help & Support
+                    </Link>
+
                     <Link
                       href="/about"
                       className="flex items-center rounded-md px-3 py-2 text-base font-medium hover:bg-accent transition-colors"

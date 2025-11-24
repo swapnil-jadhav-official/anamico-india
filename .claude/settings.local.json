@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/create-downloads-table.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

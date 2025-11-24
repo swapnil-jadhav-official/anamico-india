@@ -218,7 +218,16 @@ export default function OrdersPage() {
   };
 
   const getPaymentPercentage = (paid: number, total: number) => {
-    return Math.round((paid / total) * 100);
+    const percentage = Math.round((paid / total) * 100);
+    // If payment is 95% or more, consider it as 100% (due to 5% discount)
+    return percentage >= 95 ? 100 : percentage;
+  };
+
+  const getRemainingAmount = (paid: number, total: number) => {
+    const percentage = (paid / total) * 100;
+    // If payment is 94% or more, no remaining amount (paid with discount - accounting for 5% discount)
+    if (percentage >= 94) return 0;
+    return total - paid;
   };
 
   if (!mounted) {
@@ -363,9 +372,15 @@ export default function OrdersPage() {
                           <p className="font-medium">
                             ₹{(order.paidAmount || 0).toLocaleString()} ({getPaymentPercentage(order.paidAmount || 0, order.total || 1)}%)
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            Remaining: ₹{((order.total || 0) - (order.paidAmount || 0)).toLocaleString()}
-                          </p>
+                          {getRemainingAmount(order.paidAmount || 0, order.total || 1) > 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Remaining (COD): ₹{getRemainingAmount(order.paidAmount || 0, order.total || 1).toLocaleString()}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-green-600">
+                              Fully Paid (with discount)
+                            </p>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="font-semibold">

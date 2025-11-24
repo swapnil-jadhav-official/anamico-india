@@ -81,7 +81,17 @@ export default function OrderConfirmationPage() {
 
   const getPaymentPercentage = () => {
     if (!order) return 0;
-    return Math.round((order.paidAmount / order.total) * 100);
+    const percentage = Math.round((order.paidAmount / order.total) * 100);
+    // If payment is 95% or more, consider it as 100% (due to 5% discount)
+    return percentage >= 95 ? 100 : percentage;
+  };
+
+  const getRemainingAmount = () => {
+    if (!order) return 0;
+    const percentage = (order.paidAmount / order.total) * 100;
+    // If payment is 94% or more, no remaining amount (paid with discount - accounting for 5% discount)
+    if (percentage >= 94) return 0;
+    return order.total - order.paidAmount;
   };
 
   const getStatusDescription = (status: string) => {
@@ -339,16 +349,26 @@ export default function OrderConfirmationPage() {
                         ₹{(order.paidAmount || 0).toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Remaining</span>
-                      <span className="font-semibold text-orange-600">
-                        ₹{(order.total - (order.paidAmount || 0)).toLocaleString()}
-                      </span>
-                    </div>
+                    {getRemainingAmount() > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Remaining (COD)</span>
+                        <span className="font-semibold text-orange-600">
+                          ₹{getRemainingAmount().toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    {getPaymentPercentage() === 100 && (
+                      <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950 p-2 rounded">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="font-medium">Fully Paid (with 5% discount)</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground pt-2">
-                    Remaining amount will be collected after order approval
-                  </p>
+                  {getRemainingAmount() > 0 && (
+                    <p className="text-xs text-muted-foreground pt-2">
+                      Remaining amount (COD) will be collected after order approval
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
