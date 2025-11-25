@@ -21,8 +21,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
+  const [phoneOtpSessionId, setPhoneOtpSessionId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -53,10 +55,58 @@ export default function LoginPage() {
       });
       if (res.ok) {
         setOtpSent(true);
+        toast({
+          title: "OTP Sent",
+          description: "Check your email for the OTP code.",
+        });
         // Focus first OTP input after sending
         setTimeout(() => {
           otpInputRefs.current[0]?.focus();
         }, 100);
+      } else {
+        const data = await res.json();
+        toast({
+          variant: "destructive",
+          title: "Failed to send OTP",
+          description: data.error || "Please try again.",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendPhoneOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phoneNumber }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setPhoneOtpSessionId(data.sessionId);
+        setOtpSent(true);
+        toast({
+          title: "OTP Sent",
+          description: "Check your phone for the OTP code.",
+        });
+        // Focus first OTP input after sending
+        setTimeout(() => {
+          otpInputRefs.current[0]?.focus();
+        }, 100);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to send OTP",
+          description: data.error || "Please try again.",
+        });
       }
     } finally {
       setIsLoading(false);
@@ -167,6 +217,74 @@ export default function LoginPage() {
     }
   };
 
+  const handlePhoneOtpLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const otpString = otp.join("");
+
+      if (otpString.length !== 6) {
+        toast({
+          variant: "destructive",
+          title: "Invalid OTP",
+          description: "Please enter all 6 digits of the OTP.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Verify OTP with 2Factor
+      const verifyRes = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber,
+          otp: otpString,
+          sessionId: phoneOtpSessionId,
+        }),
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        toast({
+          variant: "destructive",
+          title: "Invalid OTP",
+          description: verifyData.error || "The OTP you entered is incorrect. Please try again.",
+        });
+        // Clear OTP on error
+        setOtp(["", "", "", "", "", ""]);
+        otpInputRefs.current[0]?.focus();
+        setIsLoading(false);
+        return;
+      }
+
+      // OTP verified, now sign in with phone
+      const result = await signIn("phone", {
+        phone: phoneNumber,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: result.error,
+        });
+      } else if (result?.ok) {
+        console.log("Phone OTP login successful");
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (status === "loading") {
     return <div>Loading...</div>;
   }
@@ -181,10 +299,11 @@ export default function LoginPage() {
               Sign in to your account to continue
             </p>
           </div>
-          <Tabs defaultValue="otp" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="phone-otp" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="password">Password</TabsTrigger>
-              <TabsTrigger value="otp">OTP</TabsTrigger>
+              <TabsTrigger value="otp">Email OTP</TabsTrigger>
+              <TabsTrigger value="phone-otp">Phone OTP</TabsTrigger>
             </TabsList>
             <TabsContent value="password">
               <form onSubmit={handlePasswordLogin}>
@@ -270,6 +389,66 @@ export default function LoginPage() {
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
                           Enter the OTP sent to your email
+                        </p>
+                      </div>
+                    )}
+                    <Button type="submit" variant="outline" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Loading..." : otpSent ? "Verify OTP & Login" : "Send OTP"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </form>
+            </TabsContent>
+            <TabsContent value="phone-otp">
+              <form onSubmit={otpSent ? handlePhoneOtpLogin : handleSendPhoneOtp}>
+                <Card className="border-none shadow-none">
+                  <CardContent className="space-y-4 p-0 pt-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone-number">Phone Number</Label>
+                      <div className="relative">
+                         <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="phone-number"
+                          type="tel"
+                          placeholder="10-digit mobile number"
+                          required
+                          className="pl-10"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          disabled={otpSent || isLoading}
+                          maxLength={10}
+                          pattern="[0-9]{10}"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Enter your 10-digit mobile number
+                      </p>
+                    </div>
+                    {otpSent && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="phone-otp-0" className="text-center">Enter 6-Digit OTP</Label>
+                        <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                          {otp.map((digit, index) => (
+                            <Input
+                              key={index}
+                              id={`phone-otp-${index}`}
+                              ref={(el) => {
+                                otpInputRefs.current[index] = el;
+                              }}
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => handleOtpChange(index, e.target.value)}
+                              onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                              disabled={isLoading}
+                              className="w-12 h-12 text-center text-lg font-semibold"
+                              required
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-center text-muted-foreground">
+                          Enter the OTP sent to your phone
                         </p>
                       </div>
                     )}

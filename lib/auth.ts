@@ -130,6 +130,33 @@ export const authConfig: NextAuthOptions = {
         console.log('✅ OTP authentication successful for:', credentials.email);
         return user;
       }
+    }),
+    CredentialsProvider({
+      id: 'phone',
+      name: 'Phone',
+      credentials: {
+        phone: { label: "Phone", type: "text" },
+      },
+      async authorize(credentials, req) {
+        if (!credentials?.phone) {
+          return null;
+        }
+
+        const cleanedPhone = credentials.phone.replace(/\D/g, '');
+
+        // Find user by phone number
+        const user = await db.query.user.findFirst({
+          where: (user, { eq }) => eq(user.phone, cleanedPhone),
+        });
+
+        if (!user) {
+          console.error('No user found for phone:', cleanedPhone);
+          return null;
+        }
+
+        console.log('✅ Phone authentication successful for:', cleanedPhone);
+        return user;
+      }
     })
   ],
   pages: {

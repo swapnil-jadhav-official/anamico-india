@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
 
     console.log('Sending OTP to phone:', cleanedPhone);
 
-    // Send OTP using 2Factor API
+    // Send OTP using 2Factor API with India country code
     const response = await fetch(
-      `https://2factor.in/API/V1/${TWOFACTOR_API_KEY}/SMS/${cleanedPhone}/AUTOGEN`,
+      `https://2factor.in/API/V1/${TWOFACTOR_API_KEY}/SMS/91${cleanedPhone}/AUTOGEN`,
       {
         method: 'GET',
       }

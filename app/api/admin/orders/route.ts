@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/orders
  * Fetch all orders (optionally filtered by status)

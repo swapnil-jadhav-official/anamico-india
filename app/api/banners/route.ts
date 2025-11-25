@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { banner } from '@/drizzle/schema';
 import { eq, and, lte, gte, or, isNull, asc } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/banners - Get active banners for public display
 export async function GET(req: NextRequest) {
   try {
