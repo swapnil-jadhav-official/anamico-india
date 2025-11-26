@@ -20,10 +20,14 @@ export function OrderSummary({ items }: OrderSummaryProps) {
   const total = subtotal + tax;
 
   // Calculate discount and final amounts based on payment option
-  const discount = paymentOption === 'full' ? Math.round(total * 0.05) : 0;
-  const savings = discount;
-  const finalTotal = paymentOption === 'full' ? total - discount : Math.round(total * 0.10);
-  const remainingAmount = paymentOption === 'full' ? 0 : total - finalTotal;
+  const fullPaymentDiscount = Math.round(total * 0.05);
+  const fullPaymentTotal = total - fullPaymentDiscount;
+  const partialPaymentAmount = Math.round(total * 0.10);
+  const remainingAmount = total - partialPaymentAmount;
+
+  const finalTotal = paymentOption === 'full' ? fullPaymentTotal : partialPaymentAmount;
+  const discount = paymentOption === 'full' ? fullPaymentDiscount : 0;
+  const savings = paymentOption === 'full' ? fullPaymentDiscount : 0;
 
   return (
     <Card className="sticky top-6">
@@ -82,11 +86,11 @@ export function OrderSummary({ items }: OrderSummaryProps) {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pay full amount and save ₹{savings.toLocaleString()}
+                  Pay full amount and save ₹{fullPaymentDiscount.toLocaleString()}
                 </p>
               </div>
               <span className="font-bold text-primary">
-                ₹{finalTotal.toLocaleString()}
+                ₹{fullPaymentTotal.toLocaleString()}
               </span>
             </div>
 
@@ -108,11 +112,11 @@ export function OrderSummary({ items }: OrderSummaryProps) {
               <div className="flex-1">
                 <span className="font-medium">10% Partial Payment</span>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Balance via Cash on Delivery
+                  Pay ₹{partialPaymentAmount.toLocaleString()}, rest via Cash on Delivery
                 </p>
               </div>
               <span className="font-bold text-primary">
-                ₹{finalTotal.toLocaleString()}
+                ₹{partialPaymentAmount.toLocaleString()}
               </span>
             </div>
           </div>

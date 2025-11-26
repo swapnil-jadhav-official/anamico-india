@@ -94,6 +94,15 @@ export default function PaymentPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 bg-background p-8 rounded-lg shadow-lg">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-lg font-medium">Processing payment...</p>
+            <p className="text-sm text-muted-foreground">Please wait while we connect to the payment gateway</p>
+          </div>
+        </div>
+      )}
       <ECommerceHeader />
       <main className="flex-1 p-4 sm:p-6">
         <div className="max-w-2xl mx-auto">
@@ -241,6 +250,7 @@ export default function PaymentPage() {
                       onPaymentSuccess={handlePaymentSuccess}
                       onPaymentFailure={handlePaymentFailure}
                       isProcessing={isLoading}
+                      onLoadingChange={setIsLoading}
                     />
                   </CardContent>
                 </Card>

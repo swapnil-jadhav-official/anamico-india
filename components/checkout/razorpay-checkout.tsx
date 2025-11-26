@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { message } from 'antd';
 import { Loader2 } from 'lucide-react';
@@ -11,6 +11,7 @@ interface RazorpayCheckoutProps {
   onPaymentSuccess: (paymentData: any) => void;
   onPaymentFailure: (error: any) => void;
   isProcessing?: boolean;
+  onLoadingChange?: (isLoading: boolean) => void;
 }
 
 
@@ -20,9 +21,11 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   onPaymentSuccess,
   onPaymentFailure,
   isProcessing = false,
+  onLoadingChange,
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const checkoutOptionsRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Debug: Log environment variable
@@ -54,6 +57,8 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
   const handlePayment = async () => {
     try {
+      setIsLoading(true);
+      onLoadingChange?.(true);
       console.log('Initiating payment for order:', orderId, 'Payment type:', paymentType);
 
       // Create payment order
@@ -77,12 +82,18 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
       const data = await response.json();
       console.log('Payment order created:', data);
       checkoutOptionsRef.current = data.checkoutOptions;
+      setIsLoading(false);
+      onLoadingChange?.(false);
 
       // Razorpay checkout handler
       const options = {
         ...data.checkoutOptions,
         handler: async (response: any) => {
           try {
+            setIsLoading(true);
+            onLoadingChange?.(true);
+            console.log('Payment successful, verifying on backend...');
+
             // Verify payment on backend
             const verifyResponse = await fetch('/api/payments', {
               method: 'POST',
@@ -102,9 +113,13 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             }
 
             const verifyData = await verifyResponse.json();
+            setIsLoading(false);
+            onLoadingChange?.(false);
             message.success('Payment successful!');
             onPaymentSuccess(verifyData);
           } catch (error) {
+            setIsLoading(false);
+            onLoadingChange?.(false);
             console.error('Verification error:', error);
             message.error(
               error instanceof Error
@@ -150,6 +165,8 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
       });
       rzp.open();
     } catch (error) {
+      setIsLoading(false);
+      onLoadingChange?.(false);
       console.error('Payment error:', error);
       message.error(
         error instanceof Error ? error.message : 'Payment initialization failed'
@@ -159,7 +176,7 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   };
 
   const getButtonText = () => {
-    if (isProcessing) return 'Processing...';
+    if (isProcessing || isLoading) return 'Processing...';
     switch (paymentType) {
       case '10':
         return 'Pay 10% Now';
@@ -174,11 +191,11 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
     <Button
       ref={buttonRef}
       onClick={handlePayment}
-      disabled={isProcessing}
+      disabled={isProcessing || isLoading}
       className="w-full bg-blue-600 hover:bg-blue-700"
       size="lg"
     >
-      {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {(isProcessing || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {getButtonText()}
     </Button>
   );

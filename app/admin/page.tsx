@@ -30,12 +30,6 @@ const features = [
     href: "/admin/orders",
   },
   {
-    title: "Banner Management",
-    description: "Manage landing page banners and offers.",
-    icon: <ImageIcon className="h-8 w-8 text-primary" />,
-    href: "/admin/banners",
-  },
-  {
     title: "RD Service Management",
     description: "Manage biometric device service registrations.",
     icon: <Fingerprint className="h-8 w-8 text-primary" />,
