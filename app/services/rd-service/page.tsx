@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ECommerceHeader } from "@/components/e-commerce-header";
+import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -356,7 +358,9 @@ export default function RDServicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <ECommerceHeader />
+      <main className="flex-1">
       {/* Header Section */}
       <div className="bg-primary text-primary-foreground py-12">
         <div className="container mx-auto px-4">
@@ -984,6 +988,8 @@ export default function RDServicePage() {
           </div>
         </div>
       </div>
+      </main>
+      <Footer />
     </div>
   );
 }

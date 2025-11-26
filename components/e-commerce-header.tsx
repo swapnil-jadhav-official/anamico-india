@@ -251,6 +251,11 @@ export function ECommerceHeader() {
                           Manage Orders
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/reviews">
+                          Manage Reviews
+                        </Link>
+                      </DropdownMenuItem>
                     </>
                   )}
                   <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>

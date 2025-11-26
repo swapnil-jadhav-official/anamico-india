@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
-import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon, Fingerprint, Download } from "lucide-react";
+import { Package, ShoppingCart, Users, Settings, BarChart3, ImageIcon, Fingerprint, Download, Star } from "lucide-react";
 import Link from "next/link";
 
 const features = [
@@ -52,6 +52,12 @@ const features = [
     description: "Manage customer and admin accounts.",
     icon: <Users className="h-8 w-8 text-primary" />,
     href: "/admin/users",
+  },
+  {
+    title: "Review Management",
+    description: "Moderate and approve customer product reviews.",
+    icon: <Star className="h-8 w-8 text-primary" />,
+    href: "/admin/reviews",
   },
 ];
 

@@ -16,6 +16,9 @@ import { Star, ShoppingCart, Heart, Truck, Shield, RefreshCw, Phone } from "luci
 import { useState, useEffect } from "react"
 import { ProductCard } from "@/components/product-card"
 import { notFound } from "next/navigation"
+import { ProductReviews } from "@/components/product/product-reviews"
+import { ReviewForm } from "@/components/product/review-form"
+import { useSession } from "next-auth/react"
 
 interface Product {
   id: string
@@ -47,6 +50,9 @@ export default function ProductDetailPage({ params }: { params: { category: stri
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { toast } = useToast()
   const [quantity, setQuantity] = useState(1)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [reviewRefresh, setReviewRefresh] = useState(0)
+  const { data: session } = useSession()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -57,6 +63,18 @@ export default function ProductDetailPage({ params }: { params: { category: stri
           const foundProduct = products.find((p: Product) => p.id === params.id)
 
           if (foundProduct) {
+            // Fetch actual review stats from database
+            try {
+              const reviewRes = await fetch(`/api/reviews?productId=${foundProduct.id}`)
+              if (reviewRes.ok) {
+                const reviewData = await reviewRes.json()
+                foundProduct.rating = reviewData.averageRating || foundProduct.rating
+                foundProduct.reviews = reviewData.totalReviews || 0
+              }
+            } catch (reviewError) {
+              console.error('Error fetching review stats:', reviewError)
+            }
+
             setProduct(foundProduct)
             // Get related products (same category, different product)
             setRelatedProducts(
@@ -77,7 +95,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
     }
 
     fetchProduct()
-  }, [params.id, params.category])
+  }, [params.id, params.category, reviewRefresh])
 
   if (loading) {
     return (
@@ -385,34 +403,22 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                   </div>
                 </TabsContent>
                 <TabsContent value="reviews" className="mt-6">
-                  <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
-                      <div className="text-center">
-                        <div className="text-4xl sm:text-5xl font-bold mb-2">{product.rating}</div>
-                        <div className="flex items-center gap-1 mb-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < Math.floor(product.rating)
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "fill-muted text-muted"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{product.reviews} reviews</p>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm sm:text-base text-muted-foreground">
-                          Customer reviews help you choose the right product. Share your experience to help others.
-                        </p>
-                        <Button variant="outline" className="mt-4 bg-transparent">
-                          Write a Review
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <ProductReviews
+                    productId={product.id}
+                    refreshTrigger={reviewRefresh}
+                    onAddReviewClick={() => {
+                      if (!session?.user?.id) {
+                        toast({
+                          title: "Login Required",
+                          description: "Please log in to submit a review",
+                          variant: "destructive",
+                        })
+                        window.location.href = "/login"
+                      } else {
+                        setShowReviewForm(true)
+                      }
+                    }}
+                  />
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -431,6 +437,13 @@ export default function ProductDetailPage({ params }: { params: { category: stri
           )}
         </div>
       </main>
+      {showReviewForm && (
+        <ReviewForm
+          productId={product.id}
+          onClose={() => setShowReviewForm(false)}
+          onSuccess={() => setReviewRefresh(prev => prev + 1)}
+        />
+      )}
       <Footer />
     </div>
   )

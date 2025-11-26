@@ -279,3 +279,20 @@ export const downloadFile = mysqlTable('downloadFile', {
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });
+
+export const productReview = mysqlTable('productReview', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  productId: varchar('productId', { length: 255 })
+    .notNull()
+    .references(() => product.id, { onDelete: 'cascade' }),
+  userId: varchar('userId', { length: 255 })
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  rating: int('rating').notNull(), // 1-5 star rating
+  title: varchar('title', { length: 255 }).notNull(),
+  comment: text('comment'),
+  isApproved: boolean('isApproved').default(false).notNull(), // For moderation
+  helpfulCount: int('helpfulCount').default(0).notNull(), // Number of people who found it helpful
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+});

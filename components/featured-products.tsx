@@ -1,11 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, ShoppingCart } from "lucide-react"
+import { Star } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 interface Product {
   id: string
@@ -116,12 +116,6 @@ export function FeaturedProducts() {
                         )}
                       </div>
                     </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                      <Button className="w-full gap-2 group-hover:bg-primary group-hover:scale-105 transition-all">
-                        <ShoppingCart className="h-4 w-4" />
-                        Add to Cart
-                      </Button>
-                    </CardFooter>
                   </Card>
                 </Link>
               ))}
