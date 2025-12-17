@@ -95,13 +95,7 @@ export default function Home() {
           <Hero />
         )}
 
-        {/* Featured Products - Moved up for immediate visibility */}
-        <FeaturedProducts />
-
-        {/* Product Categories */}
-        <ProductCategories />
-
-        {/* Section Banners */}
+        {/* Top Promotional Section Banners */}
         {banners.section.length > 0 && (
           <section className="container mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -112,6 +106,9 @@ export default function Home() {
           </section>
         )}
 
+        {/* Featured Products - Primary Focus */}
+        <FeaturedProducts />
+
         {/* Offer Strip Banner */}
         {banners.offer_strip.length > 0 && (
           <section className="container mx-auto px-4 py-8">
@@ -121,9 +118,14 @@ export default function Home() {
           </section>
         )}
 
+        {/* Product Categories - Category browsing */}
+        <ProductCategories />
+
+        {/* Why Choose Us - Product trust building */}
         <WhyChooseUs />
+
+        {/* Services - Product related services */}
         <Services />
-        <AboutCompany />
 
         {/* Bottom Banner */}
         {banners.bottom.length > 0 && (
@@ -133,6 +135,9 @@ export default function Home() {
             ))}
           </section>
         )}
+
+        {/* About Company - Trust and credibility */}
+        <AboutCompany />
 
         <ContactCTA />
       </main>

@@ -70,6 +70,7 @@ export const product = mysqlTable('product', {
   hardwareSpecifications: text('hardwareSpecifications'), // Stored as JSON string
   options: text('options'), // Stored as JSON string
   price: int('price').notNull(), // Keeping original price field, assuming it's the final price
+  taxPercentage: int('taxPercentage').default(18).notNull(), // Tax percentage (e.g., 18 for 18% GST)
   category: varchar('category', { length: 255 }).notNull(),
   imageUrl: varchar('imageUrl', { length: 255 }),
   galleryImages: text('galleryImages'), // Stored as JSON string array of image URLs
@@ -158,6 +159,7 @@ export const orderItem = mysqlTable('orderItem', {
   productName: varchar('productName', { length: 255 }).notNull(),
   quantity: int('quantity').notNull(),
   price: int('price').notNull(), // Price per unit at time of order
+  taxPercentage: int('taxPercentage').default(18).notNull(), // Tax percentage at time of order
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
 });
 

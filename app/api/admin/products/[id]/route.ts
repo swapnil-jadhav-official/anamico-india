@@ -17,7 +17,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, isActive } = await req.json();
+  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, isActive, taxPercentage } = await req.json();
 
   if (!name || !category) {
     return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
@@ -38,6 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       hardwareSpecifications: hardwareSpecifications ? JSON.stringify(hardwareSpecifications) : null,
       options: options ? JSON.stringify(options) : null,
       price: regularPrice ? parseInt(regularPrice) : 0, // Assuming regularPrice is the main price
+      taxPercentage: taxPercentage ? parseInt(taxPercentage) : 18, // Default to 18% if not provided
       category,
       imageUrl,
       galleryImages: galleryImages ? JSON.stringify(galleryImages) : JSON.stringify([]),

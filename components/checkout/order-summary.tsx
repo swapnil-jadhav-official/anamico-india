@@ -16,7 +16,17 @@ export function OrderSummary({ items }: OrderSummaryProps) {
   const [paymentOption, setPaymentOption] = useState<'full' | 'partial'>('full');
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.18); // 18% GST
+  // Calculate tax based on each item's tax percentage
+  const tax = Math.round(
+    items.reduce((sum, item) => {
+      const itemTaxPercent = (item.taxPercentage || 18) / 100;
+      return sum + item.price * item.quantity * itemTaxPercent;
+    }, 0)
+  );
+
+  // Calculate effective tax percentage
+  const effectiveTaxPercent = subtotal > 0 ? Math.round((tax / subtotal) * 100 * 10) / 10 : 18;
+
   const total = subtotal + tax;
 
   // Calculate discount and final amounts based on payment option
@@ -129,7 +139,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
             <span className="font-medium">₹{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Tax (18% GST)</span>
+            <span className="text-muted-foreground">Tax ({effectiveTaxPercent}%)</span>
             <span className="font-medium">₹{tax.toLocaleString()}</span>
           </div>
           <div className="border-t pt-2 flex justify-between text-base">
@@ -150,7 +160,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
               ₹{finalTotal.toLocaleString()}
             </span>
           </div>
-          {remainingAmount > 0 && (
+          {remainingAmount > 0 && paymentOption === 'partial' && (
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Remaining (Cash on Delivery)</span>
               <span>₹{remainingAmount.toLocaleString()}</span>

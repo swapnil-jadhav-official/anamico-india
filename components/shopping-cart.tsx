@@ -65,7 +65,17 @@ export function ShoppingCart() {
   };
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.18); // 18% GST
+  // Calculate tax based on each item's tax percentage
+  const tax = Math.round(
+    items.reduce((sum, item) => {
+      const itemTaxPercent = (item.taxPercentage || 18) / 100;
+      return sum + item.price * item.quantity * itemTaxPercent;
+    }, 0)
+  );
+
+  // Calculate effective tax percentage
+  const effectiveTaxPercent = subtotal > 0 ? Math.round((tax / subtotal) * 100 * 10) / 10 : 18;
+
   const total = subtotal + tax;
 
   if (loading) {
@@ -228,7 +238,7 @@ export function ShoppingCart() {
                     <span>₹{subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax (18%)</span>
+                    <span className="text-muted-foreground">Tax ({effectiveTaxPercent}%)</span>
                     <span>₹{tax.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">

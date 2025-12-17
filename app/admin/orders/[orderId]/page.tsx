@@ -93,6 +93,11 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     fetchOrder();
   }, [mounted, sessionStatus, orderId, router]);
 
+  const getEffectiveTaxPercent = () => {
+    if (!order || order.subtotal === 0) return 18;
+    return Math.round((order.tax / order.subtotal) * 100 * 10) / 10;
+  };
+
   const handleApprove = async () => {
     if (!order) return;
 
@@ -381,7 +386,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   <span>₹{(order.subtotal || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (18% GST)</span>
+                  <span className="text-muted-foreground">Tax ({getEffectiveTaxPercent()}%)</span>
                   <span>₹{(order.tax || 0).toLocaleString()}</span>
                 </div>
                 <div className="border-t pt-2 flex justify-between font-bold">

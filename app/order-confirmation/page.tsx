@@ -94,6 +94,11 @@ export default function OrderConfirmationPage() {
     return order.total - order.paidAmount;
   };
 
+  const getEffectiveTaxPercent = () => {
+    if (!order || order.subtotal === 0) return 18;
+    return Math.round((order.tax / order.subtotal) * 100 * 10) / 10;
+  };
+
   const getStatusDescription = (status: string) => {
     switch (status) {
       case "pending":
@@ -309,7 +314,7 @@ export default function OrderConfirmationPage() {
                       <span>₹{order.subtotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tax (18% GST)</span>
+                      <span className="text-muted-foreground">Tax ({getEffectiveTaxPercent()}%)</span>
                       <span>₹{order.tax.toLocaleString()}</span>
                     </div>
                     <div className="border-t pt-2 flex justify-between">

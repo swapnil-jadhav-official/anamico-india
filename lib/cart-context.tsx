@@ -7,6 +7,7 @@ import type { Product } from "@/lib/products"
 export interface CartItem extends Product {
   quantity: number
   cartItemId?: string // API cart item ID
+  taxPercentage?: number // Tax percentage for this product
 }
 
 interface CartContextType {
@@ -51,6 +52,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               rating: item.rating || 0,
               reviews: item.reviews || 0,
               inStock: true,
+              taxPercentage: item.taxPercentage || 18,
             } as CartItem))
             setItems(cartItems)
           } else {
@@ -124,6 +126,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           rating: item.rating || 0,
           reviews: item.reviews || 0,
           inStock: true,
+          taxPercentage: item.taxPercentage || 18,
         } as CartItem))
         setItems(cartItems)
       } else {

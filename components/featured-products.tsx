@@ -77,40 +77,43 @@ export function FeaturedProducts() {
                   key={product.id}
                   href={`/products/${product.category}/${product.id}`}
                 >
-                  <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-300 h-full cursor-pointer hover:-translate-y-2 hover:border-primary/50">
-                    <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+                  <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full cursor-pointer">
+                    <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-muted to-muted/50">
                       <img
                         src={product.image || "/placeholder.svg"}
                         alt={product.name}
-                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                       />
                       {product.badge && (
-                        <Badge className="absolute top-3 right-3 shadow-lg">{product.badge}</Badge>
+                        <Badge className="absolute top-2 left-2 bg-primary">{product.badge}</Badge>
                       )}
                       {!product.inStock && (
                         <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                          <Badge variant="secondary" className="text-sm">Out of Stock</Badge>
+                          <Badge variant="secondary">Out of Stock</Badge>
                         </div>
                       )}
                     </div>
-                    <CardContent className="p-4 space-y-2">
-                      <div className="text-xs text-primary font-semibold uppercase tracking-wide">
-                        {product.category}
-                      </div>
-                      <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">{product.name}</h3>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-950 px-2 py-0.5 rounded">
-                          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold">{product.rating}</span>
+                    <CardContent className="p-2 space-y-1">
+                      <h3 className="font-semibold text-xs line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                      <div className="flex items-center gap-0.5">
+                        <div className="flex">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-2.5 w-2.5 ${
+                                i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "fill-muted text-muted"
+                              }`}
+                            />
+                          ))}
                         </div>
-                        <span className="text-xs text-muted-foreground">({product.reviews} reviews)</span>
+                        <span className="text-xs text-muted-foreground">({product.reviews})</span>
                       </div>
-                      <div className="flex items-baseline gap-2 pt-1">
-                        <div className="text-2xl font-bold text-primary">
+                      <div className="flex items-baseline gap-1.5 pt-1">
+                        <div className="text-sm font-bold text-primary">
                           ₹{product.price.toLocaleString()}
                         </div>
                         {product.originalPrice && (
-                          <div className="text-sm text-muted-foreground line-through">
+                          <div className="text-xs text-muted-foreground line-through">
                             ₹{product.originalPrice.toLocaleString()}
                           </div>
                         )}

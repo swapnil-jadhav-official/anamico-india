@@ -92,6 +92,11 @@ export default function PaymentPage() {
     : Math.round((orderData.total * selectedPaymentPercent) / 100);
   const remainingAmount = selectedPaymentPercent === 100 ? 0 : orderData.total - partialAmount;
 
+  // Calculate effective tax percentage
+  const effectiveTaxPercent = orderData.subtotal > 0
+    ? Math.round((orderData.tax / orderData.subtotal) * 100 * 10) / 10
+    : 18;
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       {isLoading && (
@@ -267,16 +272,35 @@ export default function PaymentPage() {
                       <p className="text-sm text-muted-foreground">Order Number</p>
                       <p className="font-semibold">{orderData.orderNumber}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Items</p>
-                      <p className="font-semibold">{orderData.items?.length || 0} items</p>
+                    <div className="border-b pb-3">
+                      <p className="text-sm text-muted-foreground mb-3">Items ({orderData.items?.length || 0})</p>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {orderData.items && orderData.items.map((item: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-start text-sm p-2 bg-muted/50 rounded">
+                            <div className="flex-1">
+                              <p className="font-medium text-xs">{item.productName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Qty: {item.quantity} × ₹{item.price.toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-xs">
+                                ₹{(item.price * item.quantity).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-950 dark:text-blue-400 px-1.5 py-0.5 rounded mt-0.5 w-fit ml-auto">
+                                Tax: {item.taxPercentage || 18}%
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Subtotal</p>
                       <p className="font-semibold">₹{orderData.subtotal.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Tax (18% GST)</p>
+                      <p className="text-sm text-muted-foreground">Tax ({effectiveTaxPercent}%)</p>
                       <p className="font-semibold">₹{orderData.tax.toLocaleString()}</p>
                     </div>
                     <div className="border-t pt-4">

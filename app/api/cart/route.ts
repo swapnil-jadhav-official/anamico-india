@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
           price: item.price,
           cartItemId: item.id,
           description: productData.description || '',
+          taxPercentage: productData.taxPercentage || 18,
         };
       })
     );

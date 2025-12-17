@@ -37,6 +37,7 @@ type ProductData = {
   sku: string;
   stock: string;
   availability: string;
+  taxPercentage: string;
   technicalSpecifications: { key: string; value: string }[];
   hardwareSpecifications: { key: string; value: string }[];
   options: { name: string; values: string }[];
@@ -62,6 +63,7 @@ const initialProductState = {
   sku: "",
   stock: "",
   availability: "in-stock",
+  taxPercentage: "18",
   technicalSpecifications: [{ key: "", value: "" }],
   hardwareSpecifications: [{ key: "", value: "" }],
   options: [{ name: "", values: "" }],
@@ -225,6 +227,7 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
         sku: product.sku || "",
         stock: product.stock || "",
         availability: product.availability || "in-stock",
+        taxPercentage: String(product.taxPercentage || "18"),
         technicalSpecifications: parsedTechSpecs,
         hardwareSpecifications: parsedHardwareSpecs,
         options: parsedOptions,
@@ -629,6 +632,11 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
                     </div>
                 </div>
                 <div className="grid gap-2"><Label htmlFor="availability">Availability</Label><Select onValueChange={(v) => handleSelectChange('availability', v)} value={productData.availability}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="in-stock">In Stock</SelectItem><SelectItem value="out-of-stock">Out of Stock</SelectItem><SelectItem value="pre-order">Pre-order</SelectItem></SelectContent></Select></div>
+                <div className="grid gap-2">
+                    <Label htmlFor="taxPercentage">Tax Percentage (%) <span className="text-red-500">*</span></Label>
+                    <Input id="taxPercentage" type="number" min="0" max="100" step="0.1" value={productData.taxPercentage} onChange={handleInputChange} placeholder="e.g., 18 for 18% GST" />
+                    <p className="text-xs text-muted-foreground">Enter tax percentage applicable to this product (e.g., 18 for 18% GST)</p>
+                </div>
             </div>
           )}
           {currentStep === 3 && (
@@ -689,6 +697,7 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
                     <p><strong>Stock:</strong> {productData.stock || "0"}</p>
                     <p><strong>Availability:</strong> {productData.availability || "-"}</p>
                     <p><strong>SKU:</strong> {productData.sku || "-"}</p>
+                    <p><strong>Tax Percentage:</strong> {productData.taxPercentage}%</p>
                 </div>
 
                 {/* Main Image */}

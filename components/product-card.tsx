@@ -50,9 +50,9 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
       <Link href={`/products/${product.category}/${product.id}`}>
-        <div className="relative aspect-square overflow-hidden bg-muted">
+        <div className="relative aspect-video overflow-hidden bg-muted">
           <Image
             src={product.image || "/placeholder.svg"}
             alt={product.name}
@@ -69,19 +69,19 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </Link>
 
-      <CardContent className="p-4">
+      <CardContent className="p-2">
         <Link href={`/products/${product.category}/${product.id}`}>
-          <h3 className="font-semibold text-sm line-clamp-2 mb-2 hover:text-primary transition-colors">
+          <h3 className="font-semibold text-xs line-clamp-1 mb-1 hover:text-primary transition-colors">
             {product.name}
           </h3>
         </Link>
 
-        <div className="flex items-center gap-1 mb-2">
+        <div className="flex items-center gap-0.5 mb-1">
           <div className="flex">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`h-3.5 w-3.5 ${
+                className={`h-2.5 w-2.5 ${
                   i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "fill-muted text-muted"
                 }`}
               />
@@ -90,17 +90,17 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-xs text-muted-foreground">({product.reviews})</span>
         </div>
 
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-lg font-bold text-primary">₹{product.price.toLocaleString()}</span>
+        <div className="flex items-baseline gap-1.5 mb-1.5">
+          <span className="text-sm font-bold text-primary">₹{product.price.toLocaleString()}</span>
           {product.originalPrice && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-xs text-muted-foreground line-through">
               ₹{product.originalPrice.toLocaleString()}
             </span>
           )}
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0 flex gap-2">
+      <CardFooter className="p-2 pt-0 flex gap-1">
         <Button className="flex-1" disabled={!product.inStock} onClick={handleAddToCart}>
           <ShoppingCart className="h-4 w-4 mr-2" />
           Add to Cart

@@ -55,7 +55,13 @@ export async function POST(req: NextRequest) {
 
     const orderId = uuidv4();
     const orderNumber = generateOrderNumber();
-    const tax = Math.round(subtotal * 0.18); // 18% GST
+    // Calculate tax based on each item's tax percentage
+    const tax = Math.round(
+      items.reduce((sum: number, item: any) => {
+        const itemTaxPercent = (item.taxPercentage || 18) / 100;
+        return sum + item.price * item.quantity * itemTaxPercent;
+      }, 0)
+    );
     const total = subtotal + tax;
 
     console.log('Creating order:', {
@@ -96,6 +102,7 @@ export async function POST(req: NextRequest) {
       productName: item.name,
       quantity: item.quantity,
       price: item.price,
+      taxPercentage: item.taxPercentage || 18,
     }));
 
     await db.insert(orderItem).values(orderItemsToInsert);
