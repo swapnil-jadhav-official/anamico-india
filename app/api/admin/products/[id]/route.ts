@@ -17,13 +17,25 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
-  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, isActive, taxPercentage } = await req.json();
-
-  if (!name || !category) {
-    return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
-  }
+  const body = await req.json();
 
   try {
+    // Check if this is a stock-only update (from stock management page)
+    if (Object.keys(body).length === 1 && body.stock !== undefined) {
+      await db.update(product).set({
+        stock: parseInt(body.stock) || 0,
+      }).where(eq(product.id, id));
+
+      return NextResponse.json({ message: 'Stock updated successfully' });
+    }
+
+    // Full product update
+    const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, isActive, taxPercentage } = body;
+
+    if (!name || !category) {
+      return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
+    }
+
     await db.update(product).set({
       name,
       brand,
@@ -37,8 +49,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       technicalSpecifications: technicalSpecifications ? JSON.stringify(technicalSpecifications) : null,
       hardwareSpecifications: hardwareSpecifications ? JSON.stringify(hardwareSpecifications) : null,
       options: options ? JSON.stringify(options) : null,
-      price: regularPrice ? parseInt(regularPrice) : 0, // Assuming regularPrice is the main price
-      taxPercentage: taxPercentage ? parseInt(taxPercentage) : 18, // Default to 18% if not provided
+      price: regularPrice ? parseInt(regularPrice) : 0,
+      taxPercentage: taxPercentage ? parseInt(taxPercentage) : 18,
       category,
       imageUrl,
       galleryImages: galleryImages ? JSON.stringify(galleryImages) : JSON.stringify([]),

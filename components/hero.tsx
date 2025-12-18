@@ -145,9 +145,9 @@ export function Hero() {
       id="home"
       className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/10 border-b"
     >
-      <div className="container mx-auto px-4 py-16 md:py-28">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          <div className="space-y-6">
+      <div className="container mx-auto px-4 py-6 md:py-8 lg:py-10">
+        <div className="grid lg:grid-cols-2 gap-4 lg:gap-6 items-center">
+          <div className="space-y-3 md:space-y-4">
             {/* Trust Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 text-primary text-sm font-semibold border border-primary/20 w-fit">
               <Shield className="h-4 w-4" />
@@ -155,12 +155,12 @@ export function Hero() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
               Premium <span className="text-primary">Biometric Devices</span> & Solutions
             </h1>
 
             {/* Subheading */}
-            <p className="text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
+            <p className="text-sm md:text-base text-muted-foreground max-w-lg leading-relaxed">
               Trusted by thousands of businesses. UIDAI-approved fingerprint scanners, iris recognition systems, and digital identity solutions for secure authentication.
             </p>
 
@@ -205,14 +205,14 @@ export function Hero() {
             </form>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Button size="lg" className="gap-2 rounded-lg font-semibold" asChild>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button size="sm" className="gap-2 rounded-lg font-semibold text-xs" asChild>
                 <Link href="/products">
                   Browse All Products
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3 w-3" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-lg font-semibold" asChild>
+              <Button size="sm" variant="outline" className="rounded-lg font-semibold text-xs" asChild>
                 <Link href="#contact">
                   Get Demo
                 </Link>
@@ -220,21 +220,21 @@ export function Hero() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-6 pt-6 border-t">
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-primary">50K+</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t">
+              <div className="space-y-0.5">
+                <div className="text-2xl font-bold text-primary">50K+</div>
+                <div className="text-xs text-muted-foreground">Active Users</div>
               </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-primary">100+</div>
-                <div className="text-sm text-muted-foreground">Enterprise Partners</div>
+              <div className="space-y-0.5">
+                <div className="text-2xl font-bold text-primary">100+</div>
+                <div className="text-xs text-muted-foreground">Enterprise Partners</div>
               </div>
             </div>
           </div>
 
           {/* Hero Image Section */}
-          <div className="relative flex items-center justify-center">
-            <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/20 shadow-2xl">
+          <div className="relative items-center justify-center hidden lg:flex">
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-linear-to-br from-primary/10 to-accent/10 border-2 border-primary/20 shadow-lg">
               <img
                 src="/modern-biometric-fingerprint-scanner-device-with-b.jpg"
                 alt="Premium Biometric Devices"
@@ -262,10 +262,10 @@ export function Hero() {
         </div>
 
         {/* Featured Products Section */}
-        <div className="pt-16 border-t">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Popular Products</h2>
-            <p className="text-muted-foreground">Explore our most trusted biometric solutions</p>
+        <div className="pt-6 md:pt-8 border-t">
+          <div className="text-center mb-4">
+            <h2 className="text-xl md:text-2xl font-bold mb-1">Popular Products</h2>
+            <p className="text-sm text-muted-foreground">Explore our most trusted biometric solutions</p>
           </div>
 
           {loadingProducts ? (

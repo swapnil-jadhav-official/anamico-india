@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CloseOutlined, LeftOutlined, RightOutlined, ShoppingCartOutlined, HeartOutlined } from "@ant-design/icons";
+import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
 interface ProductPreviewModalProps {
@@ -40,7 +41,8 @@ export function ProductPreviewModal({ isOpen, onClose, product }: ProductPreview
     ...product.galleryImages,
   ];
 
-  const currentImage = allImages[currentImageIndex] || "/placeholder.svg";
+  const currentImage = allImages[currentImageIndex];
+  const hasImage = currentImage && currentImage !== "/placeholder.svg";
   const discount = product.salePrice
     ? Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)
     : 0;
@@ -75,8 +77,8 @@ export function ProductPreviewModal({ isOpen, onClose, product }: ProductPreview
             {/* Product Images */}
             <div className="space-y-4">
               {/* Main Image Display */}
-              <div className="relative aspect-square bg-muted rounded-lg overflow-hidden border-2 border-gray-200 dark:border-slate-700">
-                {currentImage && (
+              <div className="relative aspect-square bg-muted rounded-lg overflow-hidden border-2 border-gray-200 dark:border-slate-700 flex items-center justify-center">
+                {hasImage ? (
                   <Image
                     src={currentImage}
                     alt={product.name}
@@ -84,6 +86,8 @@ export function ProductPreviewModal({ isOpen, onClose, product }: ProductPreview
                     className="object-cover"
                     unoptimized={true}
                   />
+                ) : (
+                  <ShoppingCart className="h-24 w-24 text-muted-foreground/50" />
                 )}
                 {discount > 0 && (
                   <Badge className="absolute top-4 right-4 bg-red-600">{discount}% OFF</Badge>

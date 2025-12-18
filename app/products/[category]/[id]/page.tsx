@@ -190,8 +190,12 @@ export default function ProductDetailPage({ params }: { params: { category: stri
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
             {/* Product Image */}
-            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-              <Image src={product.image || "/placeholder.svg"} alt={product.name} fill className="object-cover" />
+            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+              {product.image && product.image !== "/placeholder.svg" ? (
+                <Image src={product.image} alt={product.name} fill className="object-cover" />
+              ) : (
+                <ShoppingCart className="h-24 w-24 text-muted-foreground/50" />
+              )}
               {product.badge && <Badge className="absolute top-4 left-4 bg-primary">{product.badge}</Badge>}
               {discount > 0 && <Badge className="absolute top-4 right-4 bg-destructive">{discount}% OFF</Badge>}
               {!product.inStock && (

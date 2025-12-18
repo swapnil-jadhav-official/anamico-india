@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       description: prod.description,
       price: prod.salePrice || prod.price,
       originalPrice: prod.regularPrice,
-      image: prod.imageUrl || '/placeholder.jpg',
+      image: prod.imageUrl || null,
       category: prod.category,
       rating: 4.5, // Default rating - you can add this to schema if needed
       reviews: 0, // Default reviews - you can add this to schema if needed

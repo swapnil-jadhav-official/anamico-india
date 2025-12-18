@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { order, orderItem, cartItem } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { order, orderItem, cartItem, product } from '@/drizzle/schema';
+import { eq, and } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,6 +42,30 @@ export async function POST(req: NextRequest) {
         { error: 'Cart is empty' },
         { status: 400 }
       );
+    }
+
+    // Validate stock availability for all items
+    for (const item of items) {
+      const [productData] = await db
+        .select()
+        .from(product)
+        .where(eq(product.id, item.id));
+
+      if (!productData) {
+        return NextResponse.json(
+          { error: `Product ${item.name} not found` },
+          { status: 404 }
+        );
+      }
+
+      if (productData.stock < item.quantity) {
+        return NextResponse.json(
+          {
+            error: `Insufficient stock for ${item.name}. Available: ${productData.stock}, Requested: ${item.quantity}`
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate shipping data
@@ -107,12 +131,30 @@ export async function POST(req: NextRequest) {
 
     await db.insert(orderItem).values(orderItemsToInsert);
 
+    // Reduce stock for each ordered item
+    for (const item of items) {
+      const [productData] = await db
+        .select()
+        .from(product)
+        .where(eq(product.id, item.id));
+
+      if (productData) {
+        await db
+          .update(product)
+          .set({
+            stock: Math.max(0, productData.stock - item.quantity)
+          })
+          .where(eq(product.id, item.id));
+      }
+    }
+
     // Clear user's cart
     await db
       .delete(cartItem)
       .where(eq(cartItem.userId, session.user.id));
 
     console.log('Order created successfully:', orderId);
+    console.log('Stock reduced for ordered items');
 
     // Note: Emails are sent after payment is recorded, not at order creation
     // This prevents sending confirmation emails for abandoned orders

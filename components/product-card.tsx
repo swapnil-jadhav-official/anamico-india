@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Star, ShoppingCart, Heart } from "lucide-react"
+import { Star, ShoppingCart, Heart, AlertCircle } from "lucide-react"
 import type { Product } from "@/lib/products"
 import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
@@ -49,21 +49,31 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   }
 
+  const hasImage = !!product.image
+  const isOutOfStock = !product.inStock || (typeof product.stock === 'number' && product.stock <= 0)
+
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full">
+    <Card className={`group overflow-hidden hover:shadow-lg transition-shadow h-full ${isOutOfStock ? 'opacity-60' : ''}`}>
       <Link href={`/products/${product.category}/${product.id}`}>
-        <div className="relative aspect-video overflow-hidden bg-muted">
-          <Image
-            src={product.image || "/placeholder.svg"}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          {product.badge && <Badge className="absolute top-2 left-2 bg-primary">{product.badge}</Badge>}
-          {discount > 0 && <Badge className="absolute top-2 right-2 bg-destructive">{discount}% OFF</Badge>}
-          {!product.inStock && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-              <Badge variant="secondary">Out of Stock</Badge>
+        <div className={`relative aspect-video overflow-hidden bg-muted flex items-center justify-center ${isOutOfStock ? 'blur-sm' : ''}`}>
+          {hasImage ? (
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className={`object-cover group-hover:scale-105 transition-transform duration-300 ${isOutOfStock ? 'blur-sm' : ''}`}
+            />
+          ) : (
+            <ShoppingCart className={`h-16 w-16 text-muted-foreground/50 ${isOutOfStock ? 'blur-sm' : ''}`} />
+          )}
+          {product.badge && !isOutOfStock && <Badge className="absolute top-2 left-2 bg-primary">{product.badge}</Badge>}
+          {discount > 0 && !isOutOfStock && <Badge className="absolute top-2 right-2 bg-destructive">{discount}% OFF</Badge>}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <AlertCircle className="h-8 w-8 text-white" />
+                <Badge className="bg-red-600 text-white">Out of Stock</Badge>
+              </div>
             </div>
           )}
         </div>
@@ -101,9 +111,9 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardContent>
 
       <CardFooter className="p-2 pt-0 flex gap-1">
-        <Button className="flex-1" disabled={!product.inStock} onClick={handleAddToCart}>
+        <Button className="flex-1" disabled={isOutOfStock} onClick={handleAddToCart}>
           <ShoppingCart className="h-4 w-4 mr-2" />
-          Add to Cart
+          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </Button>
         <Button variant={isWishlisted ? "default" : "outline"} size="icon" onClick={handleWishlistToggle}>
           <Heart className={`h-4 w-4 ${isWishlisted ? "fill-current" : ""}`} />

@@ -6,7 +6,6 @@ import { Footer } from "@/components/footer";
 import { ProductListTools } from "@/components/admin/product-list-tools";
 import { ProductStepperForm } from "@/components/admin/product-stepper-form";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
-import { SeedButton } from "@/components/admin/seed-button";
 
 // Define a type for the product for clarity
 type Product = {
@@ -92,7 +91,6 @@ export default function ProductManagementPage() {
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1 flex flex-col">
-            <SeedButton onSuccess={fetchProducts} />
             <div className="flex-1 min-h-0">
               <ProductListTools products={products} onEditProduct={handleEditProduct} onAddNew={handleAddNew} onProductUpdate={fetchProducts} />
             </div>

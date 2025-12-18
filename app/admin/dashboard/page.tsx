@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ECommerceHeader } from "@/components/e-commerce-header";
 import { Footer } from "@/components/footer";
@@ -23,60 +24,73 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { DollarSign, ShoppingBag, Users, Package, ArrowRight, Fingerprint, FileText, Settings } from "lucide-react";
+import { DollarSign, ShoppingBag, Users, Package, ArrowRight, Fingerprint, FileText, Settings, Boxes } from "lucide-react";
 import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb";
 
-const salesData = [
-  { date: "2025-09-25", sales: 4000 },
-  { date: "2025-09-26", sales: 3000 },
-  { date: "2025-09-27", sales: 2000 },
-  { date: "2025-09-28", sales: 2780 },
-  { date: "2025-09-29", sales: 1890 },
-  { date: "2025-09-30", sales: 2390 },
-  { date: "2025-10-01", sales: 3490 },
-];
-
-const recentSales = [
-  {
-    name: "Olivia Martin",
-    email: "olivia.martin@email.com",
-    amount: 1999,
-    image: "/placeholder-user.jpg",
-  },
-  {
-    name: "Jackson Lee",
-    email: "jackson.lee@email.com",
-    amount: 390,
-    image: "/placeholder-user.jpg",
-  },
-  {
-    name: "Isabella Nguyen",
-    email: "isabella.nguyen@email.com",
-    amount: 299,
-    image: "/placeholder-user.jpg",
-  },
-  {
-    name: "William Kim",
-    email: "will@email.com",
-    amount: 99,
-    image: "/placeholder-user.jpg",
-  },
-  {
-    name: "Sofia Davis",
-    email: "sofia.davis@email.com",
-    amount: 39,
-    image: "/placeholder-user.jpg",
-  },
-];
-
-const topProducts = [
-  { name: "Cogent Fingerprint Scanner", sold: 120 },
-  { name: "Evolis Card Printer", sold: 98 },
-  { name: "Logitech C525 Webcam", sold: 75 },
-  { name: "D-Link WiFi Router", sold: 50 },
-];
+interface DashboardData {
+  totalRevenue: number;
+  totalSales: number;
+  newCustomers: number;
+  lowStockProducts: number;
+  recentOrders: Array<{
+    id: string;
+    customerName: string;
+    customerEmail: string;
+    total: number;
+    status: string;
+  }>;
+  topProducts: Array<{
+    name: string;
+    sold: number;
+  }>;
+}
 
 export default function AdminDashboardPage() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await fetch("/api/admin/dashboard");
+        if (res.ok) {
+          const data = await res.json();
+          setDashboardData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <ECommerceHeader />
+        <main className="flex-1 p-4 sm:p-6 flex items-center justify-center">
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <ECommerceHeader />
+        <main className="flex-1 p-4 sm:p-6 flex items-center justify-center">
+          <p className="text-muted-foreground">Failed to load dashboard data</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <ECommerceHeader />
@@ -91,35 +105,35 @@ export default function AdminDashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹45,231.89</div>
+              <div className="text-2xl font-bold">₹{dashboardData.totalRevenue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                Total revenue from all orders
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
+              <div className="text-2xl font-bold">{dashboardData.totalSales}</div>
               <p className="text-xs text-muted-foreground">
-                +19% from last month
+                Total number of orders placed
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                New Customers
+                Total Customers
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+235</div>
+              <div className="text-2xl font-bold">{dashboardData.newCustomers}</div>
               <p className="text-xs text-muted-foreground">
-                +180.1% from last month
+                Total registered customers
               </p>
             </CardContent>
           </Card>
@@ -129,7 +143,7 @@ export default function AdminDashboardPage() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
+              <div className="text-2xl font-bold">{dashboardData.lowStockProducts}</div>
               <p className="text-xs text-muted-foreground">
                 Products running low on inventory
               </p>
@@ -220,98 +234,77 @@ export default function AdminDashboardPage() {
                 </CardContent>
               </Card>
             </Link>
+
+            <Link href="/admin/stock">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Stock Management
+                  </CardTitle>
+                  <Boxes className="h-5 w-5 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    Manage product inventory levels
+                  </p>
+                  <Button variant="link" className="px-0 mt-2">
+                    View All
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
 
         <div className="mt-8 grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <Card className="xl:col-span-2">
             <CardHeader>
-              <CardTitle>Sales Overview</CardTitle>
+              <CardTitle>Recent Orders</CardTitle>
               <CardDescription>
-                Your sales performance over the last 7 days.
+                Latest customer orders
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `₹${value}`}
-                  />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="#8884d8"
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent className="grid gap-4">
+              {dashboardData.recentOrders.length > 0 ? (
+                dashboardData.recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div className="grid gap-1">
+                      <p className="text-sm font-medium leading-none">
+                        {order.customerName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {order.customerEmail}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">₹{order.total.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{order.status}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No recent orders</p>
+              )}
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>You made 265 sales this month.</CardDescription>
+              <CardTitle>Top Products</CardTitle>
+              <CardDescription>Most sold items this month</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-8">
-              {recentSales.map((sale, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <Avatar className="hidden h-9 w-9 sm:flex">
-                    <AvatarImage src={sale.image} alt="Avatar" />
-                    <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="grid gap-1">
-                    <p className="text-sm font-medium leading-none">
-                      {sale.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {sale.email}
-                    </p>
+            <CardContent className="grid gap-4">
+              {dashboardData.topProducts.length > 0 ? (
+                dashboardData.topProducts.map((product, index) => (
+                  <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
+                    <p className="text-sm font-medium line-clamp-2">{product.name}</p>
+                    <span className="text-sm font-bold text-primary">{product.sold}</span>
                   </div>
-                  <div className="ml-auto font-medium">
-                    +₹{sale.amount.toLocaleString()}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Selling Products</CardTitle>
-              <CardDescription>
-                Your most popular products this month.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topProducts} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={200}
-                    stroke="#888888"
-                    fontSize={12}
-                  />
-                  <Tooltip />
-                  <Bar dataKey="sold" fill="#82ca9d" />
-                </BarChart>
-              </ResponsiveContainer>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No sales data available</p>
+              )}
             </CardContent>
           </Card>
         </div>

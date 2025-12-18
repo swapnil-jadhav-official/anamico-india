@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star } from "lucide-react"
+import { Star, ShoppingCart, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ interface Product {
   rating: number
   reviews: number
   inStock: boolean
+  stock?: number
   featured?: boolean
   badge?: string
 }
@@ -72,24 +73,33 @@ export function FeaturedProducts() {
         ) : (
           <>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
+              {products.map((product) => {
+                const isOutOfStock = !product.inStock || (typeof product.stock === 'number' && product.stock <= 0)
+                return (
                 <Link
                   key={product.id}
                   href={`/products/${product.category}/${product.id}`}
                 >
-                  <Card className="group overflow-hidden hover:shadow-lg transition-shadow h-full cursor-pointer">
-                    <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-muted to-muted/50">
-                      <img
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {product.badge && (
+                  <Card className={`group overflow-hidden hover:shadow-lg transition-shadow h-full cursor-pointer ${isOutOfStock ? 'opacity-60' : ''}`}>
+                    <div className={`relative aspect-video overflow-hidden bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center ${isOutOfStock ? 'blur-sm' : ''}`}>
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className={`object-cover w-full h-full group-hover:scale-105 transition-transform duration-300 ${isOutOfStock ? 'blur-sm' : ''}`}
+                        />
+                      ) : (
+                        <ShoppingCart className={`h-16 w-16 text-muted-foreground/50 ${isOutOfStock ? 'blur-sm' : ''}`} />
+                      )}
+                      {product.badge && !isOutOfStock && (
                         <Badge className="absolute top-2 left-2 bg-primary">{product.badge}</Badge>
                       )}
-                      {!product.inStock && (
-                        <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                          <Badge variant="secondary">Out of Stock</Badge>
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <AlertCircle className="h-8 w-8 text-white" />
+                            <Badge className="bg-red-600 text-white">Out of Stock</Badge>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -121,7 +131,8 @@ export function FeaturedProducts() {
                     </CardContent>
                   </Card>
                 </Link>
-              ))}
+                )
+              })}
             </div>
 
             <div className="text-center mt-12">
