@@ -46,6 +46,7 @@ interface Order {
   total: number;
   paidAmount: number;
   createdAt: string;
+  updatedAt: string;
   user: {
     id: string;
     name: string;
@@ -186,12 +187,19 @@ export default function OrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders
+    .filter(
+      (order) =>
+        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Sort by creation date in descending order (newest first)
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA;
+    });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -343,7 +351,8 @@ export default function OrdersPage() {
                     <TableHead>Status</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Total</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Order Date</TableHead>
+                    <TableHead>Payment Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -388,6 +397,11 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(order.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {order.paymentStatus !== "pending"
+                          ? new Date(order.updatedAt).toLocaleDateString()
+                          : "-"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

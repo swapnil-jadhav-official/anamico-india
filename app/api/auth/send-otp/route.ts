@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const TWOFACTOR_API_KEY = '183f9c86-c93a-11f0-a6b2-0200cd936042';
+import { db } from '@/drizzle/db';
+import { phoneOtp } from '@/drizzle/schema';
+import { nanoid } from 'nanoid';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,32 +23,80 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('Sending OTP to phone:', cleanedPhone);
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiration
 
-    // Send OTP using 2Factor API with India country code
-    const response = await fetch(
-      `https://2factor.in/API/V1/${TWOFACTOR_API_KEY}/SMS/91${cleanedPhone}/AUTOGEN`,
-      {
-        method: 'GET',
-      }
-    );
+    console.log('Generating OTP for phone:', cleanedPhone);
 
-    const data = await response.json();
+    // Store OTP in database
+    await db.insert(phoneOtp).values({
+      id: nanoid(),
+      phone: cleanedPhone,
+      otp: otp,
+      expires: expiresAt,
+      attempts: 0,
+    });
 
-    console.log('2Factor API response:', data);
+    // Send OTP via BhashSMS WhatsApp SMS
+    // Using stype=auth to consume WhatsApp SMS Credits
+    const phoneWithoutCountryCode = cleanedPhone; // WhatsApp API expects number without 91
+    const messageText = `Your OTP is: ${otp}. Valid for 10 minutes. Do not share with anyone.`;
 
-    if (data.Status === 'Success') {
-      return NextResponse.json({
-        success: true,
-        sessionId: data.Details,
-        message: 'OTP sent successfully',
-      });
-    } else {
+    const whatsappApiUrl = process.env.BHASMSMS_API_URL;
+    const userId = process.env.BHASMSMS_USER_ID;
+    const password = process.env.BHASMSMS_PASSWORD;
+    const senderId = process.env.BHASMSMS_SENDER_ID || 'Anamico';
+
+    if (!whatsappApiUrl || !userId || !password) {
+      throw new Error('BhashSMS credentials are not configured');
+    }
+
+    // Build WhatsApp Authentication OTP Message API URL
+    // API: http://bhashsms.com/api/sendmsg.php?user=...&pass=...&sender=Sender ID&phone=Mobile No&text=TEMPLATENAME&priority=wa&stype=auth&Params=OTP
+    const whatsappUrl = new URL(whatsappApiUrl);
+    whatsappUrl.searchParams.append('user', userId);
+    whatsappUrl.searchParams.append('pass', password);
+    whatsappUrl.searchParams.append('sender', senderId);
+    whatsappUrl.searchParams.append('phone', phoneWithoutCountryCode);
+    whatsappUrl.searchParams.append('text', messageText);
+    whatsappUrl.searchParams.append('priority', 'wa');
+    whatsappUrl.searchParams.append('stype', 'auth');
+
+    const whatsappUrlString = whatsappUrl.toString();
+    console.log('BhashSMS API URL:', whatsappUrlString);
+
+    const whatsappResponse = await fetch(whatsappUrlString, {
+      method: 'GET',
+    });
+
+    const whatsappData = await whatsappResponse.text();
+    console.log('BhashSMS WhatsApp API response:', whatsappData);
+
+    // Check for insufficient credits error
+    if (whatsappData.includes('No Sufficient Credits') || whatsappData.includes('insufficient')) {
+      console.error('BhashSMS: Insufficient credits');
       return NextResponse.json(
-        { error: data.Details || 'Failed to send OTP' },
+        {
+          error: 'WhatsApp service temporarily unavailable. Please contact support or try again later.',
+          code: 'INSUFFICIENT_CREDITS'
+        },
+        { status: 503 }
+      );
+    }
+
+    if (!whatsappResponse.ok) {
+      console.error('Failed to send WhatsApp OTP via BhashSMS:', whatsappData);
+      return NextResponse.json(
+        { error: 'Failed to send OTP. Please try again.' },
         { status: 400 }
       );
     }
+
+    return NextResponse.json({
+      success: true,
+      message: 'OTP sent successfully',
+    });
   } catch (error) {
     console.error('Error sending OTP:', error);
     return NextResponse.json(

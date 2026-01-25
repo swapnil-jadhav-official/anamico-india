@@ -69,11 +69,13 @@ export async function GET(
       subtotal: existingOrder.subtotal,
       tax: existingOrder.tax,
       total: existingOrder.total,
+      discountAmount: existingOrder.discountAmount || 0,
       paidAmount: existingOrder.paidAmount || 0,
-      dueAmount: existingOrder.total - (existingOrder.paidAmount || 0),
+      dueAmount: (existingOrder.total - (existingOrder.discountAmount || 0)) - (existingOrder.paidAmount || 0),
       paymentStatus: existingOrder.paymentStatus,
       status: existingOrder.status,
       invoiceNumber: `INV-${existingOrder.orderNumber}`,
+      invoiceDate: typeof existingOrder.updatedAt === 'string' ? new Date(existingOrder.updatedAt) : existingOrder.updatedAt,
       shippedAt: existingOrder.shippedAt ?
         typeof existingOrder.shippedAt === 'string' ? new Date(existingOrder.shippedAt) : existingOrder.shippedAt
         : undefined,

@@ -67,8 +67,11 @@ export async function POST(
       paymentId,
     });
 
-    // Determine payment status based on amount paid
-    const newPaymentStatus = paidAmount >= existingOrder.total ? 'completed' : 'partial_payment';
+    // Calculate accumulated paid amount
+    const newPaidAmount = (existingOrder.paidAmount || 0) + paidAmount;
+
+    // Determine payment status based on total amount paid
+    const newPaymentStatus = newPaidAmount >= existingOrder.total ? 'completed' : 'partial_payment';
 
     // Update order status to 'payment_received' after partial payment
     // Order is now awaiting admin approval
@@ -79,7 +82,7 @@ export async function POST(
         paymentStatus: newPaymentStatus,
         paymentId,
         paymentMethod: paymentMethod || 'razorpay',
-        paidAmount,
+        paidAmount: newPaidAmount,
         updatedAt: new Date(),
       })
       .where(eq(order.id, orderId));
@@ -152,11 +155,13 @@ export async function POST(
         subtotal: existingOrder.subtotal,
         tax: existingOrder.tax,
         total: existingOrder.total,
-        paidAmount: paidAmount,
-        dueAmount: existingOrder.total - paidAmount,
+        discountAmount: existingOrder.discountAmount || 0,
+        paidAmount: newPaidAmount,
+        dueAmount: (existingOrder.total - (existingOrder.discountAmount || 0)) - newPaidAmount,
         paymentStatus: newPaymentStatus,
         status: 'payment_received',
         invoiceNumber: `INV-${existingOrder.orderNumber}`,
+        invoiceDate: new Date(), // Use payment date as invoice date
       };
 
       console.log('🔵 STEP 5: Invoice data object created, calling generateInvoicePDF()...');
@@ -227,11 +232,13 @@ export async function POST(
         subtotal: existingOrder.subtotal,
         tax: existingOrder.tax,
         total: existingOrder.total,
-        paidAmount: paidAmount,
-        dueAmount: existingOrder.total - paidAmount,
+        discountAmount: existingOrder.discountAmount || 0,
+        paidAmount: newPaidAmount,
+        dueAmount: (existingOrder.total - (existingOrder.discountAmount || 0)) - newPaidAmount,
         paymentStatus: newPaymentStatus,
         status: 'payment_received',
         invoiceNumber: `INV-${existingOrder.orderNumber}`,
+        invoiceDate: new Date(), // Use payment date as invoice date
       };
 
       console.log('🟢 PAYMENT STEP 3: Calling generateInvoicePDF()...');

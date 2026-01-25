@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { message } from "antd";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, X, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 interface OrderDetail {
@@ -25,6 +25,7 @@ interface OrderDetail {
   subtotal: number;
   tax: number;
   total: number;
+  discountAmount?: number;
   paidAmount: number;
   createdAt: string;
   shippingName: string;
@@ -257,9 +258,15 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
 
   const getPaymentPercentage = () => {
     if (!order) return 0;
-    const percentage = Math.round((order.paidAmount / order.total) * 100);
-    // If payment is 95% or more, consider it as 100% (due to 5% discount)
-    return percentage >= 95 ? 100 : percentage;
+    const discountAmount = order.discountAmount || 0;
+    const amountAfterDiscount = order.total - discountAmount;
+    const percentage = Math.round((order.paidAmount / amountAfterDiscount) * 100);
+    return Math.min(percentage, 100);
+  };
+
+  const getDiscountPercentage = () => {
+    if (!order || !order.discountAmount || order.discountAmount === 0) return 0;
+    return Math.round((order.discountAmount / order.total) * 100);
   };
 
   const getRemainingAmount = () => {
@@ -430,10 +437,16 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                     </span>
                   </div>
                 )}
-                {getPaymentPercentage() === 100 && (
+                {getPaymentPercentage() === 100 && order?.discountAmount && order.discountAmount > 0 && (
                   <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950 p-2 rounded">
                     <CheckCircle2 className="h-4 w-4" />
-                    <span className="font-medium">Fully Paid (with 5% discount)</span>
+                    <span className="font-medium">Fully Paid (with {getDiscountPercentage()}% discount - ₹{order.discountAmount})</span>
+                  </div>
+                )}
+                {getPaymentPercentage() === 100 && (!order?.discountAmount || order.discountAmount === 0) && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950 p-2 rounded">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="font-medium">Fully Paid</span>
                   </div>
                 )}
               </div>

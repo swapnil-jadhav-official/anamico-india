@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
   Card,
@@ -30,37 +30,6 @@ interface ShippingData {
   pincode: string;
 }
 
-const indianStates = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-];
-
 export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
   const { data: session } = useSession();
   const [formData, setFormData] = useState<ShippingData>({
@@ -75,6 +44,57 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [states, setStates] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Load location data from JSON
+  useEffect(() => {
+    const loadLocationData = async () => {
+      try {
+        const response = await fetch('/data/india-location-data.json');
+        const data = await response.json();
+
+        if (data.states && data.citiesByState) {
+          const stateNames = data.states.map((s: any) => s.name);
+          setStates(stateNames);
+        }
+      } catch (error) {
+        console.error('Failed to load location data:', error);
+        // Fallback to empty array - form will still work
+        setStates([]);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    loadLocationData();
+  }, []);
+
+  // Update available cities when state changes
+  useEffect(() => {
+    if (formData.state) {
+      const loadCitiesForState = async () => {
+        try {
+          const response = await fetch('/data/india-location-data.json');
+          const data = await response.json();
+
+          if (data.citiesByState && data.citiesByState[formData.state]) {
+            setCities(data.citiesByState[formData.state]);
+            // Reset city when state changes
+            setFormData(prev => ({ ...prev, city: "" }));
+          }
+        } catch (error) {
+          console.error('Failed to load cities:', error);
+          setCities([]);
+        }
+      };
+
+      loadCitiesForState();
+    } else {
+      setCities([]);
+    }
+  }, [formData.state]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -223,14 +243,35 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
           {/* City */}
           <div className="space-y-2">
             <Label htmlFor="city">City *</Label>
-            <Input
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              placeholder="Enter your city"
-              className={errors.city ? "border-red-500" : ""}
-            />
+            {cities.length > 0 ? (
+              <select
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors.city ? "border-red-500" : "border-input"
+                }`}
+                disabled={!formData.state || isLoadingData}
+              >
+                <option value="">Select a city</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder={formData.state ? "Select a state first" : "Enter your city"}
+                className={errors.city ? "border-red-500" : ""}
+                disabled={!formData.state}
+              />
+            )}
             {errors.city && (
               <p className="text-sm text-red-500 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
@@ -250,9 +291,12 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
               className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary ${
                 errors.state ? "border-red-500" : "border-input"
               }`}
+              disabled={isLoadingData}
             >
-              <option value="">Select a state</option>
-              {indianStates.map((state) => (
+              <option value="">
+                {isLoadingData ? "Loading states..." : "Select a state"}
+              </option>
+              {states.map((state) => (
                 <option key={state} value={state}>
                   {state}
                 </option>

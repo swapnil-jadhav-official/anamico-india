@@ -29,6 +29,7 @@ export interface InvoiceData {
   subtotal: number;
   tax: number;
   total: number;
+  discountAmount?: number; // 5% discount on full payment
   paidAmount: number;
   dueAmount: number;
   paymentStatus: string;
@@ -160,11 +161,18 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       </tr>`;
     }).join('');
 
-    // Calculate totals
-    const subtotal = data.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-    const taxAmount = data.tax || (subtotal * taxRate / 100);
-    const total = subtotal + taxAmount;
-    const balanceDue = data.dueAmount || total;
+    // Use provided totals from data instead of calculating from items
+    // This ensures the invoice always shows the correct totals, even if items array is empty
+    const subtotal = data.subtotal;
+    const taxAmount = data.tax;
+    const total = data.total;
+    const balanceDue = data.dueAmount;
+
+    // Generate discount row if discount was applied
+    const discountAmount = data.discountAmount || 0;
+    const discountRow = discountAmount > 0
+      ? `<tr><td class="summary-label">Discount (5%)</td><td class="summary-value">-${formatNumber(discountAmount)}</td></tr>`
+      : '';
 
     // Convert amount to words
     const amountInWords = `Indian Rupee ${numberToWords(Math.floor(total))}`;
@@ -196,6 +204,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       '{{ITEMS_ROWS}}': itemsRowsHtml,
       '{{SUB_TOTAL}}': formatNumber(subtotal),
       '{{TAX_AMOUNT}}': formatNumber(taxAmount),
+      '{{DISCOUNT_ROW}}': discountRow,
       '{{TOTAL_AMOUNT}}': formatCurrency(total),
       '{{BALANCE_DUE}}': formatCurrency(balanceDue),
       '{{AMOUNT_IN_WORDS}}': amountInWords,

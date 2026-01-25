@@ -1,41 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/drizzle/db';
-import { user } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { user, phoneOtp } from '@/drizzle/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-
-const TWOFACTOR_API_KEY = '183f9c86-c93a-11f0-a6b2-0200cd936042';
 
 export async function POST(req: NextRequest) {
   try {
-    const { phoneNumber, otp, sessionId } = await req.json();
+    const { phoneNumber, otp } = await req.json();
 
-    if (!phoneNumber || !otp || !sessionId) {
+    if (!phoneNumber || !otp) {
       return NextResponse.json(
-        { error: 'Phone number, OTP, and session ID are required' },
+        { error: 'Phone number and OTP are required' },
         { status: 400 }
       );
     }
 
     const cleanedPhone = phoneNumber.replace(/\D/g, '');
 
-    console.log('Verifying OTP for phone:', cleanedPhone);
+    console.log('Verifying WhatsApp OTP for phone:', cleanedPhone);
 
-    // Verify OTP using 2Factor API with country code
-    const response = await fetch(
-      `https://2factor.in/API/V1/${TWOFACTOR_API_KEY}/SMS/VERIFY/91${cleanedPhone}/${sessionId}/${otp}`,
-      {
-        method: 'GET',
-      }
-    );
+    // Get the latest OTP for this phone number
+    const otpRecords = await db
+      .select()
+      .from(phoneOtp)
+      .where(eq(phoneOtp.phone, cleanedPhone))
+      .orderBy(desc(phoneOtp.createdAt))
+      .limit(1);
 
-    const data = await response.json();
-
-    console.log('2Factor verification response:', data);
-
-    if (data.Status !== 'Success') {
+    if (otpRecords.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid OTP. Please try again.' },
+        { error: 'No OTP found for this phone number. Please request a new OTP.' },
+        { status: 400 }
+      );
+    }
+
+    const otpRecord = otpRecords[0];
+
+    // Check if OTP has expired
+    if (new Date() > otpRecord.expires) {
+      return NextResponse.json(
+        { error: 'OTP has expired. Please request a new OTP.' },
+        { status: 400 }
+      );
+    }
+
+    // Check if max attempts exceeded
+    if (otpRecord.attempts >= 5) {
+      return NextResponse.json(
+        { error: 'Too many failed attempts. Please request a new OTP.' },
+        { status: 400 }
+      );
+    }
+
+    // Verify OTP matches
+    if (otpRecord.otp !== otp) {
+      // Increment attempts
+      await db
+        .update(phoneOtp)
+        .set({ attempts: otpRecord.attempts + 1 })
+        .where(eq(phoneOtp.id, otpRecord.id));
+
+      const remainingAttempts = 5 - (otpRecord.attempts + 1);
+      return NextResponse.json(
+        {
+          error: `Invalid OTP. ${remainingAttempts > 0 ? `${remainingAttempts} attempt(s) remaining.` : 'Too many failed attempts.'}`
+        },
         { status: 400 }
       );
     }
@@ -72,6 +101,9 @@ export async function POST(req: NextRequest) {
         image: null,
       });
     }
+
+    // Delete the used OTP to prevent reuse
+    await db.delete(phoneOtp).where(eq(phoneOtp.id, otpRecord.id));
 
     return NextResponse.json({
       success: true,

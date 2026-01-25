@@ -247,14 +247,16 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
 
     // Calculate payment amount based on payment type
     let paymentAmount = 0;
+    let discountAmount = 0;
     const paymentTypeStr = String(paymentType);
 
     if (paymentTypeStr === '10') {
       paymentAmount = Math.round(existingOrder.total * 0.1);
+      discountAmount = 0;
     } else if (paymentTypeStr === '100') {
       // Apply 5% discount on full payment
-      const discount = Math.round(existingOrder.total * 0.05);
-      paymentAmount = existingOrder.total - discount;
+      discountAmount = Math.round(existingOrder.total * 0.05);
+      paymentAmount = existingOrder.total - discountAmount;
     } else {
       return NextResponse.json(
         { error: `Invalid payment type: ${paymentType}` },
@@ -286,16 +288,24 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
     const newPaymentStatus = newPaidAmount >= existingOrder.total ? 'completed' : 'partial_payment';
 
     // Update order with payment info
+    // Only store discount on first payment
+    const orderUpdateData: any = {
+      paidAmount: newPaidAmount,
+      paymentStatus: newPaymentStatus,
+      status: 'payment_received',
+      paymentMethod: isRealRazorpay ? 'razorpay' : 'mock_razorpay',
+      paymentId: payment.id,
+      updatedAt: new Date(),
+    };
+
+    // Store discount only on first payment (when discountAmount is set)
+    if (discountAmount > 0 && (!existingOrder.discountAmount || existingOrder.discountAmount === 0)) {
+      orderUpdateData.discountAmount = discountAmount;
+    }
+
     await db
       .update(order)
-      .set({
-        paidAmount: newPaidAmount,
-        paymentStatus: newPaymentStatus,
-        status: 'payment_received',
-        paymentMethod: isRealRazorpay ? 'razorpay' : 'mock_razorpay',
-        paymentId: payment.id,
-        updatedAt: new Date(),
-      })
+      .set(orderUpdateData)
       .where(eq(order.id, dbOrderId));
 
     console.log('Payment recorded and order awaiting admin approval:', dbOrderId);
@@ -368,11 +378,13 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
           subtotal: existingOrder.subtotal,
           tax: existingOrder.tax,
           total: existingOrder.total,
-          paidAmount: paymentAmount,
-          dueAmount: existingOrder.total - paymentAmount,
+          discountAmount: discountAmount || existingOrder.discountAmount || 0,
+          paidAmount: newPaidAmount,
+          dueAmount: (existingOrder.total - (discountAmount || existingOrder.discountAmount || 0)) - newPaidAmount,
           paymentStatus: newPaymentStatus,
           status: 'payment_received',
           invoiceNumber: `INV-${existingOrder.orderNumber}`,
+          invoiceDate: new Date(), // Use payment date as invoice date
         };
 
         console.log('🔵 STEP 5: Invoice data object created, calling generateInvoicePDF()...');
@@ -448,11 +460,13 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
           subtotal: existingOrder.subtotal,
           tax: existingOrder.tax,
           total: existingOrder.total,
-          paidAmount: paymentAmount,
-          dueAmount: existingOrder.total - paymentAmount,
+          discountAmount: discountAmount || existingOrder.discountAmount || 0,
+          paidAmount: newPaidAmount,
+          dueAmount: (existingOrder.total - (discountAmount || existingOrder.discountAmount || 0)) - newPaidAmount,
           paymentStatus: newPaymentStatus,
           status: 'payment_received',
           invoiceNumber: `INV-${existingOrder.orderNumber}`,
+          invoiceDate: new Date(), // Use payment date as invoice date
         };
 
         console.log('🟢 PAYMENT STEP 3: Calling generateInvoicePDF()...');

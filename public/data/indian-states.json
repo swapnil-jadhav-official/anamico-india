@@ -1,0 +1,218 @@
+[
+  {
+    "id": 1,
+    "name": "Andhra Pradesh",
+    "isoCode": "AP",
+    "countryId": 101
+  },
+  {
+    "id": 2,
+    "name": "Arunachal Pradesh",
+    "isoCode": "AR",
+    "countryId": 101
+  },
+  {
+    "id": 3,
+    "name": "Assam",
+    "isoCode": "AS",
+    "countryId": 101
+  },
+  {
+    "id": 4,
+    "name": "Bihar",
+    "isoCode": "BR",
+    "countryId": 101
+  },
+  {
+    "id": 5,
+    "name": "Chhattisgarh",
+    "isoCode": "CG",
+    "countryId": 101
+  },
+  {
+    "id": 6,
+    "name": "Goa",
+    "isoCode": "GA",
+    "countryId": 101
+  },
+  {
+    "id": 7,
+    "name": "Gujarat",
+    "isoCode": "GJ",
+    "countryId": 101
+  },
+  {
+    "id": 8,
+    "name": "Haryana",
+    "isoCode": "HR",
+    "countryId": 101
+  },
+  {
+    "id": 9,
+    "name": "Himachal Pradesh",
+    "isoCode": "HP",
+    "countryId": 101
+  },
+  {
+    "id": 10,
+    "name": "Jharkhand",
+    "isoCode": "JH",
+    "countryId": 101
+  },
+  {
+    "id": 11,
+    "name": "Karnataka",
+    "isoCode": "KA",
+    "countryId": 101
+  },
+  {
+    "id": 12,
+    "name": "Kerala",
+    "isoCode": "KL",
+    "countryId": 101
+  },
+  {
+    "id": 13,
+    "name": "Madhya Pradesh",
+    "isoCode": "MP",
+    "countryId": 101
+  },
+  {
+    "id": 14,
+    "name": "Maharashtra",
+    "isoCode": "MH",
+    "countryId": 101
+  },
+  {
+    "id": 15,
+    "name": "Manipur",
+    "isoCode": "MN",
+    "countryId": 101
+  },
+  {
+    "id": 16,
+    "name": "Meghalaya",
+    "isoCode": "ML",
+    "countryId": 101
+  },
+  {
+    "id": 17,
+    "name": "Mizoram",
+    "isoCode": "MZ",
+    "countryId": 101
+  },
+  {
+    "id": 18,
+    "name": "Nagaland",
+    "isoCode": "NL",
+    "countryId": 101
+  },
+  {
+    "id": 19,
+    "name": "Odisha",
+    "isoCode": "OR",
+    "countryId": 101
+  },
+  {
+    "id": 20,
+    "name": "Punjab",
+    "isoCode": "PB",
+    "countryId": 101
+  },
+  {
+    "id": 21,
+    "name": "Rajasthan",
+    "isoCode": "RJ",
+    "countryId": 101
+  },
+  {
+    "id": 22,
+    "name": "Sikkim",
+    "isoCode": "SK",
+    "countryId": 101
+  },
+  {
+    "id": 23,
+    "name": "Tamil Nadu",
+    "isoCode": "TN",
+    "countryId": 101
+  },
+  {
+    "id": 24,
+    "name": "Telangana",
+    "isoCode": "TG",
+    "countryId": 101
+  },
+  {
+    "id": 25,
+    "name": "Tripura",
+    "isoCode": "TR",
+    "countryId": 101
+  },
+  {
+    "id": 26,
+    "name": "Uttar Pradesh",
+    "isoCode": "UP",
+    "countryId": 101
+  },
+  {
+    "id": 27,
+    "name": "Uttarakhand",
+    "isoCode": "UT",
+    "countryId": 101
+  },
+  {
+    "id": 28,
+    "name": "West Bengal",
+    "isoCode": "WB",
+    "countryId": 101
+  },
+  {
+    "id": 29,
+    "name": "Andaman and Nicobar Islands",
+    "isoCode": "AN",
+    "countryId": 101
+  },
+  {
+    "id": 30,
+    "name": "Chandigarh",
+    "isoCode": "CH",
+    "countryId": 101
+  },
+  {
+    "id": 31,
+    "name": "Dadra and Nagar Haveli and Daman and Diu",
+    "isoCode": "DD",
+    "countryId": 101
+  },
+  {
+    "id": 32,
+    "name": "Delhi",
+    "isoCode": "DL",
+    "countryId": 101
+  },
+  {
+    "id": 33,
+    "name": "Jammu and Kashmir",
+    "isoCode": "JK",
+    "countryId": 101
+  },
+  {
+    "id": 34,
+    "name": "Ladakh",
+    "isoCode": "LA",
+    "countryId": 101
+  },
+  {
+    "id": 35,
+    "name": "Lakshadweep",
+    "isoCode": "LD",
+    "countryId": 101
+  },
+  {
+    "id": 36,
+    "name": "Puducherry",
+    "isoCode": "PY",
+    "countryId": 101
+  }
+]

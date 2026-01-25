@@ -24,7 +24,6 @@ export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
-  const [phoneOtpSessionId, setPhoneOtpSessionId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -91,11 +90,10 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setPhoneOtpSessionId(data.sessionId);
         setOtpSent(true);
         toast({
           title: "OTP Sent",
-          description: "Check your phone for the OTP code.",
+          description: "Check your WhatsApp for the OTP code.",
         });
         // Focus first OTP input after sending
         setTimeout(() => {
@@ -233,7 +231,7 @@ export default function LoginPage() {
         return;
       }
 
-      // Verify OTP with 2Factor
+      // Verify OTP from WhatsApp
       const verifyRes = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: {
@@ -242,7 +240,6 @@ export default function LoginPage() {
         body: JSON.stringify({
           phoneNumber,
           otp: otpString,
-          sessionId: phoneOtpSessionId,
         }),
       });
 
@@ -303,7 +300,7 @@ export default function LoginPage() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="password">Password</TabsTrigger>
               <TabsTrigger value="otp">Email OTP</TabsTrigger>
-              <TabsTrigger value="phone-otp">Phone OTP</TabsTrigger>
+              <TabsTrigger value="phone-otp">WhatsApp OTP</TabsTrigger>
             </TabsList>
             <TabsContent value="password">
               <form onSubmit={handlePasswordLogin}>
@@ -448,7 +445,7 @@ export default function LoginPage() {
                           ))}
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
-                          Enter the OTP sent to your phone
+                          Enter the OTP sent to your WhatsApp
                         </p>
                       </div>
                     )}

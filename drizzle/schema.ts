@@ -55,6 +55,15 @@ export const verificationToken = mysqlTable(
   })
 );
 
+export const phoneOtp = mysqlTable('phoneOtp', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  phone: varchar('phone', { length: 20 }).notNull(),
+  otp: varchar('otp', { length: 10 }).notNull(),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+  attempts: int('attempts').default(0).notNull(),
+  createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
+});
+
 export const product = mysqlTable('product', {
   id: varchar('id', { length: 255 }).notNull().primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -102,6 +111,7 @@ export const order = mysqlTable('order', {
   subtotal: int('subtotal').notNull(), // Total before tax
   tax: int('tax').notNull(), // Tax amount (18% GST)
   total: int('total').notNull(), // Final total
+  discountAmount: int('discountAmount').default(0).notNull(), // Discount applied (5% on full payment)
   paidAmount: int('paidAmount').default(0).notNull(), // Amount paid so far (for partial payments)
   status: varchar('status', { length: 255 }).default('pending').notNull(), // pending, payment_received, accepted, rejected, shipped, delivered, cancelled
   paymentStatus: varchar('paymentStatus', { length: 255 }).default('pending').notNull(), // pending, partial_payment, completed, failed
