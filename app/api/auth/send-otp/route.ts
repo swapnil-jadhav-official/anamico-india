@@ -38,30 +38,28 @@ export async function POST(req: NextRequest) {
       attempts: 0,
     });
 
-    // Send OTP via BhashSMS WhatsApp SMS
-    // Using stype=auth to consume WhatsApp SMS Credits
-    const phoneWithoutCountryCode = cleanedPhone; // WhatsApp API expects number without 91
-    const messageText = `Your OTP is: ${otp}. Valid for 10 minutes. Do not share with anyone.`;
-
-    const whatsappApiUrl = process.env.BHASMSMS_API_URL;
+    // Send OTP via BhashSMS WhatsApp Authentication Messages
+    const whatsappApiUrl = process.env.BHASMSMS_API_URL || 'https://bhashsms.com/api/sendmsgutil.php';
     const userId = process.env.BHASMSMS_USER_ID;
     const password = process.env.BHASMSMS_PASSWORD;
-    const senderId = process.env.BHASMSMS_SENDER_ID || 'Anamico';
+    const senderName = process.env.BHASMSMS_SENDER_NAME || 'BUZWAP';
+    const templateText = process.env.BHASMSMS_TEMPLATE_TEXT || 'anamicoindia_authentication_01';
 
-    if (!whatsappApiUrl || !userId || !password) {
+    if (!userId || !password) {
       throw new Error('BhashSMS credentials are not configured');
     }
 
-    // Build WhatsApp Authentication OTP Message API URL
-    // API: http://bhashsms.com/api/sendmsg.php?user=...&pass=...&sender=Sender ID&phone=Mobile No&text=TEMPLATENAME&priority=wa&stype=auth&Params=OTP
+    // Build WhatsApp Authentication Message API URL using template
+    // API: https://bhashsms.com/api/sendmsgutil.php?user=...&pass=...&sender=SENDER_NAME&phone=Mobile No&text=TEMPLATE_ID&priority=wa&stype=auth&Params=OTP_VALUE
     const whatsappUrl = new URL(whatsappApiUrl);
     whatsappUrl.searchParams.append('user', userId);
     whatsappUrl.searchParams.append('pass', password);
-    whatsappUrl.searchParams.append('sender', senderId);
-    whatsappUrl.searchParams.append('phone', phoneWithoutCountryCode);
-    whatsappUrl.searchParams.append('text', messageText);
+    whatsappUrl.searchParams.append('sender', senderName);
+    whatsappUrl.searchParams.append('phone', cleanedPhone);
+    whatsappUrl.searchParams.append('text', templateText); // Use template identifier
     whatsappUrl.searchParams.append('priority', 'wa');
     whatsappUrl.searchParams.append('stype', 'auth');
+    whatsappUrl.searchParams.append('Params', otp); // OTP value goes in Params
 
     const whatsappUrlString = whatsappUrl.toString();
     console.log('BhashSMS API URL:', whatsappUrlString);
@@ -75,10 +73,10 @@ export async function POST(req: NextRequest) {
 
     // Check for insufficient credits error
     if (whatsappData.includes('No Sufficient Credits') || whatsappData.includes('insufficient')) {
-      console.error('BhashSMS: Insufficient credits');
+      console.error('BhashSMS: Insufficient WA Utility Credits');
       return NextResponse.json(
         {
-          error: 'WhatsApp service temporarily unavailable. Please contact support or try again later.',
+          error: 'WhatsApp service temporarily unavailable. Please contact support to add more WA Utility Credits.',
           code: 'INSUFFICIENT_CREDITS'
         },
         { status: 503 }
