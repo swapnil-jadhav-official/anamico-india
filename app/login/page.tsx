@@ -5,6 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import OtpInput from "react-otp-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,7 +28,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
-  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -58,10 +58,6 @@ export default function LoginPage() {
           title: "OTP Sent",
           description: "Check your email for the OTP code.",
         });
-        // Focus first OTP input after sending
-        setTimeout(() => {
-          otpInputRefs.current[0]?.focus();
-        }, 100);
       } else {
         const data = await res.json();
         toast({
@@ -95,10 +91,6 @@ export default function LoginPage() {
           title: "OTP Sent",
           description: "Check your WhatsApp for the OTP code.",
         });
-        // Focus first OTP input after sending
-        setTimeout(() => {
-          otpInputRefs.current[0]?.focus();
-        }, 100);
       } else {
         toast({
           variant: "destructive",
@@ -111,39 +103,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleOtpChange = (index: number, value: string) => {
-    // Only allow digits
-    if (value && !/^\d$/.test(value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      // Move to previous input on backspace if current is empty
-      otpInputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").trim();
-
-    // Only process if it's 6 digits
-    if (/^\d{6}$/.test(pastedData)) {
-      const newOtp = pastedData.split("");
-      setOtp(newOtp);
-      // Focus last input
-      otpInputRefs.current[5]?.focus();
-    }
-  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,7 +163,6 @@ export default function LoginPage() {
         console.error("OTP login error:", result.error);
         // Clear OTP on error
         setOtp(["", "", "", "", "", ""]);
-        otpInputRefs.current[0]?.focus();
       } else if (result?.ok) {
         // Login successful - session will update via useSession hook
         // The useEffect will handle the redirect based on user role
@@ -253,7 +211,6 @@ export default function LoginPage() {
         });
         // Clear OTP on error
         setOtp(["", "", "", "", "", ""]);
-        otpInputRefs.current[0]?.focus();
         setIsLoading(false);
         return;
       }
@@ -363,26 +320,29 @@ export default function LoginPage() {
                     </div>
                     {otpSent && (
                       <div className="grid gap-2">
-                        <Label htmlFor="otp-0" className="text-center">Enter 6-Digit OTP</Label>
-                        <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
-                          {otp.map((digit, index) => (
-                            <Input
-                              key={index}
-                              id={`otp-${index}`}
-                              ref={(el) => {
-                                otpInputRefs.current[index] = el;
-                              }}
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={1}
-                              value={digit}
-                              onChange={(e) => handleOtpChange(index, e.target.value)}
-                              onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                              disabled={isLoading}
-                              className="w-12 h-12 text-center text-lg font-semibold"
-                              required
-                            />
-                          ))}
+                        <Label className="text-center">Enter 6-Digit OTP</Label>
+                        <div className="flex justify-center">
+                          <OtpInput
+                            value={otp.join("")}
+                            onChange={(e) => setOtp(e.split(""))}
+                            numInputs={6}
+                            shouldAutoFocus
+                            renderInput={(props) => (
+                              <input
+                                {...props}
+                                style={{
+                                  width: "48px",
+                                  height: "48px",
+                                  fontSize: "18px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #ddd",
+                                  margin: "0 8px",
+                                  textAlign: "center",
+                                  fontWeight: "600",
+                                }}
+                              />
+                            )}
+                          />
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
                           Enter the OTP sent to your email
@@ -423,26 +383,29 @@ export default function LoginPage() {
                     </div>
                     {otpSent && (
                       <div className="grid gap-2">
-                        <Label htmlFor="phone-otp-0" className="text-center">Enter 6-Digit OTP</Label>
-                        <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
-                          {otp.map((digit, index) => (
-                            <Input
-                              key={index}
-                              id={`phone-otp-${index}`}
-                              ref={(el) => {
-                                otpInputRefs.current[index] = el;
-                              }}
-                              type="text"
-                              inputMode="numeric"
-                              maxLength={1}
-                              value={digit}
-                              onChange={(e) => handleOtpChange(index, e.target.value)}
-                              onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                              disabled={isLoading}
-                              className="w-12 h-12 text-center text-lg font-semibold"
-                              required
-                            />
-                          ))}
+                        <Label className="text-center">Enter 6-Digit OTP</Label>
+                        <div className="flex justify-center">
+                          <OtpInput
+                            value={otp.join("")}
+                            onChange={(e) => setOtp(e.split(""))}
+                            numInputs={6}
+                            shouldAutoFocus
+                            renderInput={(props) => (
+                              <input
+                                {...props}
+                                style={{
+                                  width: "48px",
+                                  height: "48px",
+                                  fontSize: "18px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #ddd",
+                                  margin: "0 8px",
+                                  textAlign: "center",
+                                  fontWeight: "600",
+                                }}
+                              />
+                            )}
+                          />
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
                           Enter the OTP sent to your WhatsApp
