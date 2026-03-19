@@ -12,6 +12,7 @@ interface Order {
   shippingCity: string;
   shippingState: string;
   shippingPincode: string;
+  shippingGstNumber?: string;
   subtotal: number;
   tax: number;
   total: number;
@@ -150,6 +151,7 @@ export async function sendInvoiceEmail(order: Order): Promise<void> {
       customerName: order.shippingName,
       customerEmail: order.shippingEmail,
       customerPhone: order.shippingPhone,
+      customerGSTIN: order.shippingGstNumber || undefined,
       shippingAddress: order.shippingAddress,
       shippingCity: order.shippingCity,
       shippingState: order.shippingState,

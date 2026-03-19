@@ -28,6 +28,7 @@ interface ShippingData {
   city: string;
   state: string;
   pincode: string;
+  gstNumber?: string;
 }
 
 export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
@@ -40,6 +41,7 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
     city: "",
     state: "",
     pincode: "",
+    gstNumber: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -114,6 +116,9 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
     if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required";
     if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = "Pincode must be 6 digits";
+    }
+    if (formData.gstNumber && !/^\d{15}$/.test(formData.gstNumber.replace(/\D/g, ""))) {
+      newErrors.gstNumber = "GST number must be 15 digits";
     }
 
     setErrors(newErrors);
@@ -326,6 +331,26 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
               <p className="text-sm text-red-500 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
                 {errors.pincode}
+              </p>
+            )}
+          </div>
+
+          {/* GST Number */}
+          <div className="space-y-2">
+            <Label htmlFor="gstNumber">GST Number (Optional)</Label>
+            <Input
+              id="gstNumber"
+              name="gstNumber"
+              value={formData.gstNumber || ""}
+              onChange={handleChange}
+              placeholder="Enter 15-digit GST number"
+              maxLength={15}
+              className={errors.gstNumber ? "border-red-500" : ""}
+            />
+            {errors.gstNumber && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                {errors.gstNumber}
               </p>
             )}
           </div>

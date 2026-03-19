@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { message } from "antd";
-import { ArrowLeft, Check, X, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Check, X, CheckCircle2, Download } from "lucide-react";
 import Link from "next/link";
 
 interface OrderDetail {
@@ -35,6 +35,7 @@ interface OrderDetail {
   shippingCity: string;
   shippingState: string;
   shippingPincode: string;
+  shippingGstNumber?: string;
   trackingNumber?: string;
   shippingCarrier?: string;
   trackingUrl?: string;
@@ -56,6 +57,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const [shippingCarrier, setShippingCarrier] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false);
 
   const { orderId } = params;
 
@@ -277,6 +279,43 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     return order.total - order.paidAmount;
   };
 
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+
+    try {
+      setIsDownloadingInvoice(true);
+      const res = await fetch(`/api/admin/orders/${order.id}/invoice`);
+
+      if (!res.ok) {
+        throw new Error('Failed to download invoice');
+      }
+
+      // Get the PDF blob
+      const pdfBlob = await res.blob();
+
+      // Create a temporary URL for the blob
+      const blobUrl = window.URL.createObjectURL(pdfBlob);
+
+      // Create a link element and trigger download
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `Invoice-${order.orderNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the URL
+      window.URL.revokeObjectURL(blobUrl);
+
+      message.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      message.error('Failed to download invoice');
+    } finally {
+      setIsDownloadingInvoice(false);
+    }
+  };
+
   if (!mounted || isLoading) {
     return (
       <div className="p-6 text-center text-muted-foreground">
@@ -320,6 +359,14 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
             </div>
           </div>
         </div>
+        <Button
+          onClick={handleDownloadInvoice}
+          disabled={isDownloadingInvoice}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Download className="mr-2 h-4 w-4" />
+          {isDownloadingInvoice ? "Downloading..." : "Download Invoice"}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -375,6 +422,12 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   {order.shippingCity}, {order.shippingState} {order.shippingPincode}
                 </p>
               </div>
+              {order.shippingGstNumber && (
+                <div className="pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">GST Number</p>
+                  <p className="text-sm font-medium">{order.shippingGstNumber}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

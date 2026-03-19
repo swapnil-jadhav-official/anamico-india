@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate shipping data
-    const { name, email, phone, address, city, state, pincode } = shippingData;
+    const { name, email, phone, address, city, state, pincode, gstNumber } = shippingData;
     if (!name || !email || !phone || !address || !city || !state || !pincode) {
       return NextResponse.json(
         { error: 'Incomplete shipping information' },
@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
       shippingCity: city,
       shippingState: state,
       shippingPincode: pincode,
+      shippingGstNumber: gstNumber || null,
     });
 
     // Create order items
@@ -178,6 +179,7 @@ export async function POST(req: NextRequest) {
           city,
           state,
           pincode,
+          gstNumber,
         },
       },
     });

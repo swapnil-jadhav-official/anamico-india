@@ -127,6 +127,7 @@ export const order = mysqlTable('order', {
   shippingCity: varchar('shippingCity', { length: 255 }).notNull(),
   shippingState: varchar('shippingState', { length: 255 }).notNull(),
   shippingPincode: varchar('shippingPincode', { length: 255 }).notNull(),
+  shippingGstNumber: varchar('shippingGstNumber', { length: 255 }),
   // Tracking details
   trackingNumber: varchar('trackingNumber', { length: 255 }), // Courier tracking number
   shippingCarrier: varchar('shippingCarrier', { length: 255 }), // Courier company name

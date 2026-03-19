@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { order, orderItem, user } from '@/drizzle/schema';
+import { order, orderItem } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoice-generator';
 
@@ -10,8 +10,8 @@ import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoi
 export const maxDuration = 60;
 
 /**
- * GET /api/orders/[orderId]/invoice
- * Generate and download invoice PDF for an order
+ * GET /api/admin/orders/[orderId]/invoice
+ * Generate and download invoice PDF for an order (Admin only)
  */
 export async function GET(
   req: NextRequest,
@@ -20,8 +20,8 @@ export async function GET(
   try {
     const session = await getServerSession(authConfig);
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id || session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
     }
 
     const { orderId } = params;
@@ -34,11 +34,6 @@ export async function GET(
 
     if (!existingOrder) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    // Verify order belongs to current user
-    if (existingOrder.userId !== session.user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Fetch order items
