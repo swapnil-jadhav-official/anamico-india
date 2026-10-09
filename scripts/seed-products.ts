@@ -1,7 +1,6 @@
 import { db } from '@/lib/db';
 import { product } from '@/drizzle/schema';
 import { v2 as cloudinary } from 'cloudinary';
-import fetch from 'node:fetch';
 
 // Configure Cloudinary
 cloudinary.config({
