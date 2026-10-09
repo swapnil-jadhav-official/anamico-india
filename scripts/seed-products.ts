@@ -1,6 +1,22 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { db } from '@/lib/db';
 import { product } from '@/drizzle/schema';
 import { v2 as cloudinary } from 'cloudinary';
+
+// Load .env file manually
+const envPath = path.join(process.cwd(), '.env');
+if (fs.existsSync(envPath)) {
+  const envFile = fs.readFileSync(envPath, 'utf-8');
+  envFile.split('\n').forEach(line => {
+    const match = line.match(/^([^=:#]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim().replace(/^["']|["']$/g, '');
+      process.env[key] = value;
+    }
+  });
+}
 
 // Configure Cloudinary
 cloudinary.config({
