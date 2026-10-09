@@ -9,7 +9,9 @@
     "start": "next start",
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:push": "drizzle-kit push",
-    "drizzle:introspect": "drizzle-kit introspect:mysql"
+    "drizzle:introspect": "drizzle-kit introspect:mysql",
+    "db:check": "npx tsx scripts/check-db.ts",
+    "db:clean": "npx tsx scripts/clean-db.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
@@ -51,6 +53,7 @@
     "antd": "^5.27.6",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.11.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",

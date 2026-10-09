@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node scripts/create-downloads-table.js:*)"
+      "Bash(node scripts/create-downloads-table.js:*)",
+      "WebFetch(domain:code.claude.com)",
+      "Bash(ssh:*)",
+      "Read(//c/Users/tejas/.ssh/**)",
+      "Read(//c/Users/tejas/Downloads/**)",
+      "Bash(npm install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
