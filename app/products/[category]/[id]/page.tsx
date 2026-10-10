@@ -167,8 +167,47 @@ export default function ProductDetailPage({ params }: { params: { category: stri
     }
   }
 
+  // Generate JSON-LD structured data for SEO
+  const productSchema = product
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        description: product.description,
+        image: product.image,
+        brand: {
+          '@type': 'Brand',
+          name: product.brand || 'ANAMICO',
+        },
+        offers: {
+          '@type': 'Offer',
+          url: `https://amicocart.com/products/${encodeURIComponent(product.category)}/${product.id}`,
+          priceCurrency: 'INR',
+          price: product.price,
+          priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'ANAMICO India Pvt. Ltd.',
+          },
+        },
+        aggregateRating: product.reviews > 0 ? {
+          '@type': 'AggregateRating',
+          ratingValue: product.rating,
+          reviewCount: product.reviews,
+        } : undefined,
+        sku: product.sku || product.id,
+      }
+    : null
+
   return (
     <div className="min-h-screen flex flex-col">
+      {productSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+      )}
       <ECommerceHeader />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">

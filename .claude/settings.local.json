@@ -17,7 +17,8 @@
       "Bash(whois:*)",
       "Bash(findstr:*)",
       "WebSearch",
-      "Bash(del scriptsfix-categories.ts scriptsfix-categories-db.ts scriptsseed-via-api.ts scriptsseed-products.ts)"
+      "Bash(del scriptsfix-categories.ts scriptsfix-categories-db.ts scriptsseed-via-api.ts scriptsseed-products.ts)",
+      "WebFetch(domain:amicocart.com)"
     ],
     "deny": [],
     "ask": []
