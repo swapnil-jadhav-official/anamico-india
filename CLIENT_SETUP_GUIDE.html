@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANAMICO India - Analytics & SEO Setup Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .intro {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+        }
+
+        .intro h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-number {
+            background: white;
+            color: #667eea;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .section-title {
+            flex: 1;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .section-title .time {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .steps {
+            background: white;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .step:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .step h3 {
+            display: inline;
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .step-content {
+            margin-top: 15px;
+            padding-left: 40px;
+        }
+
+        .step-content p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .step-content ul {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .step-content li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .step-content li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            overflow-x: auto;
+            border: 2px solid #667eea;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .success strong {
+            color: #155724;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info strong {
+            color: #0c5460;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .checklist {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .checklist h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .checklist label {
+            display: block;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+
+        .checklist label:hover {
+            background: #f8f9fa;
+        }
+
+        .checklist input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .step:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Analytics & SEO Setup Guide</h1>
+            <p>ANAMICO India - Complete Configuration Instructions</p>
+        </div>
+
+        <div class="content">
+            <div class="intro">
+                <h2>👋 Welcome!</h2>
+                <p>This guide will help you complete the final configuration steps for your website's analytics and SEO setup. The technical implementation is already complete - you just need to configure your Google accounts.</p>
+                <p><strong>Total Time Required:</strong> Approximately 30 minutes</p>
+                <p><strong>What You'll Set Up:</strong></p>
+                <ul>
+                    <li>Google Analytics 4 (GA4) - Track website visitors and behavior</li>
+                    <li>Google Search Console - Monitor search performance and indexing</li>
+                </ul>
+            </div>
+
+            <!-- SECTION 1: Google Analytics 4 -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">1</div>
+                    <div class="section-title">
+                        <h2>Google Analytics 4 Setup</h2>
+                        <div class="time">⏱️ Estimated time: 15 minutes</div>
+                    </div>
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-number">1.1</span>
+                        <h3>Create Google Analytics Account</h3>
+                        <div class="step-content">
+                            <p><strong>Go to:</strong> <a href="https://analytics.google.com" target="_blank">https://analytics.google.com</a></p>
+                            <ul>
+                                <li>Sign in with your Google account</li>
+                                <li>If you already have a Google Analytics account, skip to step 1.2</li>
+                                <li>If this is your first time, click "Start measuring" button</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.2</span>
+                        <h3>Create GA4 Property</h3>
+                        <div class="step-content">
+                            <p><strong>In Google Analytics Dashboard:</strong></p>
+                            <ul>
+                                <li>Click the <strong>Admin</strong> gear icon (⚙️) at the bottom left</li>
+                                <li>In the "Property" column, click <strong>"Create Property"</strong></li>
+                                <li><strong>Property name:</strong> Enter "ANAMICO India"</li>
+                                <li><strong>Reporting time zone:</strong> Select "India - India Standard Time"</li>
+                                <li><strong>Currency:</strong> Select "Indian Rupee (₹)"</li>
+                                <li>Click <strong>"Next"</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.3</span>
+                        <h3>Business Information</h3>
+                        <div class="step-content">
+                            <p><strong>Fill in the details:</strong></p>
+                            <ul>
+                                <li><strong>Industry category:</strong> Select "Shopping" or "Technology"</li>
+                                <li><strong>Business size:</strong> Select appropriate size</li>
+                                <li><strong>How you intend to use Google Analytics:</strong> Check all relevant options</li>
+                                <li>Click <strong>"Create"</strong></li>
+                                <li>Accept the Terms of Service</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.4</span>
+                        <h3>Set Up Data Stream</h3>
+                        <div class="step-content">
+                            <p><strong>Choose platform:</strong></p>
+                            <ul>
+                                <li>Click <strong>"Web"</strong> platform</li>
+                                <li><strong>Website URL:</strong> Enter <span class="highlight">https://amicocart.com</span></li>
+                                <li><strong>Stream name:</strong> Enter "ANAMICO India Website"</li>
+                                <li>Enable <strong>"Enhanced measurement"</strong> (recommended)</li>
+                                <li>Click <strong>"Create stream"</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.5</span>
+                        <h3>Copy Measurement ID</h3>
+                        <div class="step-content">
+                            <p><strong>Get your tracking code:</strong></p>
+                            <div class="success">
+                                <strong>✅ Important!</strong>
+                                <p>You'll see your <strong>Measurement ID</strong> at the top right. It looks like this:</p>
+                                <div class="code-block">G-XXXXXXXXXX</div>
+                                <p><strong>Copy this ID</strong> - you'll need it in the next step!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.6</span>
+                        <h3>Add Measurement ID to Server</h3>
+                        <div class="step-content">
+                            <p><strong>Connect to your server:</strong></p>
+                            <div class="code-block">ssh root@212.38.94.61</div>
+                            <p><strong>Password:</strong> Pawan@@112233</p>
+
+                            <p style="margin-top: 20px;"><strong>Once connected, edit the .env file:</strong></p>
+                            <div class="code-block">cd /var/www/app<br>nano .env</div>
+
+                            <p style="margin-top: 20px;"><strong>Add this line at the end of the file:</strong></p>
+                            <div class="code-block">NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX</div>
+
+                            <div class="warning">
+                                <strong>⚠️ Important:</strong>
+                                <p>Replace <code>G-XXXXXXXXXX</code> with your actual Measurement ID from step 1.5</p>
+                            </div>
+
+                            <p style="margin-top: 20px;"><strong>Save and exit:</strong></p>
+                            <ul>
+                                <li>Press <code>Ctrl + X</code></li>
+                                <li>Press <code>Y</code> to confirm</li>
+                                <li>Press <code>Enter</code> to save</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.7</span>
+                        <h3>Restart Application</h3>
+                        <div class="step-content">
+                            <p><strong>Still connected to the server, run:</strong></p>
+                            <div class="code-block">source ~/.nvm/nvm.sh<br>pm2 restart amicocart</div>
+
+                            <div class="success">
+                                <strong>✅ Success!</strong>
+                                <p>Google Analytics 4 is now tracking your website! Data will appear in your GA4 dashboard within 24-48 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">1.8</span>
+                        <h3>Verify Tracking (Optional)</h3>
+                        <div class="step-content">
+                            <p><strong>To verify it's working:</strong></p>
+                            <ul>
+                                <li>Visit <a href="https://amicocart.com" target="_blank">https://amicocart.com</a></li>
+                                <li>Go back to Google Analytics dashboard</li>
+                                <li>Click <strong>"Reports" → "Realtime"</strong></li>
+                                <li>You should see yourself as an active user!</li>
+                            </ul>
+                            <div class="info">
+                                <strong>ℹ️ Note:</strong>
+                                <p>Real-time data appears within 1-2 minutes. Historical reports take 24-48 hours to populate.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checklist">
+                    <h4>✅ Google Analytics 4 Checklist</h4>
+                    <label><input type="checkbox"> Created GA4 property</label>
+                    <label><input type="checkbox"> Set up data stream</label>
+                    <label><input type="checkbox"> Copied Measurement ID</label>
+                    <label><input type="checkbox"> Added ID to .env file</label>
+                    <label><input type="checkbox"> Restarted application</label>
+                    <label><input type="checkbox"> Verified tracking in real-time reports</label>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Google Search Console -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">2</div>
+                    <div class="section-title">
+                        <h2>Google Search Console Setup</h2>
+                        <div class="time">⏱️ Estimated time: 15 minutes</div>
+                    </div>
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-number">2.1</span>
+                        <h3>Access Google Search Console</h3>
+                        <div class="step-content">
+                            <p><strong>Go to:</strong> <a href="https://search.google.com/search-console" target="_blank">https://search.google.com/search-console</a></p>
+                            <ul>
+                                <li>Sign in with your Google account (same as GA4)</li>
+                                <li>Click <strong>"Start now"</strong> if it's your first time</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.2</span>
+                        <h3>Add Property</h3>
+                        <div class="step-content">
+                            <p><strong>Choose property type:</strong></p>
+                            <ul>
+                                <li>Click <strong>"Add property"</strong> (top left)</li>
+                                <li>Select <strong>"URL prefix"</strong> option (not Domain)</li>
+                                <li>Enter: <span class="highlight">https://amicocart.com</span></li>
+                                <li>Click <strong>"Continue"</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.3</span>
+                        <h3>Verify Ownership - HTML Tag Method</h3>
+                        <div class="step-content">
+                            <p><strong>Choose verification method:</strong></p>
+                            <ul>
+                                <li>Click on <strong>"HTML tag"</strong> tab</li>
+                                <li>You'll see a meta tag like this:</li>
+                            </ul>
+                            <div class="code-block">&lt;meta name="google-site-verification" content="abc123xyz..." /&gt;</div>
+
+                            <div class="warning">
+                                <strong>⚠️ Important:</strong>
+                                <p>Copy the <strong>content</strong> value (the part after content="..."). You'll need this verification code.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.4</span>
+                        <h3>Add Verification Code to Website</h3>
+                        <div class="step-content">
+                            <p><strong>Connect to your server:</strong></p>
+                            <div class="code-block">ssh root@212.38.94.61</div>
+
+                            <p style="margin-top: 20px;"><strong>Edit the layout file:</strong></p>
+                            <div class="code-block">cd /var/www/app<br>nano app/layout.tsx</div>
+
+                            <p style="margin-top: 20px;"><strong>Find the "verification" section and add your code:</strong></p>
+                            <p>Look for this section:</p>
+                            <div class="code-block">verification: {<br>  // google: 'your-verification-code',<br>},</div>
+
+                            <p style="margin-top: 15px;">Replace it with:</p>
+                            <div class="code-block">verification: {<br>  google: 'abc123xyz...',  // Your actual code here<br>},</div>
+
+                            <div class="info">
+                                <strong>ℹ️ Tip:</strong>
+                                <p>Remove the <code>//</code> and replace <code>your-verification-code</code> with the code you copied from Search Console.</p>
+                            </div>
+
+                            <p style="margin-top: 20px;"><strong>Save and exit:</strong></p>
+                            <ul>
+                                <li>Press <code>Ctrl + X</code></li>
+                                <li>Press <code>Y</code> to confirm</li>
+                                <li>Press <code>Enter</code> to save</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.5</span>
+                        <h3>Build and Restart</h3>
+                        <div class="step-content">
+                            <p><strong>Rebuild the application with new verification code:</strong></p>
+                            <div class="code-block">cd /var/www/app<br>npm run build<br>source ~/.nvm/nvm.sh<br>pm2 restart amicocart</div>
+
+                            <div class="info">
+                                <strong>ℹ️ Note:</strong>
+                                <p>The build process may take 2-3 minutes. Wait for it to complete before proceeding.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.6</span>
+                        <h3>Complete Verification</h3>
+                        <div class="step-content">
+                            <p><strong>Go back to Google Search Console:</strong></p>
+                            <ul>
+                                <li>Click the <strong>"Verify"</strong> button</li>
+                                <li>If successful, you'll see a success message!</li>
+                                <li>If it fails, wait 2-3 minutes and try again</li>
+                            </ul>
+                            <div class="success">
+                                <strong>✅ Verified!</strong>
+                                <p>Your property is now verified in Google Search Console.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.7</span>
+                        <h3>Submit Sitemap</h3>
+                        <div class="step-content">
+                            <p><strong>After verification:</strong></p>
+                            <ul>
+                                <li>In Google Search Console, go to <strong>"Sitemaps"</strong> (left sidebar)</li>
+                                <li>In the "Add a new sitemap" box, enter: <span class="highlight">sitemap.xml</span></li>
+                                <li>Click <strong>"Submit"</strong></li>
+                            </ul>
+                            <div class="success">
+                                <strong>✅ Sitemap Submitted!</strong>
+                                <p>Google will start indexing your pages within 24-48 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">2.8</span>
+                        <h3>Request Indexing (Optional)</h3>
+                        <div class="step-content">
+                            <p><strong>To speed up indexing:</strong></p>
+                            <ul>
+                                <li>Go to <strong>"URL Inspection"</strong> (left sidebar)</li>
+                                <li>Enter your homepage URL: <code>https://amicocart.com</code></li>
+                                <li>Click <strong>"Request Indexing"</strong></li>
+                                <li>Repeat for important pages (product pages, about, contact)</li>
+                            </ul>
+                            <div class="info">
+                                <strong>ℹ️ Note:</strong>
+                                <p>You can request indexing for up to 10 URLs per day. Prioritize your most important pages.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checklist">
+                    <h4>✅ Google Search Console Checklist</h4>
+                    <label><input type="checkbox"> Added property</label>
+                    <label><input type="checkbox"> Copied verification code</label>
+                    <label><input type="checkbox"> Added code to layout.tsx</label>
+                    <label><input type="checkbox"> Rebuilt and restarted application</label>
+                    <label><input type="checkbox"> Completed verification</label>
+                    <label><input type="checkbox"> Submitted sitemap</label>
+                    <label><input type="checkbox"> Requested indexing for key pages</label>
+                </div>
+            </div>
+
+            <!-- VERIFICATION SECTION -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">3</div>
+                    <div class="section-title">
+                        <h2>Verify Everything is Working</h2>
+                        <div class="time">⏱️ Estimated time: 5 minutes</div>
+                    </div>
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-number">3.1</span>
+                        <h3>Test SEO Files</h3>
+                        <div class="step-content">
+                            <p><strong>Open these URLs in your browser:</strong></p>
+                            <ul>
+                                <li><a href="https://amicocart.com/robots.txt" target="_blank">https://amicocart.com/robots.txt</a> - Should show crawling rules</li>
+                                <li><a href="https://amicocart.com/sitemap.xml" target="_blank">https://amicocart.com/sitemap.xml</a> - Should show XML sitemap</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">3.2</span>
+                        <h3>Test Rich Results</h3>
+                        <div class="step-content">
+                            <p><strong>Check if product schema is working:</strong></p>
+                            <ul>
+                                <li>Go to: <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a></li>
+                                <li>Enter a product page URL (e.g., any product from your site)</li>
+                                <li>Should detect "Product" schema with price and availability</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <span class="step-number">3.3</span>
+                        <h3>Check Analytics Tracking</h3>
+                        <div class="step-content">
+                            <p><strong>Verify GA4 is tracking:</strong></p>
+                            <ul>
+                                <li>Visit your website</li>
+                                <li>Open browser DevTools (F12)</li>
+                                <li>Go to Network tab</li>
+                                <li>Filter for "google-analytics" or "gtag"</li>
+                                <li>You should see requests being sent</li>
+                            </ul>
+                            <p style="margin-top: 15px;"><strong>OR check GA4 real-time:</strong></p>
+                            <ul>
+                                <li>Go to Google Analytics dashboard</li>
+                                <li>Click "Reports" → "Realtime"</li>
+                                <li>Visit your website in another tab</li>
+                                <li>You should appear as an active user</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPECTED RESULTS -->
+            <div class="section">
+                <div class="info">
+                    <strong>📊 What to Expect After Setup:</strong>
+                    <ul style="list-style: none; margin-top: 15px;">
+                        <li style="padding: 8px 0;">
+                            <strong>Within 24 Hours:</strong>
+                            <ul style="margin-top: 5px;">
+                                <li>✅ Google Analytics tracking live traffic</li>
+                                <li>✅ Search Console showing property data</li>
+                                <li>✅ Sitemap submitted and processing</li>
+                            </ul>
+                        </li>
+                        <li style="padding: 8px 0; margin-top: 10px;">
+                            <strong>Within 1 Week:</strong>
+                            <ul style="margin-top: 5px;">
+                                <li>✅ Pages appearing in Google Search Console</li>
+                                <li>✅ Search performance data starting</li>
+                                <li>✅ Analytics showing visitor patterns</li>
+                            </ul>
+                        </li>
+                        <li style="padding: 8px 0; margin-top: 10px;">
+                            <strong>Within 1 Month:</strong>
+                            <ul style="margin-top: 5px;">
+                                <li>✅ Full indexing of all pages</li>
+                                <li>✅ Rich results in Google Search (ratings, prices)</li>
+                                <li>✅ Complete analytics insights</li>
+                                <li>✅ Improved search rankings</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- TROUBLESHOOTING -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">❓</div>
+                    <div class="section-title">
+                        <h2>Troubleshooting</h2>
+                    </div>
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <h3>Problem: Can't see analytics data</h3>
+                        <div class="step-content">
+                            <p><strong>Solution:</strong></p>
+                            <ul>
+                                <li>Wait 24-48 hours for data to appear</li>
+                                <li>Check if Measurement ID is correct in .env file</li>
+                                <li>Verify application was restarted after adding ID</li>
+                                <li>Use Realtime reports to see immediate data</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <h3>Problem: Search Console verification fails</h3>
+                        <div class="step-content">
+                            <p><strong>Solution:</strong></p>
+                            <ul>
+                                <li>Verify the code was added correctly in layout.tsx</li>
+                                <li>Check that you rebuilt the application (npm run build)</li>
+                                <li>Wait 2-3 minutes after restart before verifying</li>
+                                <li>Try verifying again - sometimes it takes a moment</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <h3>Problem: Sitemap not found</h3>
+                        <div class="step-content">
+                            <p><strong>Solution:</strong></p>
+                            <ul>
+                                <li>Visit https://amicocart.com/sitemap.xml directly</li>
+                                <li>If it shows 404, the build might have failed</li>
+                                <li>Run <code>npm run build</code> again on server</li>
+                                <li>Restart with <code>pm2 restart amicocart</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUICK REFERENCE -->
+            <div class="section">
+                <div class="success" style="padding: 30px;">
+                    <strong>📝 Quick Reference - Important Links:</strong>
+                    <ul style="list-style: none; margin-top: 15px; line-height: 2;">
+                        <li>🔗 <strong>Google Analytics:</strong> <a href="https://analytics.google.com" target="_blank">analytics.google.com</a></li>
+                        <li>🔗 <strong>Google Search Console:</strong> <a href="https://search.google.com/search-console" target="_blank">search.google.com/search-console</a></li>
+                        <li>🔗 <strong>Rich Results Test:</strong> <a href="https://search.google.com/test/rich-results" target="_blank">search.google.com/test/rich-results</a></li>
+                        <li>🔗 <strong>Your robots.txt:</strong> <a href="https://amicocart.com/robots.txt" target="_blank">amicocart.com/robots.txt</a></li>
+                        <li>🔗 <strong>Your sitemap:</strong> <a href="https://amicocart.com/sitemap.xml" target="_blank">amicocart.com/sitemap.xml</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding: 40px 0;">
+                <div class="success">
+                    <strong style="font-size: 1.5em;">🎉 Congratulations!</strong>
+                    <p style="margin-top: 15px; font-size: 1.1em;">Your website is now fully equipped with professional analytics and SEO capabilities!</p>
+                    <p style="margin-top: 10px;">You can now track visitors, monitor search performance, and appear in rich search results.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>ANAMICO India - Analytics & SEO Setup Guide</strong></p>
+            <p style="margin-top: 10px; opacity: 0.8;">For questions or support, please contact your development team</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">Document Version 1.0 | Created: October 10, 2026</p>
+        </div>
+    </div>
+</body>
+</html>
