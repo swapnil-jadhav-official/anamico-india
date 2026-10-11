@@ -317,7 +317,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button className="flex-1 sm:max-w-xs" size="lg" disabled={!product.inStock} onClick={handleAddToCart}>
+                  <Button className="flex-1 sm:max-w-xs px-6 py-3" size="lg" disabled={!product.inStock} onClick={handleAddToCart}>
                     <ShoppingCart className="h-5 w-5 mr-2" />
                     Add to Cart
                   </Button>
@@ -334,7 +334,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:max-w-xs bg-transparent"
+                  className="w-full sm:max-w-xs bg-transparent px-6 py-3"
                   disabled={!product.inStock}
                   onClick={handleBuyNow}
                 >
