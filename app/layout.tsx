@@ -59,8 +59,7 @@ export const metadata: Metadata = {
     canonical: 'https://amicocart.com',
   },
   verification: {
-    // Add Google Search Console verification code when available
-    // google: 'your-verification-code',
+    google: 'lAkuP32FVO5LqAJ5zkQxmQj004Jw8wLxx8h7oZ-kgOk',
   },
   icons: {
     icon: [
