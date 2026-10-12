@@ -8,6 +8,7 @@ import { CartProvider } from "@/lib/cart-context"
 import { WishlistProvider } from "@/lib/wishlist-context"
 import { Toaster } from "@/components/ui/toaster"
 import { GoogleAnalytics } from "@/components/google-analytics"
+import { MobileAppDownload } from "@/components/mobile-app-download"
 import "./globals.css"
 import { NextAuthSessionProvider } from "./session-provider"
 
@@ -92,6 +93,7 @@ export default function RootLayout({
             <WishlistProvider>
               <Suspense fallback={null}>{children}</Suspense>
               <Toaster />
+              <MobileAppDownload />
             </WishlistProvider>
           </CartProvider>
         </NextAuthSessionProvider>
