@@ -65,7 +65,7 @@ export function MobileAppDownload() {
           <Button
             onClick={() => setIsPopoverOpen(true)}
             size="lg"
-            className="rounded-full h-14 w-14 shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="rounded-full h-14 w-14 shadow-lg bg-primary hover:bg-primary/90"
           >
             <Smartphone className="h-6 w-6" />
           </Button>
@@ -79,8 +79,8 @@ export function MobileAppDownload() {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                    <Smartphone className="h-5 w-5 text-white" />
+                  <div className="p-2 bg-primary rounded-lg">
+                    <Smartphone className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Download Our App</CardTitle>
@@ -108,7 +108,7 @@ export function MobileAppDownload() {
                 {deviceType === "android" && (
                   <Button
                     onClick={handleDownload}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full"
                     size="lg"
                   >
                     <Download className="mr-2 h-4 w-4" />
@@ -120,7 +120,7 @@ export function MobileAppDownload() {
                   <>
                     <Button
                       onClick={handleInstallPWA}
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      className="w-full"
                       size="lg"
                     >
                       <Smartphone className="mr-2 h-4 w-4" />
