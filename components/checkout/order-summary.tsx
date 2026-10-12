@@ -24,8 +24,8 @@ export function OrderSummary({ items }: OrderSummaryProps) {
     }, 0)
   );
 
-  // Calculate effective tax percentage
-  const effectiveTaxPercent = subtotal > 0 ? Math.round((tax / subtotal) * 100 * 10) / 10 : 18;
+  // Get actual tax percentage from items (not calculated from rounded amounts)
+  const displayTaxPercent = items.length > 0 ? (items[0].taxPercentage || 18) : 18;
 
   const total = subtotal + tax;
 
@@ -139,7 +139,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
             <span className="font-medium">₹{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Tax ({effectiveTaxPercent}%)</span>
+            <span className="text-muted-foreground">Tax ({displayTaxPercent}%)</span>
             <span className="font-medium">₹{tax.toLocaleString()}</span>
           </div>
           <div className="border-t pt-2 flex justify-between text-base">

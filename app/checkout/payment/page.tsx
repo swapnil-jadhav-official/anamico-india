@@ -92,9 +92,9 @@ export default function PaymentPage() {
     : Math.round((orderData.total * selectedPaymentPercent) / 100);
   const remainingAmount = selectedPaymentPercent === 100 ? 0 : orderData.total - partialAmount;
 
-  // Calculate effective tax percentage
-  const effectiveTaxPercent = orderData.subtotal > 0
-    ? Math.round((orderData.tax / orderData.subtotal) * 100 * 10) / 10
+  // Get actual tax percentage from order items (not calculated from rounded amounts)
+  const displayTaxPercent = orderData.items && orderData.items.length > 0
+    ? orderData.items[0].taxPercentage || 18
     : 18;
 
   return (
@@ -300,7 +300,7 @@ export default function PaymentPage() {
                       <p className="font-semibold">₹{orderData.subtotal.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Tax ({effectiveTaxPercent}%)</p>
+                      <p className="text-sm text-muted-foreground">Tax ({displayTaxPercent}%)</p>
                       <p className="font-semibold">₹{orderData.tax.toLocaleString()}</p>
                     </div>
                     <div className="border-t pt-4">
