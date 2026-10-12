@@ -124,25 +124,14 @@ export function MobileAppDownload() {
                 )}
 
                 {deviceType === "ios" && (
-                  <>
-                    <Button
-                      onClick={handleInstallPWA}
-                      className="w-full"
-                      size="lg"
-                    >
-                      <Smartphone className="mr-2 h-4 w-4" />
-                      Install as App
-                    </Button>
-                    <Button
-                      onClick={handleDownload}
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download IPA (Testflight)
-                    </Button>
-                  </>
+                  <Button
+                    onClick={handleInstallPWA}
+                    className="w-full"
+                    size="lg"
+                  >
+                    <Smartphone className="mr-2 h-4 w-4" />
+                    Install as App
+                  </Button>
                 )}
               </div>
 
