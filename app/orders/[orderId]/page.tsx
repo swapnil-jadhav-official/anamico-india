@@ -107,9 +107,13 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     }
   };
 
-  const getEffectiveTaxPercent = () => {
-    if (!order || order.subtotal === 0) return 18;
-    return Math.round((order.tax / order.subtotal) * 100 * 10) / 10;
+  const getDisplayTaxPercent = () => {
+    if (!order) return 18;
+    // Get actual tax percentage from order items (not calculated from rounded amounts)
+    if (order.items && order.items.length > 0) {
+      return order.items[0].taxPercentage || 18;
+    }
+    return 18;
   };
 
   const getOrderSteps = (status: string) => {
@@ -464,7 +468,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                       <span>₹{order.subtotal.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tax ({getEffectiveTaxPercent()}%)</span>
+                      <span className="text-muted-foreground">Tax ({getDisplayTaxPercent()}%)</span>
                       <span>₹{order.tax.toLocaleString()}</span>
                     </div>
                     <div className="border-t pt-2 flex justify-between">
