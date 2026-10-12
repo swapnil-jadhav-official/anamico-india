@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Download, Smartphone } from "lucide-react";
+import { X, Download, Smartphone, Share2, Plus, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function MobileAppDownload() {
   const [isVisible, setIsVisible] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
   const [deviceType, setDeviceType] = useState<"android" | "ios" | "desktop">("desktop");
 
   useEffect(() => {
@@ -50,8 +58,7 @@ export function MobileAppDownload() {
 
   const handleInstallPWA = () => {
     if (deviceType === "ios") {
-      // Show iOS PWA install instructions
-      alert("To install:\n1. Tap the Share button\n2. Tap 'Add to Home Screen'\n3. Tap 'Add'");
+      setShowIOSInstructions(true);
     }
   };
 
@@ -151,6 +158,80 @@ export function MobileAppDownload() {
           </Card>
         </div>
       )}
+
+      {/* iOS Installation Instructions Dialog */}
+      <Dialog open={showIOSInstructions} onOpenChange={setShowIOSInstructions}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-primary" />
+              Install ANAMICO App
+            </DialogTitle>
+            <DialogDescription>
+              Follow these simple steps to install the app on your iPhone
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Step 1 */}
+            <div className="flex gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                1
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <Share2 className="h-5 w-5 text-blue-500" />
+                  <p className="font-medium">Tap the Share button</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Located at the bottom of your Safari browser
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                2
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-5 w-5 text-green-500" />
+                  <p className="font-medium">Select "Add to Home Screen"</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Scroll down in the menu to find this option
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                3
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <p className="font-medium">Tap "Add"</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  The app will appear on your home screen
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 text-sm text-blue-900 dark:text-blue-100">
+              <p className="font-medium mb-1">💡 Quick Tip</p>
+              <p className="text-xs">
+                The app will work just like a native app with full offline support!
+              </p>
+            </div>
+          </div>
+          <Button onClick={() => setShowIOSInstructions(false)} className="w-full">
+            Got it!
+          </Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
