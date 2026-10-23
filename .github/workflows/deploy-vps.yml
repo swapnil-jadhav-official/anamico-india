@@ -31,7 +31,7 @@ jobs:
           cd /var/www/app
           git fetch origin main
           git merge --ff-only origin/main
-          npm ci
+          npm ci --legacy-peer-deps
           npm run build
           pm2 restart all
           sleep 5
