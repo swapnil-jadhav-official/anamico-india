@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, taxPercentage } = await req.json();
+  const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, taxPercentage, warranty } = await req.json();
 
   if (!name || !category) {
     return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
       options: options ? JSON.stringify(options) : null,
       price: regularPrice ? parseInt(regularPrice) : 0, // Assuming regularPrice is the main price
       taxPercentage: taxPercentage ? parseInt(taxPercentage) : 18, // Default to 18% if not provided
+      warranty: warranty || 'no-warranty',
       category,
       imageUrl,
       galleryImages: galleryImages ? JSON.stringify(galleryImages) : JSON.stringify([]),

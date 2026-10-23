@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
       galleryImages: prod.galleryImages ? JSON.parse(prod.galleryImages) : [],
       stock: prod.stock,
       sku: prod.sku,
+      warranty: prod.warranty,
     }));
 
     return NextResponse.json(transformedProducts);

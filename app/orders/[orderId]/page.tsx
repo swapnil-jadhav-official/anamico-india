@@ -23,6 +23,7 @@ interface OrderDetail {
   orderNumber: string;
   status: string;
   paymentStatus: string;
+  paymentId?: string | null;
   subtotal: number;
   tax: number;
   total: number;
@@ -504,6 +505,12 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                     </div>
                   </div>
                   <div className="space-y-2 pt-2 border-t">
+                    {order.paymentId && (
+                      <div className="flex justify-between gap-4 text-sm">
+                        <span className="text-muted-foreground">Payment Reference</span>
+                        <span className="font-mono text-xs break-all text-right">{order.paymentId}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Paid</span>
                       <span className="font-semibold">

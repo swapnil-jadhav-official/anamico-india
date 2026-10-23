@@ -30,7 +30,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     // Full product update
-    const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, isActive, taxPercentage } = body;
+    const { name, brand, description, features, regularPrice, salePrice, sku, stock, availability, technicalSpecifications, hardwareSpecifications, options, category, imageUrl, galleryImages, isActive, taxPercentage, warranty } = body;
 
     if (!name || !category) {
       return NextResponse.json({ error: 'Name and category are required' }, { status: 400 });
@@ -51,6 +51,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       options: options ? JSON.stringify(options) : null,
       price: regularPrice ? parseInt(regularPrice) : 0,
       taxPercentage: taxPercentage ? parseInt(taxPercentage) : 18,
+      warranty: warranty || 'no-warranty',
       category,
       imageUrl,
       galleryImages: galleryImages ? JSON.stringify(galleryImages) : JSON.stringify([]),

@@ -80,6 +80,7 @@ export const product = mysqlTable('product', {
   options: text('options'), // Stored as JSON string
   price: int('price').notNull(), // Keeping original price field, assuming it's the final price
   taxPercentage: int('taxPercentage').default(18).notNull(), // Tax percentage (e.g., 18 for 18% GST)
+  warranty: varchar('warranty', { length: 50 }), // e.g., no-warranty, 1-month, 1-year (see lib/warranty.ts); null on products saved before this field existed
   category: varchar('category', { length: 255 }).notNull(),
   imageUrl: varchar('imageUrl', { length: 255 }),
   galleryImages: text('galleryImages'), // Stored as JSON string array of image URLs

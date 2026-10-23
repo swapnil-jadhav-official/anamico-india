@@ -17,6 +17,7 @@ import { useState, useEffect } from "react"
 import { ProductCard } from "@/components/product-card"
 import { notFound } from "next/navigation"
 import { ProductReviews } from "@/components/product/product-reviews"
+import { getWarrantyLabel } from "@/lib/warranty"
 import { ReviewForm } from "@/components/product/review-form"
 import { useSession } from "next-auth/react"
 
@@ -40,6 +41,7 @@ interface Product {
   galleryImages?: string[]
   stock?: number
   sku?: string
+  warranty?: string | null
 }
 
 export default function ProductDetailPage({ params }: { params: { category: string; id: string } }) {
@@ -356,7 +358,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                   <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-medium text-sm">Warranty</p>
-                    <p className="text-xs text-muted-foreground">1 Year warranty</p>
+                    <p className="text-xs text-muted-foreground">{(product.warranty ?? "no-warranty") === "no-warranty" ? "No warranty" : `${getWarrantyLabel(product.warranty ?? "no-warranty")} warranty`}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -429,7 +431,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
                         </div>
                         <div className="flex justify-between py-2 border-b text-sm">
                           <dt className="text-muted-foreground">Warranty</dt>
-                          <dd className="font-medium">1 Year</dd>
+                          <dd className="font-medium">{getWarrantyLabel(product.warranty ?? "no-warranty")}</dd>
                         </div>
                       </dl>
                     </div>

@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CloudUploadOutlined, PlusCircleOutlined, DeleteOutlined, CloseOutlined, EyeOutlined, ClearOutlined } from "@ant-design/icons";
 import { ProductPreviewModal } from "./product-preview-modal";
+import { WARRANTY_OPTIONS, DEFAULT_WARRANTY } from "@/lib/warranty";
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,6 +39,7 @@ type ProductData = {
   stock: string;
   availability: string;
   taxPercentage: string;
+  warranty: string;
   technicalSpecifications: { key: string; value: string }[];
   hardwareSpecifications: { key: string; value: string }[];
   options: { name: string; values: string }[];
@@ -64,6 +66,7 @@ const initialProductState = {
   stock: "",
   availability: "in-stock",
   taxPercentage: "18",
+  warranty: DEFAULT_WARRANTY,
   technicalSpecifications: [{ key: "", value: "" }],
   hardwareSpecifications: [{ key: "", value: "" }],
   options: [{ name: "", values: "" }],
@@ -228,6 +231,7 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
         stock: product.stock || "",
         availability: product.availability || "in-stock",
         taxPercentage: String(product.taxPercentage || "18"),
+        warranty: product.warranty || DEFAULT_WARRANTY,
         technicalSpecifications: parsedTechSpecs,
         hardwareSpecifications: parsedHardwareSpecs,
         options: parsedOptions,
@@ -632,6 +636,17 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
                     </div>
                 </div>
                 <div className="grid gap-2"><Label htmlFor="availability">Availability</Label><Select onValueChange={(v) => handleSelectChange('availability', v)} value={productData.availability}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="in-stock">In Stock</SelectItem><SelectItem value="out-of-stock">Out of Stock</SelectItem><SelectItem value="pre-order">Pre-order</SelectItem></SelectContent></Select></div>
+                <div className="grid gap-2">
+                    <Label htmlFor="warranty">Warranty</Label>
+                    <Select onValueChange={(v) => handleSelectChange('warranty', v)} value={productData.warranty}>
+                        <SelectTrigger id="warranty"><SelectValue placeholder="Select warranty" /></SelectTrigger>
+                        <SelectContent>
+                            {WARRANTY_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div className="grid gap-2">
                     <Label htmlFor="taxPercentage">Tax Percentage (%) <span className="text-red-500">*</span></Label>
                     <Input id="taxPercentage" type="number" min="0" max="100" step="0.1" value={productData.taxPercentage} onChange={handleInputChange} placeholder="e.g., 18 for 18% GST" />

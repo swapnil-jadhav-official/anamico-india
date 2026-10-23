@@ -57,6 +57,13 @@
       "when": 1763986937015,
       "tag": "0007_icy_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1761264000000,
+      "tag": "0008_add_warranty_to_product",
+      "breakpoints": true
     }
   ]
 }
