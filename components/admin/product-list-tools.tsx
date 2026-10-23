@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -17,7 +16,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,16 +36,12 @@ export function ProductListTools({
 }) {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
-  const handleEdit = () => {
-    if (selectedProduct) {
-      onEditProduct(selectedProduct);
-    }
-  };
+  const [rowDeleteTarget, setRowDeleteTarget] = useState<any | null>(null);
 
-  const handleDelete = async () => {
-    if (selectedProduct) {
+  const deleteProduct = async (product: any) => {
+    if (product) {
       try {
-        const res = await fetch(`/api/admin/products/${selectedProduct.id}`, {
+        const res = await fetch(`/api/admin/products/${product.id}`, {
           method: "DELETE",
         });
 
@@ -138,48 +132,55 @@ export function ProductListTools({
                   onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking switch
                   aria-label="Toggle product status"
                 />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Edit product"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditProduct(product);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Delete product"
+                  className="text-destructive hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRowDeleteTarget(product);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2 pt-4 border-t mt-auto">
-        <Button
-          onClick={handleEdit}
-          disabled={!selectedProduct}
-          className="flex-1"
-        >
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Selected
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              disabled={!selectedProduct}
-              variant="destructive"
-              className="flex-1"
+      <AlertDialog open={!!rowDeleteTarget} onOpenChange={(open) => !open && setRowDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete {rowDeleteTarget?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                deleteProduct(rowDeleteTarget);
+                setRowDeleteTarget(null);
+              }}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Selected
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                product.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardFooter>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

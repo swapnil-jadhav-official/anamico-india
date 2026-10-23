@@ -501,7 +501,7 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                     </span>
                   </div>
                 )}
-                {getPaymentPercentage() === 100 && order?.discountAmount && order.discountAmount > 0 && (
+                {getPaymentPercentage() === 100 && (order?.discountAmount ?? 0) > 0 && (
                   <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950 p-2 rounded">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="font-medium">Fully Paid (with {getDiscountPercentage()}% discount - ₹{order.discountAmount})</span>

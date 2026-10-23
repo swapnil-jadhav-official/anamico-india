@@ -758,7 +758,12 @@ export function ProductStepperForm({ product, onSubmit, isSubmitting }: { produc
               <EyeOutlined style={{ marginRight: '4px' }} /> Preview
             </Button>
           )}
-          {currentStep < steps.length ? <Button onClick={handleNext}>Next Step</Button> : <Button onClick={handleFormSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700">{isSubmitting ? 'Submitting...' : 'Submit Product'}</Button>}
+          {product && currentStep < steps.length && (
+            <Button onClick={handleFormSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          )}
+          {currentStep < steps.length ? <Button onClick={handleNext}>Next Step</Button> :<Button onClick={handleFormSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700">{isSubmitting ? 'Submitting...' : 'Submit Product'}</Button>}
         </div>
       </CardFooter>
 
