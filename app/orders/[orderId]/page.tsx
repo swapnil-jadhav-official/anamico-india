@@ -103,6 +103,8 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
         return <Badge className="bg-blue-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Shipped</Badge>;
       case "delivered":
         return <Badge className="bg-green-700 text-sm sm:text-lg px-2 sm:px-3 py-1">Delivered</Badge>;
+      case "returned":
+        return <Badge className="bg-orange-600 text-sm sm:text-lg px-2 sm:px-3 py-1">Returned</Badge>;
       default:
         return <Badge className="text-sm sm:text-lg px-2 sm:px-3 py-1">{status}</Badge>;
     }

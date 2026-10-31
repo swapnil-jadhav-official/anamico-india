@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { message } from "antd";
 import { ArrowLeft, Check, X, CheckCircle2, Download } from "lucide-react";
 import Link from "next/link";
@@ -493,7 +495,32 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
               <div>
                 <p className="font-semibold">{order.shippingName}</p>
                 <p className="text-sm text-muted-foreground">{order.shippingEmail}</p>
-                <p className="text-sm text-muted-foreground">{order.shippingPhone}</p>
+                {isEditingPhone ? (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <Input
+                      value={phoneDraft}
+                      onChange={(e) => setPhoneDraft(e.target.value)}
+                      placeholder="10-digit mobile"
+                      className="h-8 max-w-[180px]"
+                    />
+                    <Button size="sm" onClick={handleSavePhone} disabled={isProcessing}>Save</Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingPhone(false)} disabled={isProcessing}>Cancel</Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">{order.shippingPhone}</p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setPhoneDraft(order.shippingPhone);
+                        setIsEditingPhone(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="pt-4 border-t">
                 <p className="text-sm whitespace-pre-wrap">{order.shippingAddress}</p>
@@ -715,13 +742,38 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button
-                  onClick={() => setActionType("deliver")}
-                  disabled={isProcessing}
-                  className="w-full bg-green-700 hover:bg-green-800"
-                >
-                  {isProcessing ? "Processing..." : "Mark as Delivered"}
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => setActionType("deliver")}
+                    disabled={isProcessing}
+                    className="w-full bg-green-700 hover:bg-green-800"
+                  >
+                    {isProcessing ? "Processing..." : "Mark as Delivered"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setActionType("return")}
+                    disabled={isProcessing}
+                    className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+                  >
+                    Mark as Returned
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {order.status === "returned" && (
+            <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950">
+              <CardHeader>
+                <CardTitle className="text-base">Returned to Us</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm whitespace-pre-wrap">{order.returnRemark || "No remark added"}</p>
+                {order.returnedAt && (
+                  <p className="text-xs text-muted-foreground">
+                    Returned on {new Date(order.returnedAt).toLocaleString()}
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
@@ -900,6 +952,44 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
                   className="flex-1 bg-green-700 hover:bg-green-800"
                 >
                   {isProcessing ? "Processing..." : "Confirm Delivery"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {actionType === "return" && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Mark as Returned</CardTitle>
+              <CardDescription>
+                Explain why this order came back to us
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={returnRemark}
+                onChange={(e) => setReturnRemark(e.target.value)}
+                placeholder="e.g., Customer not available, wrong address, refused delivery"
+                rows={4}
+              />
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setActionType(null)}
+                  disabled={isProcessing}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleReturn}
+                  disabled={isProcessing || !returnRemark.trim()}
+                  className="flex-1 bg-orange-600 hover:bg-orange-700"
+                >
+                  {isProcessing ? "Processing..." : "Confirm Return"}
                 </Button>
               </div>
             </CardContent>
