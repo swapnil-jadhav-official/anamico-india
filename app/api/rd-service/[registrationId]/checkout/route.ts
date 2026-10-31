@@ -81,7 +81,8 @@ export async function POST(
           razorpayOrder.id,
           amount,
           registration.email,
-          registration.customerName
+          registration.customerName,
+          registration.mobile
         );
       } catch (error) {
         console.error('Razorpay API error:', error);
@@ -101,7 +102,8 @@ export async function POST(
         razorpayOrder.id,
         amount,
         registration.email,
-        registration.customerName
+        registration.customerName,
+        registration.mobile
       );
     }
 

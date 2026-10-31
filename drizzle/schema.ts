@@ -135,6 +135,8 @@ export const order = mysqlTable('order', {
   trackingUrl: varchar('trackingUrl', { length: 500 }), // Tracking URL for customer
   shippedAt: timestamp('shippedAt', { mode: 'date' }), // When order was shipped
   deliveredAt: timestamp('deliveredAt', { mode: 'date' }), // When order was delivered
+  returnRemark: text('returnRemark'), // Why the order came back (status: returned)
+  returnedAt: timestamp('returnedAt', { mode: 'date' }), // When order was returned
   createdAt: timestamp('createdAt', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 });

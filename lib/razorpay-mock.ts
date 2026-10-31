@@ -146,7 +146,8 @@ export const generateMockCheckoutOptions = (
   orderId: string,
   amount: number,
   userEmail: string,
-  userName: string
+  userName: string,
+  userPhone: string
 ) => {
   return {
     key: getMockRazorpayConfig().key_id,
@@ -162,6 +163,10 @@ export const generateMockCheckoutOptions = (
     prefill: {
       name: userName,
       email: userEmail,
+      contact: userPhone,
+    },
+    readonly: {
+      contact: true,
     },
     theme: {
       color: '#3399cc',

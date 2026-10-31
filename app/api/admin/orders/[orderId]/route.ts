@@ -76,11 +76,11 @@ export async function PATCH(
 
     const { orderId } = params;
     const body = await req.json();
-    const { action, adminNotes, rejectionReason, trackingNumber, shippingCarrier, trackingUrl } = body;
+    const { action, adminNotes, rejectionReason, trackingNumber, shippingCarrier, trackingUrl, returnRemark, shippingPhone } = body;
 
-    if (!action || !['approve', 'reject', 'ship', 'deliver'].includes(action)) {
+    if (!action || !['approve', 'reject', 'ship', 'deliver', 'return', 'update_phone'].includes(action)) {
       return NextResponse.json(
-        { error: 'Invalid action. Must be "approve", "reject", "ship", or "deliver"' },
+        { error: 'Invalid action. Must be "approve", "reject", "ship", "deliver", "return", or "update_phone"' },
         { status: 400 }
       );
     }
@@ -121,6 +121,28 @@ export async function PATCH(
         { error: 'Order cannot be delivered. It must be in "shipped" status.' },
         { status: 400 }
       );
+    }
+
+    if (action === 'return' && existingOrder.status !== 'shipped') {
+      return NextResponse.json(
+        { error: 'Order cannot be returned. It must be in "shipped" status.' },
+        { status: 400 }
+      );
+    }
+
+    if (action === 'update_phone') {
+      const cleanedPhone = String(shippingPhone || '').replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
+      if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
+        return NextResponse.json(
+          { error: 'Enter a valid 10-digit mobile number (starts with 6-9)' },
+          { status: 400 }
+        );
+      }
+      await db
+        .update(order)
+        .set({ shippingPhone: cleanedPhone, updatedAt: new Date() })
+        .where(eq(order.id, orderId));
+      return NextResponse.json({ message: 'Customer phone updated', shippingPhone: cleanedPhone });
     }
 
     let updateData: any = {
@@ -193,6 +215,24 @@ export async function PATCH(
         paymentCompleted: true,
         paidAmount: existingOrder.total,
         total: existingOrder.total,
+      });
+    } else if (action === 'return') {
+      // Order came back to us - keep the reason so the team can see why
+      if (!returnRemark || !String(returnRemark).trim()) {
+        return NextResponse.json(
+          { error: 'returnRemark is required to mark an order as returned' },
+          { status: 400 }
+        );
+      }
+      updateData.status = 'returned';
+      updateData.returnRemark = String(returnRemark).trim();
+      updateData.returnedAt = new Date();
+      successMessage = 'Order marked as returned.';
+
+      console.log('Order returned:', {
+        orderId,
+        returnRemark,
+        returnedAt: new Date(),
       });
     }
 

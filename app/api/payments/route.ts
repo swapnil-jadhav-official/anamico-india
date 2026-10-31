@@ -126,7 +126,8 @@ async function handleCreatePayment(_req: NextRequest, body: any) {
           razorpayOrder.id,
           paymentAmount,
           session.user.email,
-          session.user.name || 'Customer'
+          session.user.name || 'Customer',
+          currentOrder.shippingPhone.trim()
         );
       } catch (error) {
         console.error('Razorpay API error:', error);
@@ -146,7 +147,8 @@ async function handleCreatePayment(_req: NextRequest, body: any) {
         razorpayOrder.id,
         paymentAmount,
         session.user.email,
-        session.user.name || 'Customer'
+        session.user.name || 'Customer',
+        currentOrder.shippingPhone.trim()
       );
     }
 

@@ -222,7 +222,8 @@ export const generateCheckoutOptions = (
   orderId: string,
   amount: number,
   userEmail: string,
-  userName: string
+  userName: string,
+  userPhone: string
 ) => {
   return {
     key: KEY_ID,
@@ -238,6 +239,11 @@ export const generateCheckoutOptions = (
     prefill: {
       name: userName,
       email: userEmail,
+      contact: userPhone,
+    },
+    // Lock the contact so the customer can't change the number on the Razorpay screen
+    readonly: {
+      contact: true,
     },
     theme: {
       color: "#3399cc",

@@ -42,6 +42,8 @@ interface OrderDetail {
   trackingUrl?: string;
   shippedAt?: string;
   deliveredAt?: string;
+  returnRemark?: string | null;
+  returnedAt?: string | null;
   items: any[];
 }
 
@@ -51,7 +53,10 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
   const [mounted, setMounted] = useState(false);
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [actionType, setActionType] = useState<"approve" | "reject" | "ship" | "deliver" | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | "ship" | "deliver" | "return" | null>(null);
+  const [returnRemark, setReturnRemark] = useState("");
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -246,8 +251,77 @@ export default function OrderDetailPage({ params }: { params: { orderId: string 
     }
   };
 
+  const refreshOrder = async () => {
+    if (!order) return;
+    const refreshRes = await fetch(`/api/admin/orders/${order.id}`);
+    if (refreshRes.ok) {
+      setOrder(await refreshRes.json());
+    }
+  };
+
+  const handleReturn = async () => {
+    if (!order) return;
+    if (!returnRemark.trim()) {
+      message.error("Please enter why the order came back");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "return", returnRemark }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to mark order as returned");
+      }
+
+      message.success("Order marked as returned");
+      await refreshOrder();
+      setReturnRemark("");
+      setActionType(null);
+    } catch (error) {
+      console.error("Error marking order as returned:", error);
+      message.error(error instanceof Error ? error.message : "Failed to mark order as returned");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSavePhone = async () => {
+    if (!order) return;
+
+    try {
+      setIsProcessing(true);
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_phone", shippingPhone: phoneDraft }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to update phone");
+      }
+
+      message.success("Customer phone updated");
+      await refreshOrder();
+      setIsEditingPhone(false);
+    } catch (error) {
+      console.error("Error updating phone:", error);
+      message.error(error instanceof Error ? error.message : "Failed to update phone");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "returned":
+        return <Badge className="bg-orange-600 text-lg px-3 py-1">Returned</Badge>;
       case "payment_received":
         return <Badge className="bg-yellow-600 text-lg px-3 py-1">Payment Received</Badge>;
       case "accepted":
