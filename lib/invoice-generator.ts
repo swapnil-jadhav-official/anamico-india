@@ -35,6 +35,7 @@ export interface InvoiceData {
   paymentStatus: string;
   status: string;
   invoiceNumber?: string;
+  paymentId?: string | null; // Razorpay payment ID, printed so payments can be matched
   invoiceDate?: Date;
   dueDate?: Date;
   shippedAt?: Date;
@@ -194,6 +195,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       '{{INVOICE_NUMBER}}': invoiceNumber,
       '{{INVOICE_DATE}}': invoiceDate,
       '{{PAYMENT_TERMS}}': 'Due on Receipt',
+      '{{PAYMENT_REFERENCE}}': data.paymentId || 'Not paid yet',
       '{{DUE_DATE}}': dueDate,
       '{{PLACE_OF_SUPPLY}}': stateCode,
       '{{CUSTOMER_NAME}}': data.customerName,

@@ -71,6 +71,7 @@ export async function GET(
       paymentStatus: existingOrder.paymentStatus,
       status: existingOrder.status,
       invoiceNumber: `INV-${existingOrder.orderNumber}`,
+      paymentId: existingOrder.paymentId,
       invoiceDate: typeof existingOrder.updatedAt === 'string' ? new Date(existingOrder.updatedAt) : existingOrder.updatedAt,
       shippedAt: existingOrder.shippedAt ?
         typeof existingOrder.shippedAt === 'string' ? new Date(existingOrder.shippedAt) : existingOrder.shippedAt

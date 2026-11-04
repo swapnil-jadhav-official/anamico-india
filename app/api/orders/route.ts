@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       shippingCity: city,
       shippingState: state,
       shippingPincode: pincode,
-      shippingGstNumber: gstNumber || null,
+      shippingGstNumber: gstNumber ? String(gstNumber).trim().toUpperCase() : null,
     });
 
     // Create order items

@@ -18,6 +18,7 @@ interface Order {
   total: number;
   paidAmount: number;
   paymentStatus: string;
+  paymentId?: string | null;
   status: string;
   shippedAt?: Date | string;
   deliveredAt?: Date | string;
@@ -170,6 +171,7 @@ export async function sendInvoiceEmail(order: Order): Promise<void> {
       paymentStatus: order.paymentStatus,
       status: order.status,
       invoiceNumber: `INV-${order.orderNumber}`,
+      paymentId: order.paymentId,
       shippedAt: order.shippedAt ? (typeof order.shippedAt === 'string' ? new Date(order.shippedAt) : order.shippedAt) : undefined,
       deliveredAt: order.deliveredAt ? (typeof order.deliveredAt === 'string' ? new Date(order.deliveredAt) : order.deliveredAt) : undefined,
     };

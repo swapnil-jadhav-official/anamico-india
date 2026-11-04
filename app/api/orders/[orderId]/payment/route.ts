@@ -162,6 +162,7 @@ export async function POST(
         paymentStatus: newPaymentStatus,
         status: 'payment_received',
         invoiceNumber: `INV-${existingOrder.orderNumber}`,
+        paymentId: existingOrder.paymentId,
         invoiceDate: new Date(), // Use payment date as invoice date
       };
 
@@ -240,6 +241,7 @@ export async function POST(
         paymentStatus: newPaymentStatus,
         status: 'payment_received',
         invoiceNumber: `INV-${existingOrder.orderNumber}`,
+        paymentId: existingOrder.paymentId,
         invoiceDate: new Date(), // Use payment date as invoice date
       };
 

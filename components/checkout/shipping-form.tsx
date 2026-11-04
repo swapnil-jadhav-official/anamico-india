@@ -117,8 +117,9 @@ export function ShippingForm({ onSubmit, isLoading }: ShippingFormProps) {
     if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = "Pincode must be 6 digits";
     }
-    if (formData.gstNumber && !/^\d{15}$/.test(formData.gstNumber.replace(/\D/g, ""))) {
-      newErrors.gstNumber = "GST number must be 15 digits";
+    const gst = (formData.gstNumber || "").trim().toUpperCase();
+    if (gst && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gst)) {
+      newErrors.gstNumber = "Enter a valid 15-character GST number (e.g., 27AABCU9603R1ZX)";
     }
 
     setErrors(newErrors);

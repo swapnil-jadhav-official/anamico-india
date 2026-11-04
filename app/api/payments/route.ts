@@ -387,6 +387,7 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
           paymentStatus: newPaymentStatus,
           status: 'payment_received',
           invoiceNumber: `INV-${existingOrder.orderNumber}`,
+          paymentId: existingOrder.paymentId,
           invoiceDate: new Date(), // Use payment date as invoice date
         };
 
@@ -470,6 +471,7 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
           paymentStatus: newPaymentStatus,
           status: 'payment_received',
           invoiceNumber: `INV-${existingOrder.orderNumber}`,
+          paymentId: existingOrder.paymentId,
           invoiceDate: new Date(), // Use payment date as invoice date
         };
 
