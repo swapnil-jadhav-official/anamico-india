@@ -171,8 +171,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
         {/* Shipping Info */}
         <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 text-sm">
           <p className="text-blue-900 dark:text-blue-100">
-            <span className="font-semibold">Free Shipping</span> available for orders
-            above ₹500
+            <span className="font-semibold">Free Shipping</span> on all orders
           </p>
         </div>
 
