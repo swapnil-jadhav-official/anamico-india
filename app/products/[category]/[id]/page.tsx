@@ -52,6 +52,7 @@ export default function ProductDetailPage({ params }: { params: { category: stri
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { toast } = useToast()
   const [quantity, setQuantity] = useState(1)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewRefresh, setReviewRefresh] = useState(0)
   const { data: session } = useSession()
@@ -202,6 +203,13 @@ export default function ProductDetailPage({ params }: { params: { category: stri
       }
     : null
 
+  const gallery = product
+    ? [product.image, ...(product.galleryImages || [])].filter(
+        (src, index, all) => src && src !== "/placeholder.svg" && all.indexOf(src) === index
+      )
+    : []
+  const activeImage = gallery[selectedImageIndex] || gallery[0]
+
   return (
     <div className="min-h-screen flex flex-col">
       {productSchema && (
@@ -232,10 +240,27 @@ export default function ProductDetailPage({ params }: { params: { category: stri
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 mb-12 lg:mb-16">
             {/* Product Image */}
             <div className="relative aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-              {product.image && product.image !== "/placeholder.svg" ? (
-                <Image src={product.image} alt={product.name} fill className="object-cover" />
+              {activeImage ? (
+                <Image src={activeImage} alt={product.name} fill className="object-cover" />
               ) : (
                 <ShoppingCart className="h-24 w-24 text-muted-foreground/50" />
+              )}
+              {gallery.length > 1 && (
+                <div className="absolute bottom-3 left-0 right-0 z-10 flex justify-center gap-2 px-3">
+                  {gallery.map((src, index) => (
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => setSelectedImageIndex(index)}
+                      aria-label={`View image ${index + 1}`}
+                      className={`relative h-14 w-14 overflow-hidden rounded-md border-2 bg-background ${
+                        index === selectedImageIndex ? "border-primary" : "border-transparent"
+                      }`}
+                    >
+                      <Image src={src} alt="" fill className="object-cover" />
+                    </button>
+                  ))}
+                </div>
               )}
               {product.badge && <Badge className="absolute top-4 left-4 bg-primary">{product.badge}</Badge>}
               {discount > 0 && <Badge className="absolute top-4 right-4 bg-destructive">{discount}% OFF</Badge>}
