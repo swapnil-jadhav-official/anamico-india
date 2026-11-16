@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import { sendEmail } from './email';
 import { generateWelcomeEmail } from './email-templates';
+import { isValidPhoneVerificationToken } from './phone-verification';
 
 export const authConfig: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -136,6 +137,7 @@ export const authConfig: NextAuthOptions = {
       name: 'Phone',
       credentials: {
         phone: { label: "Phone", type: "text" },
+        verificationToken: { label: "Verification Token", type: "text" },
       },
       async authorize(credentials, req) {
         if (!credentials?.phone) {
@@ -143,6 +145,12 @@ export const authConfig: NextAuthOptions = {
         }
 
         const cleanedPhone = credentials.phone.replace(/\D/g, '');
+
+        // Only allow sign-in with proof that this phone just passed OTP verification
+        if (!isValidPhoneVerificationToken(cleanedPhone, credentials.verificationToken)) {
+          console.error('Missing or invalid phone verification for:', cleanedPhone);
+          return null;
+        }
 
         // Find user by phone number
         const user = await db.query.user.findFirst({

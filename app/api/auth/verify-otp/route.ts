@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/drizzle/db';
 import { user, phoneOtp } from '@/drizzle/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { createPhoneVerificationToken } from '@/lib/phone-verification';
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,50 +69,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // OTP verified successfully, check if user exists or create new user
+    // Delete the used OTP to prevent reuse
+    await db.delete(phoneOtp).where(eq(phoneOtp.id, otpRecord.id));
+
+    // New phone numbers don't get an account yet - the customer fills in
+    // their details first and the account is created by /api/auth/complete-signup
     const existingUsers = await db
-      .select()
+      .select({ id: user.id })
       .from(user)
       .where(eq(user.phone, cleanedPhone))
       .limit(1);
 
-    let userId;
-    let userName;
-    let userEmail;
-
-    if (existingUsers.length > 0) {
-      // User exists
-      userId = existingUsers[0].id;
-      userName = existingUsers[0].name;
-      userEmail = existingUsers[0].email;
-    } else {
-      // Create new user with phone number
-      userId = nanoid();
-      userName = `User ${cleanedPhone.slice(-4)}`;
-      userEmail = `${cleanedPhone}@phone.user`; // Placeholder email
-
-      await db.insert(user).values({
-        id: userId,
-        name: userName,
-        email: userEmail,
-        phone: cleanedPhone,
-        role: 'customer',
-        emailVerified: null,
-        image: null,
-      });
-    }
-
-    // Delete the used OTP to prevent reuse
-    await db.delete(phoneOtp).where(eq(phoneOtp.id, otpRecord.id));
-
     return NextResponse.json({
       success: true,
-      user: {
-        id: userId,
-        name: userName,
-        email: userEmail,
-        phone: cleanedPhone,
-      },
+      isNewUser: existingUsers.length === 0,
+      verificationToken: createPhoneVerificationToken(cleanedPhone),
       message: 'OTP verified successfully',
     });
   } catch (error) {

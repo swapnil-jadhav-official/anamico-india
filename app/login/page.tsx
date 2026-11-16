@@ -14,6 +14,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Mail, Lock, Smartphone, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -26,6 +34,11 @@ export default function LoginPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [phoneVerificationToken, setPhoneVerificationToken] = useState("");
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileAddress, setProfileAddress] = useState("");
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -215,25 +228,79 @@ export default function LoginPage() {
         return;
       }
 
-      // OTP verified, now sign in with phone
-      const result = await signIn("phone", {
-        phone: phoneNumber,
-        redirect: false,
-      });
+      setPhoneVerificationToken(verifyData.verificationToken);
 
-      if (result?.error) {
+      // First login with this number: collect details before creating the account
+      if (verifyData.isNewUser) {
+        setShowProfileDialog(true);
+        return;
+      }
+
+      await signInWithPhone(verifyData.verificationToken, "Welcome back!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithPhone = async (verificationToken: string, welcomeMessage: string) => {
+    const result = await signIn("phone", {
+      phone: phoneNumber,
+      verificationToken,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Please request a new OTP and try again.",
+      });
+    } else if (result?.ok) {
+      console.log("Phone OTP login successful");
+      toast({
+        title: "Login Successful",
+        description: welcomeMessage,
+      });
+    }
+  };
+
+  const handleCompleteProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (profileName.trim().length < 2) {
+      toast({
+        variant: "destructive",
+        title: "Name required",
+        description: "Please enter your full name.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/auth/complete-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phoneNumber,
+          verificationToken: phoneVerificationToken,
+          name: profileName,
+          email: profileEmail,
+          address: profileAddress,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
         toast({
           variant: "destructive",
-          title: "Login Failed",
-          description: result.error,
+          title: "Could not create account",
+          description: data.error || "Please try again.",
         });
-      } else if (result?.ok) {
-        console.log("Phone OTP login successful");
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        });
+        return;
       }
+
+      setShowProfileDialog(false);
+      await signInWithPhone(phoneVerificationToken, "Your account is ready!");
     } finally {
       setIsLoading(false);
     }
@@ -437,6 +504,54 @@ export default function LoginPage() {
           className="h-full w-full object-cover dark:brightness-[0.3] dark:grayscale"
         />
       </div>
+
+      <Dialog open={showProfileDialog} onOpenChange={(open) => !isLoading && setShowProfileDialog(open)}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleCompleteProfile} className="grid gap-4">
+            <DialogHeader>
+              <DialogTitle>Complete your profile</DialogTitle>
+              <DialogDescription>
+                Your number is verified. Tell us a bit about you to create your account.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-2">
+              <Label htmlFor="profile-name">Full Name *</Label>
+              <Input
+                id="profile-name"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                placeholder="e.g., Rahul Sharma"
+                autoFocus
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="profile-email">Email (optional)</Label>
+              <Input
+                id="profile-email"
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="profile-address">Address (optional)</Label>
+              <Input
+                id="profile-address"
+                value={profileAddress}
+                onChange={(e) => setProfileAddress(e.target.value)}
+                placeholder="House no, street, city"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Creating account..." : "Create Account"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
