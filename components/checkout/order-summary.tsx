@@ -30,7 +30,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
   const total = subtotal + tax;
 
   // Calculate discount and final amounts based on payment option
-  const fullPaymentDiscount = Math.round(total * 0.05);
+  const fullPaymentDiscount = Math.round(subtotal * 0.05); // 5% of the amount before tax
   const fullPaymentTotal = total - fullPaymentDiscount;
   const partialPaymentAmount = Math.round(total * 0.10);
   const remainingAmount = total - partialPaymentAmount;

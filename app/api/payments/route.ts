@@ -93,8 +93,8 @@ async function handleCreatePayment(_req: NextRequest, body: any) {
     if (paymentTypeStr === '10') {
       paymentAmount = Math.round(currentOrder.total * 0.1);
     } else if (paymentTypeStr === '100') {
-      // Apply 5% discount on full payment
-      const discount = Math.round(currentOrder.total * 0.05);
+      // Apply 5% discount on full payment, calculated on the subtotal (before tax)
+      const discount = Math.round(currentOrder.subtotal * 0.05);
       paymentAmount = currentOrder.total - discount;
     } else {
       return NextResponse.json(
@@ -256,8 +256,8 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
       paymentAmount = Math.round(existingOrder.total * 0.1);
       discountAmount = 0;
     } else if (paymentTypeStr === '100') {
-      // Apply 5% discount on full payment
-      discountAmount = Math.round(existingOrder.total * 0.05);
+      // Apply 5% discount on full payment, calculated on the subtotal (before tax)
+      discountAmount = Math.round(existingOrder.subtotal * 0.05);
       paymentAmount = existingOrder.total - discountAmount;
     } else {
       return NextResponse.json(

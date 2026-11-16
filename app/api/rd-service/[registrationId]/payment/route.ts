@@ -59,12 +59,15 @@ export async function POST(
       );
     }
 
+    // Full payment is the total less the 5% discount on the subtotal
+    const fullPaymentAmount = registration.total - Math.round(registration.subtotal * 0.05);
+
     // Update registration with payment info
     await db
       .update(rdServiceRegistration)
       .set({
         paidAmount: amount,
-        paymentStatus: 'completed',
+        paymentStatus: Number(amount) >= fullPaymentAmount ? 'completed' : 'partial_payment',
         status: 'payment_received',
         paymentMethod: 'razorpay',
         paymentId: razorpayPaymentId,

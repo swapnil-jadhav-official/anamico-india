@@ -56,7 +56,11 @@ export async function POST(
       );
     }
 
-    const amount = registration.total;
+    // Full payment gets 5% off the subtotal (before GST); partial pays 10% of the total now
+    const { paymentOption } = await req.json().catch(() => ({}));
+    const amount = paymentOption === 'partial'
+      ? Math.round(registration.total * 0.10)
+      : registration.total - Math.round(registration.subtotal * 0.05);
 
     // Create Razorpay order (real or mock based on credentials)
     let razorpayOrder;

@@ -86,7 +86,7 @@ export default function PaymentPage() {
   }
 
   // Calculate amounts with 5% discount on 100% payment
-  const discount = selectedPaymentPercent === 100 ? Math.round(orderData.total * 0.05) : 0;
+  const discount = selectedPaymentPercent === 100 ? Math.round(orderData.subtotal * 0.05) : 0;
   const partialAmount = selectedPaymentPercent === 100
     ? orderData.total - discount
     : Math.round((orderData.total * selectedPaymentPercent) / 100);
@@ -172,10 +172,10 @@ export default function PaymentPage() {
                           </div>
                           <div className="font-semibold">100% Payment</div>
                           <div className="text-sm text-muted-foreground">
-                            ₹{(orderData.total - Math.round(orderData.total * 0.05)).toLocaleString()}
+                            ₹{(orderData.total - Math.round(orderData.subtotal * 0.05)).toLocaleString()}
                           </div>
                           <div className="text-xs text-green-600 mt-1">
-                            Save ₹{Math.round(orderData.total * 0.05).toLocaleString()}!
+                            Save ₹{Math.round(orderData.subtotal * 0.05).toLocaleString()}!
                           </div>
                         </button>
 

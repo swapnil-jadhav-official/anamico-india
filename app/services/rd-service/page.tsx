@@ -171,8 +171,8 @@ export default function RDServicePage() {
     let partialAmount = 0;
 
     if (paymentOption === 'full') {
-      // 5% discount on full payment
-      discount = Math.round(total * 0.05);
+      // 5% discount on full payment, calculated on the subtotal (before GST)
+      discount = Math.round(subtotal * 0.05);
       savings = discount;
       finalTotal = total - discount;
     } else {
@@ -320,6 +320,7 @@ export default function RDServicePage() {
       const paymentResponse = await fetch(`/api/rd-service/${data.registrationId}/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentOption }),
       });
 
       if (!paymentResponse.ok) {
@@ -333,7 +334,7 @@ export default function RDServicePage() {
       await handlePayment(
         data.registrationId,
         paymentData.razorpayOrderId,
-        pricing.finalTotal
+        paymentData.amount // Amount the server charged, including any discount
       );
 
       // Note: Success message and redirect happen in handlePayment's payment handler callback
