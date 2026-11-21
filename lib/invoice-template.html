@@ -383,11 +383,12 @@
           <td class="summary-label">Sub Total</td>
           <td class="summary-value">{{SUB_TOTAL}}</td>
         </tr>
+        {{DISCOUNT_ROW}}
         <tr>
           <td class="summary-label">{{TAX_TYPE}} ({{TAX_RATE}}%)</td>
           <td class="summary-value">{{TAX_AMOUNT}}</td>
         </tr>
-        {{DISCOUNT_ROW}}
+        {{ROUND_OFF_ROW}}
         <tr class="total-row">
           <td class="summary-label">Total</td>
           <td class="summary-value">{{TOTAL_AMOUNT}}</td>

@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Shield, Truck, RotateCcw, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { formatRupees, getFullPaymentBreakdown, getPartialPaymentAmount } from "@/lib/pricing";
 
 // Declare Razorpay global
 declare global {
@@ -106,6 +107,8 @@ export default function RDServicePage() {
     gst: 0,
     total: 0,
     discount: 0,
+    taxableValue: 0,
+    discountedGst: 0,
     finalTotal: 0,
     partialAmount: 0,
     savings: 0,
@@ -165,19 +168,19 @@ export default function RDServicePage() {
     const total = subtotal + gst;
 
     // Calculate discount and final amounts based on payment option
+    // Full payment: 5% off the subtotal, GST on the discounted value. Partial: 10% of the full total.
+    const full = getFullPaymentBreakdown(subtotal, gst);
     let discount = 0;
     let savings = 0;
     let finalTotal = total;
     let partialAmount = 0;
 
     if (paymentOption === 'full') {
-      // 5% discount on full payment, calculated on the subtotal (before GST)
-      discount = Math.round(subtotal * 0.05);
-      savings = discount;
-      finalTotal = total - discount;
+      discount = full.discount;
+      savings = full.totalSaving;
+      finalTotal = full.payable;
     } else {
-      // 10% partial payment
-      partialAmount = Math.round(total * 0.10);
+      partialAmount = getPartialPaymentAmount(total);
       finalTotal = partialAmount;
     }
 
@@ -189,6 +192,8 @@ export default function RDServicePage() {
       gst,
       total,
       discount,
+      taxableValue: full.taxableValue,
+      discountedGst: full.gst,
       finalTotal,
       partialAmount,
       savings,
@@ -860,25 +865,35 @@ export default function RDServicePage() {
                     <span>Subtotal</span>
                     <span>₹{pricing.subtotal.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>GST (18%)</span>
-                    <span>₹{pricing.gst.toLocaleString()}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-sm">
-                    <span>Total Amount</span>
-                    <span>₹{pricing.total.toLocaleString()}</span>
-                  </div>
-
-                  {paymentOption === 'full' && pricing.discount > 0 && (
+                  {paymentOption === 'full' && pricing.discount > 0 ? (
                     <>
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Discount (5%)</span>
-                        <span>-₹{pricing.discount.toLocaleString()}</span>
+                        <span>-₹{formatRupees(pricing.discount)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Taxable Value</span>
+                        <span>₹{formatRupees(pricing.taxableValue)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>GST (18%)</span>
+                        <span>₹{formatRupees(pricing.discountedGst)}</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
                         <CheckCircle2 className="h-4 w-4" />
-                        <span>You're saving ₹{pricing.savings.toLocaleString()}!</span>
+                        <span>You're saving ₹{formatRupees(pricing.savings)}!</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span>GST (18%)</span>
+                        <span>₹{pricing.gst.toLocaleString()}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between text-sm">
+                        <span>Total Amount</span>
+                        <span>₹{pricing.total.toLocaleString()}</span>
                       </div>
                     </>
                   )}

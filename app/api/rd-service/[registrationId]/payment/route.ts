@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { rdServiceRegistration } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
+import { getFullPaymentBreakdown } from '@/lib/pricing';
 import { getServerSession } from 'next-auth';
 import { authConfig } from '@/lib/auth';
 import { sendEmail, sendAdminEmail } from '@/lib/email';
@@ -59,8 +60,8 @@ export async function POST(
       );
     }
 
-    // Full payment is the total less the 5% discount on the subtotal
-    const fullPaymentAmount = registration.total - Math.round(registration.subtotal * 0.05);
+    // Full payment: 5% off the subtotal, GST on the discounted value
+    const fullPaymentAmount = getFullPaymentBreakdown(registration.subtotal, registration.gst).payable;
 
     // Update registration with payment info
     await db

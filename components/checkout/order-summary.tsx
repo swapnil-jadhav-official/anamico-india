@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
 import type { CartItem } from "@/lib/cart-context";
 import Link from "next/link";
+import { formatRupees, getFullPaymentBreakdown, getPartialPaymentAmount } from "@/lib/pricing";
 
 interface OrderSummaryProps {
   items: CartItem[];
@@ -30,14 +31,14 @@ export function OrderSummary({ items }: OrderSummaryProps) {
   const total = subtotal + tax;
 
   // Calculate discount and final amounts based on payment option
-  const fullPaymentDiscount = Math.round(subtotal * 0.05); // 5% of the amount before tax
-  const fullPaymentTotal = total - fullPaymentDiscount;
-  const partialPaymentAmount = Math.round(total * 0.10);
+  // Full payment: 5% off the subtotal, GST on the discounted value. Partial: GST on the full subtotal.
+  const full = getFullPaymentBreakdown(subtotal, tax);
+  const fullPaymentTotal = full.payable;
+  const partialPaymentAmount = getPartialPaymentAmount(total);
   const remainingAmount = total - partialPaymentAmount;
 
   const finalTotal = paymentOption === 'full' ? fullPaymentTotal : partialPaymentAmount;
-  const discount = paymentOption === 'full' ? fullPaymentDiscount : 0;
-  const savings = paymentOption === 'full' ? fullPaymentDiscount : 0;
+  const isFull = paymentOption === 'full';
 
   return (
     <Card className="sticky top-6">
@@ -96,7 +97,7 @@ export function OrderSummary({ items }: OrderSummaryProps) {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pay full amount and save ₹{fullPaymentDiscount.toLocaleString()}
+                  Pay full amount and save ₹{formatRupees(full.totalSaving)}
                 </p>
               </div>
               <span className="font-bold text-primary">
@@ -138,21 +139,40 @@ export function OrderSummary({ items }: OrderSummaryProps) {
             <span className="text-muted-foreground">Subtotal</span>
             <span className="font-medium">₹{subtotal.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Tax ({displayTaxPercent}%)</span>
-            <span className="font-medium">₹{tax.toLocaleString()}</span>
-          </div>
-          <div className="border-t pt-2 flex justify-between text-base">
-            <span className="font-semibold">Total</span>
-            <span className="font-bold text-lg">
-              ₹{total.toLocaleString()}
-            </span>
-          </div>
-          {discount > 0 && (
-            <div className="flex justify-between text-green-600">
-              <span className="font-medium">Discount (5%)</span>
-              <span className="font-semibold">-₹{discount.toLocaleString()}</span>
-            </div>
+          {isFull ? (
+            <>
+              <div className="flex justify-between text-green-600">
+                <span className="font-medium">Discount (5%)</span>
+                <span className="font-semibold">-₹{formatRupees(full.discount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Taxable Value</span>
+                <span className="font-medium">₹{formatRupees(full.taxableValue)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tax ({displayTaxPercent}%)</span>
+                <span className="font-medium">₹{formatRupees(full.gst)}</span>
+              </div>
+              {full.roundOff !== 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Round Off</span>
+                  <span className="font-medium">{full.roundOff > 0 ? '+' : '-'}₹{formatRupees(Math.abs(full.roundOff))}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tax ({displayTaxPercent}%)</span>
+                <span className="font-medium">₹{tax.toLocaleString()}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between text-base">
+                <span className="font-semibold">Total</span>
+                <span className="font-bold text-lg">
+                  ₹{total.toLocaleString()}
+                </span>
+              </div>
+            </>
           )}
           <div className="border-t pt-2 flex justify-between text-base">
             <span className="font-bold">Amount to Pay Now</span>

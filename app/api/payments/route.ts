@@ -24,6 +24,7 @@ import {
   generateAdminNewOrderEmail
 } from '@/lib/email-templates';
 import { generateInvoicePDF, getInvoiceFilename, InvoiceData } from '@/lib/invoice-generator';
+import { getFullPaymentBreakdown, getPartialPaymentAmount } from '@/lib/pricing';
 
 /**
  * POST /api/payments
@@ -91,11 +92,10 @@ async function handleCreatePayment(_req: NextRequest, body: any) {
     const paymentTypeStr = String(paymentType);
 
     if (paymentTypeStr === '10') {
-      paymentAmount = Math.round(currentOrder.total * 0.1);
+      paymentAmount = getPartialPaymentAmount(currentOrder.total);
     } else if (paymentTypeStr === '100') {
-      // Apply 5% discount on full payment, calculated on the subtotal (before tax)
-      const discount = Math.round(currentOrder.subtotal * 0.05);
-      paymentAmount = currentOrder.total - discount;
+      // 5% off the subtotal, GST charged on the discounted value
+      paymentAmount = getFullPaymentBreakdown(currentOrder.subtotal, currentOrder.tax).payable;
     } else {
       return NextResponse.json(
         { error: `Invalid payment type: ${paymentType}` },
@@ -253,12 +253,14 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
     const paymentTypeStr = String(paymentType);
 
     if (paymentTypeStr === '10') {
-      paymentAmount = Math.round(existingOrder.total * 0.1);
+      paymentAmount = getPartialPaymentAmount(existingOrder.total);
       discountAmount = 0;
     } else if (paymentTypeStr === '100') {
-      // Apply 5% discount on full payment, calculated on the subtotal (before tax)
-      discountAmount = Math.round(existingOrder.subtotal * 0.05);
-      paymentAmount = existingOrder.total - discountAmount;
+      // 5% off the subtotal, GST charged on the discounted value. discountAmount stores
+      // the full saving so that total - discountAmount is what the customer pays.
+      const breakdown = getFullPaymentBreakdown(existingOrder.subtotal, existingOrder.tax);
+      discountAmount = breakdown.totalSaving;
+      paymentAmount = breakdown.payable;
     } else {
       return NextResponse.json(
         { error: `Invalid payment type: ${paymentType}` },
@@ -287,7 +289,8 @@ async function handleVerifyPayment(_req: NextRequest, body: any) {
 
     // Calculate new payment status
     const newPaidAmount = (existingOrder.paidAmount || 0) + paymentAmount;
-    const newPaymentStatus = newPaidAmount >= existingOrder.total ? 'completed' : 'partial_payment';
+    const amountDue = existingOrder.total - (discountAmount || existingOrder.discountAmount || 0);
+    const newPaymentStatus = newPaidAmount >= amountDue ? 'completed' : 'partial_payment';
 
     // Update order with payment info
     // Only store discount on first payment

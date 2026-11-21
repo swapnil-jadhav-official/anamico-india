@@ -4,6 +4,7 @@ import { authConfig } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { rdServiceRegistration } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
+import { getFullPaymentBreakdown, getPartialPaymentAmount } from '@/lib/pricing';
 import {
   createMockOrder,
   generateMockCheckoutOptions,
@@ -56,11 +57,11 @@ export async function POST(
       );
     }
 
-    // Full payment gets 5% off the subtotal (before GST); partial pays 10% of the total now
+    // Full payment gets 5% off the subtotal with GST on the discounted value; partial pays 10% of the total now
     const { paymentOption } = await req.json().catch(() => ({}));
     const amount = paymentOption === 'partial'
-      ? Math.round(registration.total * 0.10)
-      : registration.total - Math.round(registration.subtotal * 0.05);
+      ? getPartialPaymentAmount(registration.total)
+      : getFullPaymentBreakdown(registration.subtotal, registration.gst).payable;
 
     // Create Razorpay order (real or mock based on credentials)
     let razorpayOrder;

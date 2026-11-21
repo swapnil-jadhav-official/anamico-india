@@ -12,6 +12,7 @@ import { RazorpayCheckout } from "@/components/checkout/razorpay-checkout";
 import { message } from "antd";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { formatRupees, getFullPaymentBreakdown, getPartialPaymentAmount } from "@/lib/pricing";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -85,11 +86,11 @@ export default function PaymentPage() {
     );
   }
 
-  // Calculate amounts with 5% discount on 100% payment
-  const discount = selectedPaymentPercent === 100 ? Math.round(orderData.subtotal * 0.05) : 0;
-  const partialAmount = selectedPaymentPercent === 100
-    ? orderData.total - discount
-    : Math.round((orderData.total * selectedPaymentPercent) / 100);
+  // 100% payment: 5% off the subtotal, GST on the discounted value. 10%: GST on the full subtotal.
+  const full = getFullPaymentBreakdown(orderData.subtotal, orderData.tax);
+  const isFull = selectedPaymentPercent === 100;
+  const discount = isFull ? full.discount : 0;
+  const partialAmount = isFull ? full.payable : getPartialPaymentAmount(orderData.total);
   const remainingAmount = selectedPaymentPercent === 100 ? 0 : orderData.total - partialAmount;
 
   // Get actual tax percentage from order items (not calculated from rounded amounts)
@@ -172,10 +173,10 @@ export default function PaymentPage() {
                           </div>
                           <div className="font-semibold">100% Payment</div>
                           <div className="text-sm text-muted-foreground">
-                            ₹{(orderData.total - Math.round(orderData.subtotal * 0.05)).toLocaleString()}
+                            ₹{full.payable.toLocaleString()}
                           </div>
                           <div className="text-xs text-green-600 mt-1">
-                            Save ₹{Math.round(orderData.subtotal * 0.05).toLocaleString()}!
+                            Save ₹{formatRupees(full.totalSaving)}!
                           </div>
                         </button>
 
@@ -190,7 +191,7 @@ export default function PaymentPage() {
                         >
                           <div className="font-semibold">10% Partial</div>
                           <div className="text-sm text-muted-foreground">
-                            ₹{Math.round((orderData.total * 10) / 100).toLocaleString()}
+                            ₹{getPartialPaymentAmount(orderData.total).toLocaleString()}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
                             Balance: Cash on Delivery
@@ -202,18 +203,32 @@ export default function PaymentPage() {
                     {/* Payment Details */}
                     <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4 space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Order Total:</span>
-                        <span className="font-semibold">₹{orderData.total.toLocaleString()}</span>
+                        <span className="text-muted-foreground">{isFull ? "Subtotal:" : "Order Total:"}</span>
+                        <span className="font-semibold">₹{(isFull ? orderData.subtotal : orderData.total).toLocaleString()}</span>
                       </div>
                       {selectedPaymentPercent === 100 && discount > 0 && (
                         <>
                           <div className="flex justify-between text-sm text-green-600">
                             <span>Discount (5%):</span>
-                            <span className="font-semibold">-₹{discount.toLocaleString()}</span>
+                            <span className="font-semibold">-₹{formatRupees(discount)}</span>
                           </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Taxable Value:</span>
+                            <span className="font-semibold">₹{formatRupees(full.taxableValue)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Tax ({displayTaxPercent}%):</span>
+                            <span className="font-semibold">₹{formatRupees(full.gst)}</span>
+                          </div>
+                          {full.roundOff !== 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Round Off:</span>
+                              <span className="font-semibold">{full.roundOff > 0 ? '+' : '-'}₹{formatRupees(Math.abs(full.roundOff))}</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
                             <CheckCircle2 className="h-4 w-4" />
-                            <span>You're saving ₹{discount.toLocaleString()}!</span>
+                            <span>You're saving ₹{formatRupees(full.totalSaving)}!</span>
                           </div>
                         </>
                       )}
@@ -299,23 +314,36 @@ export default function PaymentPage() {
                       <p className="text-sm text-muted-foreground">Subtotal</p>
                       <p className="font-semibold">₹{orderData.subtotal.toLocaleString()}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tax ({displayTaxPercent}%)</p>
-                      <p className="font-semibold">₹{orderData.tax.toLocaleString()}</p>
-                    </div>
-                    <div className="border-t pt-4">
-                      <p className="text-sm text-muted-foreground">Total Amount</p>
-                      <p className="text-lg font-bold">
-                        ₹{orderData.total.toLocaleString()}
-                      </p>
-                    </div>
-                    {discount > 0 && (
-                      <div className="bg-green-50 dark:bg-green-950 border border-green-200 rounded-lg p-3">
-                        <div className="flex justify-between text-sm text-green-700 dark:text-green-300">
-                          <span className="font-medium">Discount (5%)</span>
-                          <span className="font-semibold">-₹{discount.toLocaleString()}</span>
+                    {isFull ? (
+                      <>
+                        <div className="bg-green-50 dark:bg-green-950 border border-green-200 rounded-lg p-3">
+                          <div className="flex justify-between text-sm text-green-700 dark:text-green-300">
+                            <span className="font-medium">Discount (5%)</span>
+                            <span className="font-semibold">-₹{formatRupees(discount)}</span>
+                          </div>
                         </div>
-                      </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Taxable Value</p>
+                          <p className="font-semibold">₹{formatRupees(full.taxableValue)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Tax ({displayTaxPercent}%)</p>
+                          <p className="font-semibold">₹{formatRupees(full.gst)}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Tax ({displayTaxPercent}%)</p>
+                          <p className="font-semibold">₹{orderData.tax.toLocaleString()}</p>
+                        </div>
+                        <div className="border-t pt-4">
+                          <p className="text-sm text-muted-foreground">Total Amount</p>
+                          <p className="text-lg font-bold">
+                            ₹{orderData.total.toLocaleString()}
+                          </p>
+                        </div>
+                      </>
                     )}
                     <div className="border-t pt-4">
                       <p className="text-sm text-muted-foreground">Amount to Pay Now</p>

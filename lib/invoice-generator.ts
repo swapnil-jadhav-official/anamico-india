@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
+import { getFullPaymentBreakdown } from './pricing';
 
 export interface InvoiceItem {
   productName: string;
@@ -165,15 +166,23 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
     // Use provided totals from data instead of calculating from items
     // This ensures the invoice always shows the correct totals, even if items array is empty
     const subtotal = data.subtotal;
-    const taxAmount = data.tax;
-    const total = data.total;
+    let taxAmount = data.tax;
+    let total = data.total;
     const balanceDue = data.dueAmount;
 
-    // Generate discount row if discount was applied
-    const discountAmount = data.discountAmount || 0;
-    const discountRow = discountAmount > 0
-      ? `<tr><td class="summary-label">Discount (5%)</td><td class="summary-value">-${formatNumber(discountAmount)}</td></tr>`
-      : '';
+    // Full payment: 5% off the subtotal, GST on the discounted value, rounded to the rupee
+    let discountRow = '';
+    let roundOffRow = '';
+    if ((data.discountAmount || 0) > 0) {
+      const full = getFullPaymentBreakdown(subtotal, data.tax);
+      taxAmount = full.gst;
+      total = full.payable;
+      discountRow = `<tr><td class="summary-label">Discount (5%)</td><td class="summary-value">-${formatNumber(full.discount)}</td></tr>`
+        + `<tr><td class="summary-label">Taxable Value</td><td class="summary-value">${formatNumber(full.taxableValue)}</td></tr>`;
+      if (full.roundOff !== 0) {
+        roundOffRow = `<tr><td class="summary-label">Round Off</td><td class="summary-value">${full.roundOff > 0 ? '' : '-'}${formatNumber(Math.abs(full.roundOff))}</td></tr>`;
+      }
+    }
 
     // Convert amount to words
     const amountInWords = `Indian Rupee ${numberToWords(Math.floor(total))}`;
@@ -207,6 +216,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<Buffer> {
       '{{SUB_TOTAL}}': formatNumber(subtotal),
       '{{TAX_AMOUNT}}': formatNumber(taxAmount),
       '{{DISCOUNT_ROW}}': discountRow,
+      '{{ROUND_OFF_ROW}}': roundOffRow,
       '{{TOTAL_AMOUNT}}': formatCurrency(total),
       '{{BALANCE_DUE}}': formatCurrency(balanceDue),
       '{{AMOUNT_IN_WORDS}}': amountInWords,
